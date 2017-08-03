@@ -18,11 +18,16 @@ log = logging.getLogger("auger")
 CONTEXT_SETTINGS = dict(auto_envvar_prefix='AUGER')
 
 
+def camelize(snake_cased_string):
+    parts = snake_cased_string.split('_')
+    return " ".join((x.upper() if len(x) < 4 else x.title()) for x in parts)
+
+
 class AugerClient(object):
     _cached_document = None
 
-    def __init__(self, url=constants.DEFAULT_COREAPI_URL):
-        self.app_name = self._get_app_from_repo()
+    def __init__(self, url=constants.DEFAULT_COREAPI_URL, app=None):
+        self.app = app or self._get_app_from_repo()
         self.coreapi_url = url
         self.coreapi_schema_url = self.coreapi_url + \
             constants.COREAPI_SCHEMA_PATH
@@ -46,6 +51,9 @@ class AugerClient(object):
     @property
     def document(self):
         """Load the schema from cache if available."""
+        if not self.credentials:
+            click.echo('Please login to Auger and try again.')
+            sys.exit(1)
 
         if not self._cached_document:
             doc = coreapi_cli.get_document()
@@ -131,9 +139,7 @@ class AugerCLI(click.MultiCommand):
             mod = __import__(
                 'auger_cli.commands.' + name, None, None, ['cli']
             )
-        except ImportError as e:
-            print(name)
-            print(str(e))
+        except ImportError:
             return
         return mod.cli
 

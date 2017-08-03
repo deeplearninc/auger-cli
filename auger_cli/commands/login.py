@@ -15,6 +15,7 @@ else:
 
 
 @click.command('login', short_help='Login to auger.')
+@click.option('--debug', is_flag=True, help='Show extra environment info.')
 @click.option(
     '--username',
     '-u',
@@ -35,7 +36,7 @@ else:
               type=click.STRING,
               help='Auger API endpoint.')
 @click.pass_context
-def cli(ctx, url, username, password):
+def cli(ctx, debug, url, username, password):
     # clear existing credentials
     ctx.obj.clear()
 
@@ -62,3 +63,6 @@ def cli(ctx, url, username, password):
                 host, username
             )
         )
+
+        if debug:
+            print(ctx.obj.document)
