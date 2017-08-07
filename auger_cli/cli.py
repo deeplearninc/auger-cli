@@ -5,7 +5,7 @@ from contextlib import contextmanager
 import auger_cli.constants as constants
 import coreapi
 import coreapi_cli.main as coreapi_cli
-from coreapi.codecs import JSONCodec
+from coreapi.codecs import JSONCodec, TextCodec
 from openapi_codec import OpenAPICodec
 import logging
 import os
@@ -38,7 +38,7 @@ class AugerClient(object):
             credentials=self.credentials,
             headers=self.headers,
         )
-        self.decoders = [OpenAPICodec(), JSONCodec()]
+        self.decoders = [OpenAPICodec(), JSONCodec(), TextCodec()]
         self.client = coreapi.Client(
             decoders=self.decoders,
             transports=[self.transports]
@@ -95,16 +95,15 @@ class AugerClient(object):
         else:
             return ''
 
-    def log(self, msg, *args, **kwargs):
-        log.info(msg, *args, **kwargs)
+    def setup_app_repo(self, app, ip_address):
+        url = self._get_app_repo_url(app, ip_address)
+        self.call(
+            ['git', 'remote', 'add', 'deis', url]
+        )
 
-    @staticmethod
-    def setup_logger(format='%(asctime)s %(name)s | %(message)s'):
-        logging.basicConfig(
-            stream=sys.stdout,
-            datefmt='%H:%M:%S',
-            format=format,
-            level=logging.DEBUG
+    def _get_app_repo_url(self, app, ip_address):
+        return 'git+ssh://deis-builder.{}.nip.io:30005/{}.git'.format(
+            ip_address, self.app
         )
 
     def _get_app_from_repo(self):
