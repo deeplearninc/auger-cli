@@ -7,22 +7,22 @@ import click
 @click.group(
     'keys',
     invoke_without_command=True,
-    short_help='Manage Auger cluster keys.'
+    short_help='Manage Auger SSH keys.'
 )
 @click.option(
-    'cluster_id',
-    '-c',
+    'organization_id',
+    '-o',
     type=click.INT,
-    help='Display keys for a given cluster.'
+    help='Display keys for a given organization.'
 )
 @click.pass_context
-def cli(ctx, cluster_id):
-    if ctx.invoked_subcommand is None and cluster_id is not None:
+def cli(ctx, organization_id):
+    if ctx.invoked_subcommand is None and organization_id is not None:
         keys = ctx.obj.client.action(
             ctx.obj.document,
-            ['keys', 'list'],
+            ['ssh_keys', 'list'],
             params={
-                'cluster_id': cluster_id
+                'organization_id': organization_id
             }
         )
         for key in iter(keys['data']):
@@ -40,34 +40,55 @@ def cli(ctx, cluster_id):
     help='A local file path to an SSH public key used to push app code.'
 )
 @click.option(
-    '--cluster-id',
-    '-c',
+    '--organization-id',
+    '-o',
     type=click.INT,
     required=True,
-    help='Cluster the key will be installed to.'
+    help='Organization the key will be installed to.'
 )
 @pass_client
-def add(ctx, public_key, cluster_id):
+def add(ctx, public_key, organization_id):
     try:
         with open(public_key) as f:
             key_content = f.read()
             result = ctx.client.action(
                 ctx.document,
-                ['keys', 'create'],
+                ['ssh_keys', 'create'],
                 params={
                     'public_key': key_content,
-                    'cluster_id': cluster_id
+                    'organization_id': organization_id
                 }
             )
             _print_key(result['data'])
     except IOError as e:
-        print(e)
         click.echo('Error loading public key {}'.format(public_key))
+
+
+@click.command(short_help='Delete an SSH key from a cluster.')
+@click.argument('key_id')
+@click.option(
+    '--organization-id',
+    '-o',
+    type=click.INT,
+    required=True,
+    help='Organization the key will be deleted from.'
+)
+@pass_client
+def delete(ctx, key_id, organization_id):
+    ctx.client.action(
+        ctx.document,
+        ['ssh_keys', 'delete'],
+        params={
+            'id': key_id,
+            'organization_id': organization_id
+        }
+    )
+    click.echo("Deleted SSH key.")
 
 
 def _print_key(key_dict):
     attributes = [
-        'uid',
+        'id',
         'public_key',
         'created_at'
     ]
@@ -84,3 +105,4 @@ def _print_key(key_dict):
 
 
 cli.add_command(add)
+cli.add_command(delete)

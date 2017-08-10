@@ -98,12 +98,16 @@ class AugerClient(object):
     def setup_app_repo(self, app, ip_address):
         url = self._get_app_repo_url(app, ip_address)
         self.call(
-            ['git', 'remote', 'add', 'deis', url]
+            ['git', 'remote', 'remove', 'deis']
+        )
+        self.call(
+            ['git', 'remote', 'add', '-t', 'master', 'deis', url],
+            show_stdout=True
         )
 
     def _get_app_repo_url(self, app, ip_address):
         return 'git+ssh://deis-builder.{}.nip.io:30005/{}.git'.format(
-            ip_address, self.app
+            ip_address, app
         )
 
     def _get_app_from_repo(self):

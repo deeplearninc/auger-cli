@@ -26,9 +26,10 @@ def cli(ctx, cluster_id):
                 'cluster_id': cluster_id
             }
         )
-        print(apps)
         for app in iter(apps['data']):
             _print_app(app)
+    elif ctx.invoked_subcommand is None:
+        click.echo('Please specify a --cluster-id or see details with --help.')
     else:
         pass
 
@@ -60,12 +61,12 @@ def create(ctx, app, cluster_id):
     )
     ip_address = ctx.client.action(
         ctx.document,
-        ['cluster', 'read'],
+        ['clusters', 'read'],
         params={
             'id': cluster_id
         }
     )['data']['ip_address']
-    ctx.client.setup_app_repo(app, ip_address)
+    ctx.setup_app_repo(app, ip_address)
     _print_app(result['data'])
 
 
