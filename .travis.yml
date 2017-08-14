@@ -15,8 +15,6 @@ addons:
     packages:
       - git
       - python-pip
-install:
-  - pip install -r test-requirements.txt
 script:
   - python setup.py test
 cache:

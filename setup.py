@@ -28,7 +28,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     platforms='any',
-
+    test_suite='tests',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
@@ -50,12 +50,12 @@ setup(
         'dev': [
             'blinker',
             'python-dotenv',
-            'pytest>=3',
             'coverage',
             'flake8',
             'tox',
         ],
     },
+    tests_require=['vcrpy'],
     entry_points={
         'console_scripts': [
             'auger=auger_cli.cli:cli',

@@ -11,30 +11,48 @@ from coreapi.transports import http as coreapi_http
     invoke_without_command=True,
     short_help='Manage Auger Apps.'
 )
-@click.option(
-    'cluster_id',
-    '-c',
-    type=click.INT
-)
 @click.pass_context
-def cli(ctx, cluster_id):
-    if ctx.invoked_subcommand is None and cluster_id is not None:
+def cli(ctx):
+    if ctx.invoked_subcommand is None:
         apps = ctx.obj.client.action(
             ctx.obj.document,
-            ['apps', 'list'],
-            params={
-                'cluster_id': cluster_id
-            }
+            ['apps', 'list']
         )
         for app in iter(apps['data']):
             _print_app(app)
-    elif ctx.invoked_subcommand is None:
-        click.echo('Please specify a --cluster-id or see details with --help.')
     else:
         pass
 
 
 @click.command(short_help='Attach an app to a cluster.')
+@click.option(
+    '--app',
+    '-a',
+    type=click.STRING,
+    required=True,
+    help='Name of the app to attach.'
+)
+@click.option(
+    '--cluster-id',
+    '-c',
+    type=click.INT,
+    required=True,
+    help='Cluster the app will be deployed to.'
+)
+@pass_client
+def attach(ctx, app, cluster_id):
+    ctx.client.action(
+        ctx.document,
+        ['apps', 'attach'],
+        params={
+            'name': app,
+            'cluster_id': cluster_id
+        }
+    )
+    _attach_app_repo(ctx, app, cluster_id)
+
+
+@click.command(short_help='Create a new Auger app.')
 @click.option(
     '--app',
     '-a',
@@ -46,27 +64,34 @@ def cli(ctx, cluster_id):
     '--cluster-id',
     '-c',
     type=click.INT,
+    help='Optional cluster the app will be deployed to.'
+)
+@click.option(
+    '--organization-id',
+    '-o',
+    type=click.INT,
     required=True,
-    help='Cluster the app will be deployed to.'
+    help='Organization for the app.'
 )
 @pass_client
-def create(ctx, app, cluster_id):
+def create(ctx, app, cluster_id, organization_id):
+    params = {
+        'name': app,
+        'organization_id': organization_id
+    }
+    setup_app_repo = False
+    if cluster_id is not None:
+        setup_app_repo = True
+        params['cluster_id'] = cluster_id
+
     result = ctx.client.action(
         ctx.document,
         ['apps', 'create'],
-        params={
-            'id': app,
-            'cluster_id': cluster_id
-        }
+        params
     )
-    ip_address = ctx.client.action(
-        ctx.document,
-        ['clusters', 'read'],
-        params={
-            'id': cluster_id
-        }
-    )['data']['ip_address']
-    ctx.setup_app_repo(app, ip_address)
+    if setup_app_repo:
+        _attach_app_repo(ctx, app, cluster_id)
+
     _print_app(result['data'])
 
 
@@ -78,24 +103,32 @@ def create(ctx, app, cluster_id):
     required=True,
     help='Name of the app to delete.'
 )
-@click.option(
-    '--cluster-id',
-    '-c',
-    type=click.INT,
-    required=True,
-    help='Cluster the app will be deleted from.'
-)
 @pass_client
-def delete(ctx, app, cluster_id):
+def delete(ctx, app):
     ctx.client.action(
         ctx.document,
         ['apps', 'delete'],
-        params={
-            'id': app,
-            'cluster_id': cluster_id
-        }
+        params={'name': app}
     )
     click.echo('Deleted {}.'.format(app))
+
+
+@click.command(short_help='Detach an app from the cluster.')
+@click.option(
+    '--app',
+    '-a',
+    type=click.STRING,
+    required=True,
+    help='Name of the app to delete.'
+)
+@pass_client
+def detach(ctx, app):
+    ctx.client.action(
+        ctx.document,
+        ['apps', 'detach'],
+        params={'name': app}
+    )
+    click.echo('Detached {}.'.format(app))
 
 
 @click.command(short_help='Display app logs.')
@@ -107,13 +140,6 @@ def delete(ctx, app, cluster_id):
     help='Name of the app.'
 )
 @click.option(
-    '--cluster-id',
-    '-c',
-    type=click.STRING,
-    required=True,
-    help='Cluster for the app.'
-)
-@click.option(
     '--tail',
     '-t',
     type=click.BOOL,
@@ -121,11 +147,10 @@ def delete(ctx, app, cluster_id):
     help='Stream logs to console.'
 )
 @pass_client
-def logs(ctx, app, cluster_id, tail):
+def logs(ctx, app, tail):
     if tail:
         params = {
-            'id': app,
-            'cluster_id': cluster_id
+            'name': app
         }
         _stream_logs(ctx, params)
     else:
@@ -133,31 +158,43 @@ def logs(ctx, app, cluster_id, tail):
             ctx.document,
             ['apps', 'logs'],
             params={
-                'id': app,
-                'cluster_id': cluster_id
+                'name': app
             }
         )
         click.echo(result)
 
 
 @click.command(short_help='Display app details.')
-@click.argument('id')
+@click.argument('name')
 @pass_client
 def show(ctx, id):
     app = ctx.client.action(
         ctx.document,
         ['apps', 'read'],
-        params={
-            'id': id
-        }
+        params={'name': name}
     )
     _print_app(app['data'])
 
 
+def _attach_app_repo(ctx, app, cluster_id):
+    ip_address = ctx.client.action(
+        ctx.document,
+        ['clusters', 'read'],
+        params={
+            'id': cluster_id
+        }
+    )['data']['ip_address']
+    ctx.setup_app_repo(app, ip_address)
+
+
 def _print_app(app_dict):
+    print(app_dict)
     attributes = [
         'id',
+        'name',
         'url',
+        'attached',
+        'cluster_id',
         'created_at'
     ]
     width = len(max(attributes, key=len)) + 1
@@ -202,7 +239,9 @@ def _stream_logs(ctx, params):
 
     doc = ctx.document
 
-    def flatten(list): return [item for sublist in list for item in sublist]
+    def flatten(list):
+        return [item for sublist in list for item in sublist]
+
     links = flatten(
         list(map(lambda link: list(link._data.values()), doc.data.values()))
     )
@@ -215,7 +254,9 @@ def _stream_logs(ctx, params):
     http_transport.stream_request(link, decoders, params=params)
 
 
+cli.add_command(attach)
 cli.add_command(create)
 cli.add_command(delete)
+cli.add_command(detach)
 cli.add_command(logs)
 cli.add_command(show)

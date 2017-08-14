@@ -1,20 +1,27 @@
 # -*- coding: utf-8 -*-
 
 from auger_cli import constants
-from auger_cli.cli import AugerClient
+from auger_cli.cli import AugerClient, pass_client
 from coreapi.compat import b64encode
 import click
-import coreapi_cli.main as coreapi_cli
-import sys
-
-if sys.version_info[0] < 3:
-    from urlparse import urlparse
-    input = raw_input
-else:
-    from urllib.parse import urlparse
+# import sys
 
 
-@click.command('login', short_help='Login to auger.')
+# if sys.version_info[0] < 3:
+#     from urlparse import urlparse
+#     input = raw_input
+# else:
+#
+from urllib.parse import urlparse
+
+
+@click.group('auth', short_help='Authentication with Auger.')
+@pass_client
+def cli(ctx):
+    pass
+
+
+@click.command(short_help='Login to auger.')
 @click.option('--debug', is_flag=True, help='Show extra environment info.')
 @click.option(
     '--username',
@@ -36,9 +43,10 @@ else:
               type=click.STRING,
               help='Auger API endpoint.')
 @click.pass_context
-def cli(ctx, debug, url, username, password):
+def login(ctx, debug, url, username, password):
     # clear existing credentials
-    ctx.obj.clear()
+    if ctx.obj is not None:
+        ctx.obj.clear()
 
     # extract host name from server URL
     parsed = urlparse(url)
@@ -47,10 +55,11 @@ def cli(ctx, debug, url, username, password):
     header = 'Basic ' + b64encode(creds_string)
 
     # reload client
-    credentials = coreapi_cli.get_credentials()
+    credentials = {}
     credentials[host] = header
-    coreapi_cli.set_credentials(credentials)
     ctx.obj = AugerClient(url)
+    ctx.obj.set_credentials(credentials)
+    ctx.obj.setup_client()
 
     with ctx.obj.coreapi_action():
         ctx.obj.client.action(
@@ -59,10 +68,21 @@ def cli(ctx, debug, url, username, password):
         )
 
         print(
-            "You are now logged in on {0} as {1}".format(
+            "You are now logged in on {0} as {1}.".format(
                 host, username
             )
         )
 
         if debug:
             print(ctx.obj.document)
+
+
+@click.command(short_help='Logout from Auger.')
+@click.pass_context
+def logout(ctx):
+    ctx.obj.clear()
+    click.echo('You are now logged out.')
+
+
+cli.add_command(login)
+cli.add_command(logout)

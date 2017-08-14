@@ -60,7 +60,7 @@ def add(ctx, public_key, organization_id):
                 }
             )
             _print_key(result['data'])
-    except IOError as e:
+    except IOError:
         click.echo('Error loading public key {}'.format(public_key))
 
 

@@ -6,7 +6,9 @@ import auger_cli.constants as constants
 import coreapi
 import coreapi_cli.main as coreapi_cli
 from coreapi.codecs import JSONCodec, TextCodec
+from coreapi.compat import force_bytes
 from openapi_codec import OpenAPICodec
+import json
 import logging
 import os
 import shutil
@@ -23,6 +25,11 @@ def camelize(snake_cased_string):
     return " ".join((x.upper() if len(x) < 4 else x.title()) for x in parts)
 
 
+def init_coreapi_cli():
+    coreapi_cli.setup_paths()
+    return coreapi_cli
+
+
 class AugerClient(object):
     _cached_document = None
 
@@ -31,22 +38,12 @@ class AugerClient(object):
         self.coreapi_url = url
         self.coreapi_schema_url = self.coreapi_url + \
             constants.COREAPI_SCHEMA_PATH
-        coreapi_cli.setup_paths()
-        self.credentials = coreapi_cli.get_credentials()
-        self.headers = coreapi_cli.get_headers()
-        self.transports = coreapi.transports.HTTPTransport(
-            credentials=self.credentials,
-            headers=self.headers,
-        )
-        self.decoders = [OpenAPICodec(), JSONCodec(), TextCodec()]
-        self.client = coreapi.Client(
-            decoders=self.decoders,
-            transports=[self.transports]
-        )
+        self.coreapi_cli = init_coreapi_cli()
+        self.setup_client()
 
     def clear(self):
-        shutil.rmtree(coreapi_cli.config_path)
-        os.makedirs(coreapi_cli.config_path)
+        shutil.rmtree(self.coreapi_cli.config_path)
+        os.makedirs(self.coreapi_cli.config_path)
 
     @property
     def document(self):
@@ -56,13 +53,13 @@ class AugerClient(object):
             sys.exit(1)
 
         if not self._cached_document:
-            doc = coreapi_cli.get_document()
+            doc = self.coreapi_cli.get_document()
             if doc is None:
                 self._cached_document = self.client.get(
                     self.coreapi_schema_url,
                     format='openapi'
                 )
-                coreapi_cli.set_document(self._cached_document)
+                self.coreapi_cli.set_document(self._cached_document)
             else:
                 self._cached_document = doc
         return self._cached_document
@@ -94,6 +91,23 @@ class AugerClient(object):
             return output.decode().strip()
         else:
             return ''
+
+    def setup_client(self):
+        self.credentials = self.coreapi_cli.get_credentials()
+        self.headers = self.coreapi_cli.get_headers()
+        self.transports = coreapi.transports.HTTPTransport(
+            credentials=self.credentials,
+            headers=self.headers,
+        )
+        self.decoders = [OpenAPICodec(), JSONCodec(), TextCodec()]
+        self.client = coreapi.Client(
+            decoders=self.decoders,
+            transports=[self.transports]
+        )
+
+    def set_credentials(self, credentials):
+        with open(self.coreapi_cli.credentials_path, 'wb') as store:
+            store.write(force_bytes(json.dumps(credentials)))
 
     def setup_app_repo(self, app, ip_address):
         url = self._get_app_repo_url(app, ip_address)
