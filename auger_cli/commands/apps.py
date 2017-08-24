@@ -167,7 +167,7 @@ def logs(ctx, app, tail):
 @click.command(short_help='Display app details.')
 @click.argument('name')
 @pass_client
-def show(ctx, id):
+def show(ctx, name):
     app = ctx.client.action(
         ctx.document,
         ['apps', 'read'],
@@ -188,7 +188,6 @@ def _attach_app_repo(ctx, app, cluster_id):
 
 
 def _print_app(app_dict):
-    print(app_dict)
     attributes = [
         'id',
         'name',

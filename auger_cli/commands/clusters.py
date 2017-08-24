@@ -2,6 +2,7 @@
 
 from auger_cli.cli import camelize, pass_client
 import click
+import collections
 
 
 @click.group(
@@ -18,11 +19,12 @@ def cli(ctx):
         )
         for cluster in iter(clusters['data']):
             click.echo(
-                "{: >4}. {} ({}) (up {} sec)".format(
+                "{: >4}: {} (status: {}) (uptime: {} sec) (launched: {} hours ago)".format(
                     cluster['id'],
                     cluster['name'],
                     cluster['status'],
-                    cluster['uptime_seconds']
+                    cluster['uptime_seconds'],
+                    cluster['seconds_since_created']//3600
                 )
             )
     else:
@@ -58,7 +60,7 @@ def create(ctx, name, organization_id, worker_count, instance_type):
             'name': name,
             'organization_id': organization_id,
             'worker_nodes_count': worker_count,
-            'node_instance_type': instance_type
+            'instance_type': instance_type
         }
     )
     _print_cluster(cluster['data'])
@@ -102,9 +104,8 @@ def _print_cluster(cluster_dict):
         'status',
         'uptime_seconds',
         'worker_nodes_count',
-        'node_instance_type',
+        'instance_type',
         'ip_address',
-        'deis_url',
         'kubernetes_url'
     ]
     width = len(max(attributes, key=len)) + 1
@@ -112,10 +113,21 @@ def _print_cluster(cluster_dict):
         click.echo(
             "{0:<{width}}: {1}".format(
                 camelize(attrib),
-                cluster_dict[attrib],
+                _string_for_attrib(cluster_dict[attrib]),
                 width=width
             )
         )
+
+
+def _string_for_attrib(attrib):
+    if type(attrib) in (int, str):
+        return attrib
+    elif type(attrib) is list:
+        return attrib.join(',')
+    if isinstance(attrib, collections.OrderedDict):
+        return ' - '.join([v for k, v in attrib.items() if k != 'object'])
+    else:
+        return attrib
 
 
 cli.add_command(create)
