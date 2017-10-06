@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from auger_cli.cli import camelize, pass_client
+from auger_cli.cli import pass_client
+from auger_cli.utils import camelize
 import click
 
 

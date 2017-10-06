@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from auger_cli import constants
-from auger_cli.cli import AugerClient, pass_client
+from auger_cli.cli import pass_client
+from auger_cli.client import Client
 from coreapi.compat import b64encode
 import click
 import sys
@@ -56,7 +57,7 @@ def login(ctx, debug, url, username, password):
     # reload client
     credentials = {}
     credentials[host] = header
-    ctx.obj = AugerClient(url)
+    ctx.obj = Client(url)
     ctx.obj.set_credentials(credentials)
     ctx.obj.setup_client()
 

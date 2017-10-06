@@ -68,7 +68,6 @@ def delete(ctx, organization_id):
 def _print_org(org_dict):
     def format_name(name):
         return name or 'pending'
-
     click.echo(
         "{0: >4}. {1: <12} ({2})".format(
             org_dict['id'],

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from auger_cli.cli import camelize, pass_client
+from auger_cli.cli import pass_client
+from auger_cli.utils import camelize
 import click
 from coreapi.transports import HTTPTransport
 from coreapi.transports import http as coreapi_http
@@ -22,34 +23,6 @@ def cli(ctx):
             _print_app(app)
     else:
         pass
-
-
-@click.command(short_help='Attach an app to a cluster.')
-@click.option(
-    '--app',
-    '-a',
-    type=click.STRING,
-    required=True,
-    help='Name of the app to attach.'
-)
-@click.option(
-    '--cluster-id',
-    '-c',
-    type=click.INT,
-    required=True,
-    help='Cluster the app will be deployed to.'
-)
-@pass_client
-def attach(ctx, app, cluster_id):
-    ctx.client.action(
-        ctx.document,
-        ['apps', 'attach'],
-        params={
-            'name': app,
-            'cluster_id': cluster_id
-        }
-    )
-    _attach_app_repo(ctx, app, cluster_id)
 
 
 @click.command(short_help='Create a new Auger app.')
@@ -79,23 +52,20 @@ def create(ctx, app, cluster_id, organization_id):
         'name': app,
         'organization_id': organization_id
     }
-    setup_app_repo = False
     if cluster_id is not None:
-        setup_app_repo = True
         params['cluster_id'] = cluster_id
-
     result = ctx.client.action(
         ctx.document,
         ['apps', 'create'],
-        params
+        params=params
     )
-    if setup_app_repo:
-        _attach_app_repo(ctx, app, cluster_id)
 
     _print_app(result['data'])
 
 
-@click.command(short_help='Delete an app from the cluster.')
+@click.command(
+    short_help='Delete an app from Auger Hub. This cannot be undone.'
+)
 @click.option(
     '--app',
     '-a',
@@ -113,22 +83,37 @@ def delete(ctx, app):
     click.echo('Deleted {}.'.format(app))
 
 
-@click.command(short_help='Detach an app from the cluster.')
+@click.command(short_help='Deploy an app to a cluster.')
 @click.option(
     '--app',
     '-a',
     type=click.STRING,
     required=True,
-    help='Name of the app to delete.'
+    help='Name of the app to deploy.'
+)
+@click.option(
+    '--cluster-id',
+    '-c',
+    type=click.INT,
+    required=True,
+    help='Cluster the app will be deployed to.'
 )
 @pass_client
-def detach(ctx, app):
-    ctx.client.action(
+def deploy(ctx, app, cluster_id):
+    definition = ''
+    with open('.docker/service.yml') as f:
+        definition = f.read()
+
+    result = ctx.client.action(
         ctx.document,
-        ['apps', 'detach'],
-        params={'name': app}
+        ['apps', 'deploy'],
+        params={
+            'name': app,
+            'cluster_id': cluster_id,
+            'definition': definition
+        }
     )
-    click.echo('Detached {}.'.format(app))
+    click.echo(result)
 
 
 @click.command(short_help='Display app logs.')
@@ -164,27 +149,22 @@ def logs(ctx, app, tail):
         click.echo(result)
 
 
-@click.command(short_help='Display app details.')
-@click.argument('name')
+@click.command(short_help='Undeploy an app from the cluster.')
+@click.option(
+    '--app',
+    '-a',
+    type=click.STRING,
+    required=True,
+    help='Name of the app to undeploy.'
+)
 @pass_client
-def show(ctx, name):
-    app = ctx.client.action(
+def undeploy(ctx, app):
+    ctx.client.action(
         ctx.document,
-        ['apps', 'read'],
-        params={'name': name}
+        ['apps', 'undeploy'],
+        params={'name': app}
     )
-    _print_app(app['data'])
-
-
-def _attach_app_repo(ctx, app, cluster_id):
-    ip_address = ctx.client.action(
-        ctx.document,
-        ['clusters', 'read'],
-        params={
-            'id': cluster_id
-        }
-    )['data']['ip_address']
-    ctx.setup_app_repo(app, ip_address)
+    click.echo('Undeployed {}.'.format(app))
 
 
 def _print_app(app_dict):
@@ -253,9 +233,8 @@ def _stream_logs(ctx, params):
     http_transport.stream_request(link, decoders, params=params)
 
 
-cli.add_command(attach)
 cli.add_command(create)
 cli.add_command(delete)
-cli.add_command(detach)
+cli.add_command(deploy)
 cli.add_command(logs)
-cli.add_command(show)
+cli.add_command(undeploy)
