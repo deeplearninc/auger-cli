@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from auger_cli import constants
-from auger_cli.cli import AugerClient, pass_client
+from auger_cli.cli import pass_client
+from auger_cli.client import Client
+import base64
 from coreapi.compat import b64encode
 import click
 import sys
@@ -56,7 +58,7 @@ def login(ctx, debug, url, username, password):
     # reload client
     credentials = {}
     credentials[host] = header
-    ctx.obj = AugerClient(url)
+    ctx.obj = Client(url)
     ctx.obj.set_credentials(credentials)
     ctx.obj.setup_client()
 
@@ -83,5 +85,16 @@ def logout(ctx):
     click.echo('You are now logged out.')
 
 
+@click.command(short_help='Display the current logged in user.')
+@click.pass_context
+def whoami(ctx):
+    creds = ctx.obj.get_credentials().values()
+    for cred in creds:
+        decoded = base64.b64decode(cred.split(' ')[1]).decode('utf8')
+        username = decoded.split(':')[0]
+        click.echo(username)
+
+
 cli.add_command(login)
 cli.add_command(logout)
+cli.add_command(whoami)

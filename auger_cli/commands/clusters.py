@@ -1,8 +1,22 @@
 # -*- coding: utf-8 -*-
 
-from auger_cli.cli import camelize, pass_client
+from auger_cli.cli import pass_client
+from auger_cli.utils import print_formatted_list, print_formatted_object
 import click
-import collections
+import webbrowser
+
+
+attributes = [
+    'name',
+    'id',
+    'organization_id',
+    'status',
+    'seconds_since_created',
+    'uptime_seconds',
+    'worker_nodes_count',
+    'instance_type',
+    'ip_address'
+]
 
 
 @click.group(
@@ -13,20 +27,12 @@ import collections
 @click.pass_context
 def cli(ctx):
     if ctx.invoked_subcommand is None:
-        clusters = ctx.obj.client.action(
-            ctx.obj.document,
-            ['clusters', 'list']
-        )
-        for cluster in iter(clusters['data']):
-            click.echo(
-                "{: >4}: {} (status: {}) (uptime: {} sec) (launched: {} hours ago)".format(
-                    cluster['id'],
-                    cluster['name'],
-                    cluster['status'],
-                    cluster['uptime_seconds'],
-                    cluster['seconds_since_created']//3600
-                )
+        with ctx.obj.coreapi_action():
+            clusters = ctx.obj.client.action(
+                ctx.obj.document,
+                ['clusters', 'list']
             )
+            print_formatted_list(clusters['data'], attributes)
     else:
         pass
 
@@ -63,7 +69,31 @@ def create(ctx, name, organization_id, worker_count, instance_type):
             'instance_type': instance_type
         }
     )
-    _print_cluster(cluster['data'])
+    print_formatted_object(cluster['data'], attributes)
+
+
+@click.command(short_help='Open cluster dashboard in a browser.')
+@click.argument('cluster_id')
+@click.option(
+    '--dashboard-name',
+    '-d',
+    type=click.Choice(
+        ['kubernetes', 'grafana', 'spark_ui']
+    ),
+    default='kubernetes',
+    help='Name of dashboard to open.'
+)
+@pass_client
+def dashboard(ctx, cluster_id, dashboard_name):
+    cluster = ctx.client.action(
+        ctx.document,
+        ['clusters', 'read'],
+        params={
+            'id': cluster_id
+        }
+    )
+    dashboard_url = cluster['data']['{}_url'.format(dashboard_name)]
+    webbrowser.open_new_tab(dashboard_url)
 
 
 @click.command(short_help='Terminate a cluster.')
@@ -93,43 +123,10 @@ def show(ctx, cluster_id):
             'id': cluster_id
         }
     )
-    _print_cluster(cluster['data'])
-
-
-def _print_cluster(cluster_dict):
-    attributes = [
-        'id',
-        'organization_id',
-        'name',
-        'status',
-        'uptime_seconds',
-        'worker_nodes_count',
-        'instance_type',
-        'ip_address',
-        'kubernetes_url'
-    ]
-    width = len(max(attributes, key=len)) + 1
-    for attrib in attributes:
-        click.echo(
-            "{0:<{width}}: {1}".format(
-                camelize(attrib),
-                _string_for_attrib(cluster_dict[attrib]),
-                width=width
-            )
-        )
-
-
-def _string_for_attrib(attrib):
-    if type(attrib) in (int, str):
-        return attrib
-    elif type(attrib) is list:
-        return attrib.join(',')
-    if isinstance(attrib, collections.OrderedDict):
-        return ' - '.join([v for k, v in attrib.items() if k != 'object'])
-    else:
-        return attrib
+    print_formatted_object(cluster['data'], attributes)
 
 
 cli.add_command(create)
+cli.add_command(dashboard)
 cli.add_command(delete)
 cli.add_command(show)
