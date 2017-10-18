@@ -24,7 +24,7 @@ class Client(object):
     _cached_document = None
 
     def __init__(self, url=constants.DEFAULT_COREAPI_URL, app=None):
-        self.app = app #or self._get_app_from_repo()
+        self.app = app
         self.coreapi_url = url
         self.coreapi_schema_url = self.coreapi_url + \
             constants.COREAPI_SCHEMA_PATH
@@ -84,7 +84,6 @@ class Client(object):
 
     def get_credentials(self):
         return self.coreapi_cli.get_credentials()
-    
 
     def setup_client(self):
         self.credentials = self.coreapi_cli.get_credentials()
