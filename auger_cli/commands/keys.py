@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from auger_cli.cli import pass_client
-from auger_cli.utils import camelize
+from auger_cli.utils import print_formatted_list, print_formatted_object
 import click
+
+
+attributes = ['id', 'public_key', 'created_at']
 
 
 @click.group(
@@ -26,8 +29,7 @@ def cli(ctx, organization_id):
                 'organization_id': organization_id
             }
         )
-        for key in iter(keys['data']):
-            _print_key(key)
+        print_formatted_list(keys['data'], attributes)
     else:
         pass
 
@@ -60,7 +62,7 @@ def add(ctx, public_key, organization_id):
                     'organization_id': organization_id
                 }
             )
-            _print_key(result['data'])
+            print_formatted_object(result['data'], attributes)
     except IOError:
         click.echo('Error loading public key {}'.format(public_key))
 
@@ -85,24 +87,6 @@ def delete(ctx, key_id, organization_id):
         }
     )
     click.echo("Deleted SSH key.")
-
-
-def _print_key(key_dict):
-    attributes = [
-        'id',
-        'public_key',
-        'created_at'
-    ]
-    width = len(max(attributes, key=len)) + 1
-    for attrib in attributes:
-        click.echo(
-            "{0:<{width}}: {1}".format(
-                camelize(attrib),
-                key_dict[attrib],
-                width=width
-            )
-        )
-    click.echo()
 
 
 cli.add_command(add)

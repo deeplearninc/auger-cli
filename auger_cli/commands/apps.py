@@ -1,10 +1,20 @@
 # -*- coding: utf-8 -*-
 
 from auger_cli.cli import pass_client
-from auger_cli.utils import camelize
+from auger_cli.utils import print_formatted_list, print_formatted_object
 import click
 from coreapi.transports import HTTPTransport
 from coreapi.transports import http as coreapi_http
+import webbrowser
+
+
+attributes = [
+    'id',
+    'name',
+    'attached',
+    'cluster_id',
+    'created_at'
+]
 
 
 @click.group(
@@ -19,8 +29,10 @@ def cli(ctx):
             ctx.obj.document,
             ['apps', 'list']
         )
-        for app in iter(apps['data']):
-            _print_app(app)
+        print_formatted_list(
+            list_data=apps['data'],
+            attributes=attributes
+        )
     else:
         pass
 
@@ -59,8 +71,7 @@ def create(ctx, app, cluster_id, organization_id):
         ['apps', 'create'],
         params=params
     )
-
-    _print_app(result['data'])
+    print_formatted_object(result['data'])
 
 
 @click.command(
@@ -113,7 +124,7 @@ def deploy(ctx, app, cluster_id):
             'definition': definition
         }
     )
-    click.echo(result)
+    print_formatted_object(result['data'])
 
 
 @click.command(short_help='Display app logs.')
@@ -149,6 +160,26 @@ def logs(ctx, app, tail):
         click.echo(result)
 
 
+@click.command(short_help='Open application in a browser.')
+@click.option(
+    '--app',
+    '-a',
+    type=click.STRING,
+    help='Name of application to open.'
+)
+@pass_client
+def open_app(ctx, app):
+    apps = ctx.client.action(
+        ctx.document,
+        ['apps', 'list']
+    )
+    for _, app_data in iter(apps.items()):
+        print(app_data[0])
+        if app_data[0]['name'] == app:
+            app_url = app_data[0]['url']
+            return webbrowser.open_new_tab(app_url)
+
+
 @click.command(short_help='Undeploy an app from the cluster.')
 @click.option(
     '--app',
@@ -165,27 +196,6 @@ def undeploy(ctx, app):
         params={'name': app}
     )
     click.echo('Undeployed {}.'.format(app))
-
-
-def _print_app(app_dict):
-    attributes = [
-        'id',
-        'name',
-        'url',
-        'attached',
-        'cluster_id',
-        'created_at'
-    ]
-    width = len(max(attributes, key=len)) + 1
-    for attrib in attributes:
-        click.echo(
-            "{0:<{width}}: {1}".format(
-                camelize(attrib),
-                app_dict[attrib],
-                width=width
-            )
-        )
-    click.echo()
 
 
 def _stream_logs(ctx, params):
@@ -237,4 +247,5 @@ cli.add_command(create)
 cli.add_command(delete)
 cli.add_command(deploy)
 cli.add_command(logs)
+cli.add_command(open_app, name='open')
 cli.add_command(undeploy)

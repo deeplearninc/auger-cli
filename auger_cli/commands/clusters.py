@@ -1,9 +1,22 @@
 # -*- coding: utf-8 -*-
 
 from auger_cli.cli import pass_client
-from auger_cli.utils import string_for_attrib
+from auger_cli.utils import print_formatted_list, print_formatted_object
 import click
 import webbrowser
+
+
+attributes = [
+    'name',
+    'id',
+    'organization_id',
+    'status',
+    'seconds_since_created',
+    'uptime_seconds',
+    'worker_nodes_count',
+    'instance_type',
+    'ip_address'
+]
 
 
 @click.group(
@@ -19,9 +32,7 @@ def cli(ctx):
                 ctx.obj.document,
                 ['clusters', 'list']
             )
-            for cluster in iter(clusters['data']):
-                click.echo('=======')
-                _print_cluster(cluster)
+            print_formatted_list(clusters['data'], attributes)
     else:
         pass
 
@@ -58,7 +69,7 @@ def create(ctx, name, organization_id, worker_count, instance_type):
             'instance_type': instance_type
         }
     )
-    _print_cluster(cluster['data'])
+    print_formatted_object(cluster['data'], attributes)
 
 
 @click.command(short_help='Open cluster dashboard in a browser.')
@@ -112,32 +123,7 @@ def show(ctx, cluster_id):
             'id': cluster_id
         }
     )
-    # for attrib in cluster['data']:
-    #     print(attrib + ' ' + str(cluster['data'][attrib]))
-    _print_cluster(cluster['data'])
-
-
-def _print_cluster(cluster_dict):
-    attributes = [
-        'name',
-        'id',
-        'organization_id',
-        'status',
-        'seconds_since_created',
-        'uptime_seconds',
-        'worker_nodes_count',
-        'instance_type',
-        'ip_address',
-    ]
-    width = len(max(attributes, key=len)) + 1
-    for attrib in attributes:
-        click.echo(
-            "{0:<{width}}: {1}".format(
-                attrib,
-                string_for_attrib(cluster_dict[attrib]),
-                width=width
-            )
-        )
+    print_formatted_object(cluster['data'], attributes)
 
 
 cli.add_command(create)

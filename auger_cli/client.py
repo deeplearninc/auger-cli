@@ -82,6 +82,10 @@ class Client(object):
         else:
             return ''
 
+    def get_credentials(self):
+        return self.coreapi_cli.get_credentials()
+    
+
     def setup_client(self):
         self.credentials = self.coreapi_cli.get_credentials()
         self.headers = self.coreapi_cli.get_headers()

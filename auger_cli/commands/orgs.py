@@ -2,7 +2,11 @@
 
 from auger_cli.cli import pass_client
 import auger_cli.constants as constants
+from auger_cli.utils import print_formatted_list, print_formatted_object
 import click
+
+
+attributes = ['id', 'name', 'main_bucket']
 
 
 @click.group(
@@ -17,8 +21,7 @@ def cli(ctx):
             ctx.obj.document,
             ['organizations', 'list']
         )
-        for org in iter(orgs['data']):
-            _print_org(org)
+        print_formatted_list(orgs['data'], attributes)
     else:
         pass
 
@@ -46,7 +49,7 @@ def create(ctx, name, access_key, secret_key):
             'secret_key': secret_key
         }
     )
-    _print_org(org['data'])
+    print_formatted_object(org['data'])
 
 
 @click.command()
@@ -63,18 +66,6 @@ def delete(ctx, organization_id):
     org = orgs['data']
     if org['id'] == int(organization_id):
         click.echo("Deleting {0}.".format(org['name']))
-
-
-def _print_org(org_dict):
-    def format_name(name):
-        return name or 'pending'
-    click.echo(
-        "{0: >4}. {1: <12} ({2})".format(
-            org_dict['id'],
-            org_dict['name'],
-            format_name(org_dict['main_bucket'])
-        )
-    )
 
 
 cli.add_command(create)

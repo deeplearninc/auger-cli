@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import click
+from auger_cli.utils import print_formatted_list
+
+
+attributes = ['id', 'description']
 
 
 @click.command(
@@ -13,6 +17,4 @@ def cli(ctx):
         ctx.obj.document,
         ['instance_types', 'list']
     )
-    click.echo('Available instance types:')
-    for instance_type in result['data']:
-        click.echo(' {}'.format(instance_type))
+    print_formatted_list(result['data'], attributes)
