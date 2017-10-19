@@ -71,7 +71,7 @@ def create(ctx, app, cluster_id, organization_id):
         ['apps', 'create'],
         params=params
     )
-    print_formatted_object(result['data'])
+    print_formatted_object(result['data'], attributes)
 
 
 @click.command(
@@ -124,7 +124,7 @@ def deploy(ctx, app, cluster_id):
             'definition': definition
         }
     )
-    print_formatted_object(result['data'])
+    print_formatted_object(result['data'], attributes)
 
 
 @click.command(short_help='Display app logs.')

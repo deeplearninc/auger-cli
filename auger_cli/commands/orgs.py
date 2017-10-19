@@ -49,7 +49,7 @@ def create(ctx, name, access_key, secret_key):
             'secret_key': secret_key
         }
     )
-    print_formatted_object(org['data'])
+    print_formatted_object(org['data'], attributes)
 
 
 @click.command()
