@@ -88,11 +88,11 @@ def logout(ctx):
 @click.command(short_help='Display the current logged in user.')
 @click.pass_context
 def whoami(ctx):
-    creds = ctx.obj.get_credentials().values()
-    for cred in creds:
+    creds = ctx.obj.get_credentials()
+    for host, cred in creds.items():
         decoded = base64.b64decode(cred.split(' ')[1]).decode('utf8')
         username = decoded.split(':')[0]
-        click.echo(username)
+        click.echo('{} on {}'.format(username, host))
 
 
 cli.add_command(login)

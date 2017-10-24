@@ -12,6 +12,7 @@ attributes = [
     'id',
     'name',
     'attached',
+    'status',
     'cluster_id',
     'created_at'
 ]

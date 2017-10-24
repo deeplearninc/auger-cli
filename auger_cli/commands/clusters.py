@@ -15,7 +15,8 @@ attributes = [
     'uptime_seconds',
     'worker_nodes_count',
     'instance_type',
-    'ip_address'
+    'ip_address',
+    'registry'
 ]
 
 
