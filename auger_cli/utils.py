@@ -2,6 +2,7 @@
 
 import click
 import collections
+import sys
 
 
 def camelize(snake_cased_string):
@@ -39,3 +40,12 @@ def string_for_attrib(attrib):
         )
     else:
         return attrib
+
+
+def urlparse(*args, **kwargs):
+    if sys.version_info[0] < 3:
+        from urlparse import urlparse
+        input = raw_input
+    else:
+        from urllib.parse import urlparse
+    return urlparse(*args, **kwargs)

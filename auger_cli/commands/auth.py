@@ -3,17 +3,10 @@
 from auger_cli import constants
 from auger_cli.cli import pass_client
 from auger_cli.client import Client
+from auger_cli.utils import urlparse
 import base64
 from coreapi.compat import b64encode
 import click
-import sys
-
-
-if sys.version_info[0] < 3:
-    from urlparse import urlparse
-    input = raw_input
-else:
-    from urllib.parse import urlparse
 
 
 @click.group('auth', short_help='Authentication with Auger.')
