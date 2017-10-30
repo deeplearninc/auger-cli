@@ -3,6 +3,8 @@
 from auger_cli.cli import pass_client
 from auger_cli.utils import print_formatted_list, print_formatted_object
 import click
+import sys
+import time
 import webbrowser
 
 
@@ -58,8 +60,14 @@ def cli(ctx):
     default='t2.medium',
     help='Instance type for the worker nodes.'
 )
+@click.option(
+    '--wait/--no-wait',
+    '-w/',
+    default=True,
+    help='Wait for cluster to run.'
+)
 @pass_client
-def create(ctx, name, organization_id, worker_count, instance_type):
+def create(ctx, name, organization_id, worker_count, instance_type, wait):
     cluster = ctx.client.action(
         ctx.document,
         ['clusters', 'create'],
@@ -71,6 +79,23 @@ def create(ctx, name, organization_id, worker_count, instance_type):
         }
     )
     print_formatted_object(cluster['data'], attributes)
+    if wait:
+        cluster_id = cluster['data']['id']
+        status = cluster['data']['status']
+        last_status = ''
+        while status in ['waiting', 'provisioning', 'bootstrapping']:
+            if status != last_status:
+                sys.stdout.write('\n%s..' % status)
+                sys.stdout.flush()
+                last_status = status
+            sys.stdout.write('.')
+            sys.stdout.flush()
+            time.sleep(1)
+            cluster = ctx.client.action(ctx.document, ['clusters', 'read'], params={'id': cluster_id})
+            status = cluster['data']['status']
+        print()
+        print(status)
+        sys.exit(0 if status == 'running' else 1)
 
 
 @click.command(short_help='Open cluster dashboard in a browser.')
