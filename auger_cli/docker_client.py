@@ -1,30 +1,52 @@
 # -*- coding: utf-8 -*-
 
 import docker
-from .utils import urlparse
+import errno
+import os
 
 
-class DockerClient(object):
+class DockerClient(dict):
+    _dockerfile_path = '.auger/Dockerfile'
 
-    def __init__(self, registry_dict={}, app=None):
+    def __init__(
+                self, username=None,
+                password=None, hostname=None, app=None):
+        super(DockerClient, self).__init__()
         self.client = docker.from_env()
-        self.app = app
-        self.registry_info = self._parse_registry_info(registry_dict)
+        self['app'] = app
+        self['username'] = username
+        self['password'] = password
+        self['hostname'] = hostname
 
-    def ls_images(self):
-        return self.client.images.list()
+    def build(self):
+        self.client.images.build(
+            dockerfile=self._dockerfile(),
+            tag='{}/{}'.format(self['hostname'], self['app'])
+        )
+
+    def deploy(self):
+        pass
 
     def login(self):
         self.client.login(
-            username=self.registry_info['username'],
-            password=self.registry_info['password'],
-            registry=self.registry_info['hostname'],
+            username=self['username'],
+            password=self['password'],
+            registry=self['hostname'],
             reauth=True
         )
 
-    def _parse_registry_info(self, registry_dict):
-        return {
-            'hostname': urlparse(registry_dict['url']).hostname,
-            'username': registry_dict['login'],
-            'password': registry_dict['password']
-        }
+    def push(self):
+        pass
+
+    def tag(self):
+        pass
+
+    def _dockerfile(self):
+        if os.path.isfile(self._dockerfile_path):
+            return self._dockerfile_path
+        else:
+            raise os.FileNotFoundError(
+                errno.ENOENT,
+                os.strerror(errno.ENOENT),
+                self._dockerfile_path
+            )

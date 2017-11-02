@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from auger_cli.cli import pass_app, pass_client
+from auger_cli.cli import pass_client
+from auger_cli.cluster_config import ClusterConfig
 from auger_cli.utils import print_formatted_list, print_formatted_object
 import click
 from coreapi.transports import HTTPTransport
@@ -112,21 +113,29 @@ def delete(ctx, app):
 )
 @pass_client
 def deploy(ctx, app, cluster_id):
-    click.echo('')
-    definition = ''
-    with open('.docker/service.yml') as f:
-        definition = f.read()
-
-    result = ctx.client.action(
-        ctx.document,
-        ['apps', 'deploy'],
-        params={
-            'name': app,
-            'cluster_id': cluster_id,
-            'definition': definition
-        }
+    # definition = ''
+    # with open('.auger/service.yml') as f:
+    #     definition = f.read()
+    #
+    # result = ctx.client.action(
+    #     ctx.document,
+    #     ['apps', 'deploy'],
+    #     params={
+    #         'name': app,
+    #         'cluster_id': cluster_id,
+    #         'definition': definition
+    #     }
+    # )
+    cluster_config = ClusterConfig(
+        ctx,
+        app=app,
+        cluster_id=cluster_id
     )
-    print_formatted_object(result['data'], attributes)
+    #cluster_config.login()
+    cluster_config.save()
+    print(cluster_config.app_config)
+    cluster_config.docker_client.build()
+    # print_formatted_object(result['data'], attributes)
 
 
 @click.command(short_help='Display app logs.')

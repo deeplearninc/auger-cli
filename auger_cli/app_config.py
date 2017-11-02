@@ -9,13 +9,13 @@ class AppConfig(dict):
 
     def __init__(
                 self, app=None, cluster_id=None, internal_url=None,
-                organization_id=None, registry_url=None):
+                organization_id=None, registry_host=None):
         super(AppConfig, self).__init__()
         self['app'] = app
         self['cluster_id'] = cluster_id
         self['internal_url'] = internal_url
         self['organization_id'] = organization_id
-        self['registry_url'] = registry_url
+        self['registry_host'] = registry_host
         self._repo = Repo(os.path.curdir)
 
     def loaded(self):
