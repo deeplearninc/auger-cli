@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from auger_cli.cli import pass_client
-from auger_cli.utils import print_formatted_list, print_formatted_object
+from ..cli import pass_client
+from ..utils import print_formatted_list, print_formatted_object
 import click
 
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import click
-import auger_cli.constants as constants
+from .constants import COREAPI_SCHEMA_PATH, DEFAULT_COREAPI_URL
 from contextlib import contextmanager
 import coreapi
 import coreapi_cli.main as coreapi_cli
@@ -22,10 +22,9 @@ def init_coreapi_cli():
 class Client(object):
     _cached_document = None
 
-    def __init__(self, url=constants.DEFAULT_COREAPI_URL):
+    def __init__(self, url=DEFAULT_COREAPI_URL):
         self.coreapi_url = url
-        self.coreapi_schema_url = self.coreapi_url + \
-            constants.COREAPI_SCHEMA_PATH
+        self.coreapi_schema_url = self.coreapi_url + COREAPI_SCHEMA_PATH
         self.coreapi_cli = init_coreapi_cli()
         self.setup_client()
 

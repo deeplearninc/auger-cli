@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from auger_cli.cli import pass_client
-from auger_cli.cluster_config import ClusterConfig
-from auger_cli.utils import print_formatted_list, print_formatted_object
+from ..cli import pass_client
+from ..cluster_config import ClusterConfig
+from ..utils import print_formatted_list, print_formatted_object
 import click
 import webbrowser
 
@@ -72,7 +72,11 @@ def create(ctx, name, organization_id, worker_count, instance_type):
             }
         )
         cluster_dict = cluster['data']
-        ClusterConfig(cluster_dict=cluster_dict).save()
+        ClusterConfig(
+            ctx,
+            cluster_dict=cluster_dict,
+            cluster_id=cluster_dict['id']
+        ).save()
         print_formatted_object(cluster_dict, attributes)
 
 

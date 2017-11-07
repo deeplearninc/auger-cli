@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import click
 from .app_config import AppConfig
 from .docker_client import DockerClient
 from .utils import urlparse
@@ -8,16 +9,24 @@ from .utils import urlparse
 class ClusterConfig(object):
 
     def __init__(
-                self, ctx, app=None,
-                cluster_id=None, cluster_dict=None):
+            self, ctx, app=None, cluster_id=None,
+            cluster_dict=None):
         self.app_config = None
         self.docker_client = None
-        # Try to load from cached config
-        self.app_config = AppConfig().load()
-        if not self.app_config.loaded():
-            cluster_dict = ClusterConfig.fetch(ctx, cluster_id)
-            self._init_config(cluster_dict, app)
-        self.docker_client = DockerClient(**self.app_config)
+        self.cluster_dict = None
+        self.registry_dict = {}
+        self.cluster_dict = ClusterConfig.fetch(ctx, cluster_id)
+        self.registry_dict = self.cluster_dict['registry']
+        self._init_config(app)
+        if self.app_config.loaded():
+            self.docker_client = DockerClient(
+                app=self.app_config.get('app'),
+                hostname=self.app_config.get('registry_host'),
+                username=self.registry_dict.get('login'),
+                password=self.registry_dict.get('password')
+            )
+        else:
+            click.echo('There was an error preparing the cluster.')
 
     @staticmethod
     def fetch(ctx, cluster_id):
@@ -36,11 +45,10 @@ class ClusterConfig(object):
     def save(self):
         self.app_config.save()
 
-    def _init_config(self, cluster_dict, app):
-        registry_dict = cluster_dict['registry']
+    def _init_config(self, app):
         self.app_config = AppConfig(
-            cluster_id=cluster_dict.get('id'),
-            internal_url=registry_dict.get('internal_url'),
-            organization_id=cluster_dict.get('organization_id'),
-            registry_host=urlparse(registry_dict.get('url')).hostname
+            app=app,
+            cluster_id=self.cluster_dict.get('id'),
+            internal_url=self.registry_dict.get('internal_url'),
+            registry_host=urlparse(self.registry_dict.get('url')).hostname
         )

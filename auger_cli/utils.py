@@ -10,6 +10,10 @@ def camelize(snake_cased_string):
     return " ".join((x.upper() if len(x) < 4 else x.title()) for x in parts)
 
 
+def print_line(line, nl=True):
+    click.echo(line, nl=nl)
+
+
 def print_formatted_list(list_data, attributes):
     for object_data in iter(list_data):
         print_formatted_object(object_data, attributes)

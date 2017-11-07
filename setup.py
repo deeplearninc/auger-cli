@@ -44,7 +44,7 @@ setup(
         'coreapi==2.1.1',
         'coreapi-cli==1.0.6',
         'docker==2.5.1',
-        'gitpython==2.1.7',
+        # 'gitpython==2.1.7',
         'openapi-codec==1.2.1'
     ],
     extras_require={

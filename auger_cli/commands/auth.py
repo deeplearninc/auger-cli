@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from auger_cli import constants
-from auger_cli.cli import pass_client
-from auger_cli.client import Client
-from auger_cli.utils import urlparse
+from .. import constants
+from ..cli import pass_client
+from ..client import Client
+from ..utils import urlparse
 import base64
 from coreapi.compat import b64encode
 import click
