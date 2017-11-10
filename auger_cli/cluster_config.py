@@ -25,8 +25,6 @@ class ClusterConfig(object):
                 username=self.registry_dict.get('login'),
                 password=self.registry_dict.get('password')
             )
-        else:
-            click.echo('There was an error preparing the cluster.')
 
     @staticmethod
     def fetch(ctx, cluster_id):

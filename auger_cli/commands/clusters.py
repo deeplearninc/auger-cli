@@ -76,7 +76,7 @@ def create(ctx, name, organization_id, worker_count, instance_type):
             ctx,
             cluster_dict=cluster_dict,
             cluster_id=cluster_dict['id']
-        ).save()
+        )
         print_formatted_object(cluster_dict, attributes)
 
 
