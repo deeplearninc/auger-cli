@@ -2,6 +2,7 @@
 
 import click
 import collections
+import time
 
 
 def camelize(snake_cased_string):
@@ -39,3 +40,25 @@ def string_for_attrib(attrib):
         )
     else:
         return attrib
+
+def cluster_command_progress_bar(ctx, cluster_id, first_status, in_progress_statuses, desired_status):
+    status = first_status
+    last_status = ''
+    while status in in_progress_statuses:
+        if status != last_status:
+            click.echo('\n%s..' % status, nl=False)
+            #sys.stdout.flush()
+            last_status = status
+        click.echo('.', nl=False)
+        #sys.stdout.flush()
+        time.sleep(1)
+        status = ctx.client.action(
+            ctx.document,
+            ['clusters', 'read'],
+            params={
+                'id': cluster_id
+            }
+        )['data']['status']
+    click.echo()
+    click.echo(status)
+    return status == desired_status

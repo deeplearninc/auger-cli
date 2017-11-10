@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from auger_cli.cli import pass_client
-from auger_cli.utils import print_formatted_list, print_formatted_object
+from auger_cli.utils import print_formatted_list, print_formatted_object, cluster_command_progress_bar
 import click
 import sys
-import time
 import webbrowser
 
 
@@ -63,7 +62,7 @@ def cli(ctx):
 @click.option(
     '--wait/--no-wait',
     '-w/',
-    default=True,
+    default=False,
     help='Wait for cluster to run.'
 )
 @pass_client
@@ -77,25 +76,17 @@ def create(ctx, name, organization_id, worker_count, instance_type, wait):
             'worker_nodes_count': worker_count,
             'instance_type': instance_type
         }
-    )
-    print_formatted_object(cluster['data'], attributes)
+    )['data']
+    print_formatted_object(cluster, attributes)
     if wait:
-        cluster_id = cluster['data']['id']
-        status = cluster['data']['status']
-        last_status = ''
-        while status in ['waiting', 'provisioning', 'bootstrapping']:
-            if status != last_status:
-                sys.stdout.write('\n%s..' % status)
-                sys.stdout.flush()
-                last_status = status
-            sys.stdout.write('.')
-            sys.stdout.flush()
-            time.sleep(1)
-            cluster = ctx.client.action(ctx.document, ['clusters', 'read'], params={'id': cluster_id})
-            status = cluster['data']['status']
-        print()
-        print(status)
-        sys.exit(0 if status == 'running' else 1)
+        ok = cluster_command_progress_bar(
+            ctx,
+            cluster['id'],
+            cluster['status'],
+            ['waiting', 'provisioning', 'bootstrapping'],
+            'running'
+        )
+        sys.exit(0 if ok else 1)
 
 
 @click.command(short_help='Open cluster dashboard in a browser.')
@@ -124,18 +115,33 @@ def dashboard(ctx, cluster_id, dashboard_name):
 
 @click.command(short_help='Terminate a cluster.')
 @click.argument('cluster_id')
+@click.option(
+    '--wait/--no-wait',
+    '-w/',
+    default=False,
+    help='Wait for cluster to be terminated.'
+)
 @pass_client
-def delete(ctx, cluster_id):
-    clusters = ctx.client.action(
+def delete(ctx, cluster_id, wait):
+    cluster = ctx.client.action(
         ctx.document,
         ['clusters', 'delete'],
         params={
             'id': cluster_id
         }
-    )
-    cluster = clusters['data']
-    if cluster['id'] == int(cluster_id):
+    )['data']
+    cluster_id = cluster['id']
+    if cluster_id == int(cluster_id):
         click.echo("Deleting {}.".format(cluster['name']))
+        if wait:
+            ok = cluster_command_progress_bar(
+                ctx,
+                cluster['id'],
+                cluster['status'],
+                ['running', 'terminating'],
+                'terminated'
+            )
+            sys.exit(0 if ok else 1)
 
 
 @click.command(short_help='Display cluster details.')
