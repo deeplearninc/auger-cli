@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import click
-import auger_cli.constants as constants
+from .constants import COREAPI_SCHEMA_PATH, DEFAULT_COREAPI_URL
 from contextlib import contextmanager
 import coreapi
 import coreapi_cli.main as coreapi_cli
@@ -12,7 +12,6 @@ import json
 import os
 import shutil
 import sys
-import subprocess
 
 
 def init_coreapi_cli():
@@ -23,11 +22,9 @@ def init_coreapi_cli():
 class Client(object):
     _cached_document = None
 
-    def __init__(self, url=constants.DEFAULT_COREAPI_URL, app=None):
-        self.app = app
+    def __init__(self, url=DEFAULT_COREAPI_URL):
         self.coreapi_url = url
-        self.coreapi_schema_url = self.coreapi_url + \
-            constants.COREAPI_SCHEMA_PATH
+        self.coreapi_schema_url = self.coreapi_url + COREAPI_SCHEMA_PATH
         self.coreapi_cli = init_coreapi_cli()
         self.setup_client()
 
@@ -67,20 +64,6 @@ class Client(object):
         except coreapi.exceptions.ParseError as exc:
             click.echo('Error connecting to {0}'.format(self.coreapi_url))
             sys.exit(1)
-
-    def call(self, command, show_stdout=False):
-        res = subprocess.Popen(
-            command,
-            env=os.environ.copy(),
-            cwd=os.path.curdir,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        output, errors = res.communicate()
-        if show_stdout:
-            return output.decode().strip()
-        else:
-            return ''
 
     def get_credentials(self):
         return self.coreapi_cli.get_credentials()

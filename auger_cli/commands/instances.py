@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import click
-from auger_cli.utils import print_formatted_list
+from ..utils import print_formatted_list
 
 
 attributes = ['id', 'description']

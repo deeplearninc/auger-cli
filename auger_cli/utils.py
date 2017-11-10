@@ -2,11 +2,16 @@
 
 import click
 import collections
+import sys
 
 
 def camelize(snake_cased_string):
     parts = snake_cased_string.split('_')
     return " ".join((x.upper() if len(x) < 4 else x.title()) for x in parts)
+
+
+def print_line(line, nl=True):
+    click.echo(line, nl=nl)
 
 
 def print_formatted_list(list_data, attributes):
@@ -39,3 +44,12 @@ def string_for_attrib(attrib):
         )
     else:
         return attrib
+
+
+def urlparse(*args, **kwargs):
+    if sys.version_info[0] < 3:
+        from urlparse import urlparse
+        input = raw_input
+    else:
+        from urllib.parse import urlparse
+    return urlparse(*args, **kwargs)
