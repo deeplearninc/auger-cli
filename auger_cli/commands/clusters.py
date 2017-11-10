@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from auger_cli.cli import pass_client
-from auger_cli.utils import print_formatted_list, print_formatted_object, cluster_command_progress_bar
+from auger_cli.utils import print_formatted_list, print_formatted_object, clusters_command_progress_bar
 import click
 import sys
 import webbrowser
@@ -79,7 +79,7 @@ def create(ctx, name, organization_id, worker_count, instance_type, wait):
     )['data']
     print_formatted_object(cluster, attributes)
     if wait:
-        ok = cluster_command_progress_bar(
+        ok = clusters_command_progress_bar(
             ctx,
             cluster['id'],
             cluster['status'],
@@ -134,7 +134,7 @@ def delete(ctx, cluster_id, wait):
     if cluster_id == int(cluster_id):
         click.echo("Deleting {}.".format(cluster['name']))
         if wait:
-            ok = cluster_command_progress_bar(
+            ok = clusters_command_progress_bar(
                 ctx,
                 cluster['id'],
                 cluster['status'],

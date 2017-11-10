@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from auger_cli.cli import pass_client
-from auger_cli.utils import print_formatted_list, print_formatted_object
+from auger_cli.utils import print_formatted_list, print_formatted_object, apps_command_progress_bar
 import click
+import sys
 from coreapi.transports import HTTPTransport
 from coreapi.transports import http as coreapi_http
 import webbrowser
@@ -110,13 +111,19 @@ def delete(ctx, app):
     required=True,
     help='Cluster the app will be deployed to.'
 )
+@click.option(
+    '--wait/--no-wait',
+    '-w/',
+    default=False,
+    help='Wait for application to be ready.'
+)
 @pass_client
-def deploy(ctx, app, cluster_id):
+def deploy(ctx, app, cluster_id, wait):
     definition = ''
     with open('.docker/service.yml') as f:
         definition = f.read()
 
-    result = ctx.client.action(
+    app = ctx.client.action(
         ctx.document,
         ['apps', 'deploy'],
         params={
@@ -124,8 +131,17 @@ def deploy(ctx, app, cluster_id):
             'cluster_id': cluster_id,
             'definition': definition
         }
-    )
-    print_formatted_object(result['data'], attributes)
+    )['data']
+    print_formatted_object(app, attributes)
+    if wait:
+        ok = apps_command_progress_bar(
+            ctx,
+            app['id'],
+            app['status'],
+            ['undeployed'],
+            'ready'
+        )
+        sys.exit(0 if ok else 1)
 
 
 @click.command(short_help='Display app logs.')
