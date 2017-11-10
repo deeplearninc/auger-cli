@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/auger-cli
     docker:
-      - image: circleci/python:3.6.3
+      - image: circleci/python:3.6-stretch
     steps:
       - checkout
       - restore_cache:
