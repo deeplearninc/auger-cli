@@ -17,6 +17,41 @@ auger --help
 
 # Usage scenarios
 
+## Help 
+
+To access the usage information, simply add the `--help` option to any command or sub-command. For example:
+
+```sh
+$ auger --help
+Usage: auger [OPTIONS] COMMAND [ARGS]...
+
+  Auger command line interface.
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  apps       Manage Auger Apps.
+  auth       Authentication with Auger.
+  clusters   Manage Auger Clusters.
+  instances  Display available instance types for clusters.
+  keys       Manage Auger SSH keys.
+  orgs       Manage Auger Organizations.
+```
+
+```sh
+$ auger auth --help
+Usage: auger auth [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  login   Login to auger.
+  logout  Logout from Auger.
+  whoami  Display the current logged in user.
+```
+
 ## Login
 
 The first step you'll need to do is login to auger with:
