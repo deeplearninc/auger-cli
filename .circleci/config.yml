@@ -3,18 +3,19 @@ jobs:
   build:
     working_directory: ~/auger-cli
     docker:
-      - image: circleci/python:3.6-stretch
+      - image: circleci/python:3.6
     steps:
       - checkout
       - restore_cache:
-          key: auger-cli-{{ arch }}-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          key: auger-cli-{{ arch }}-{{ .Branch }}-{{ checksum "requirements.txt" }}-{{ checksum "test-requirements.txt" }}
       - run:
           command: |
             python3 -m venv venv
             . venv/bin/activate
-            python setup.py test
+            pip install --upgrade setuptools
+            pip install -r requirements.txt -r test-requirements.txt
       - save_cache:
-          key: auger-cli-{{ arch }}-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          key: auger-cli-{{ arch }}-{{ .Branch }}-{{ checksum "requirements.txt" }}-{{ checksum "test-requirements.txt" }}
           paths:
             - "venv"
       - run:
