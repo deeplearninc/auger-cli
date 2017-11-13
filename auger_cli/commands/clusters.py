@@ -86,7 +86,10 @@ def create(ctx, name, organization_id, worker_count, instance_type):
 def credentials(ctx, cluster_id):
     with ctx.coreapi_action():
         cluster = ClusterConfig.fetch(ctx, cluster_id)
-        print_formatted_object(cluster, 'registry')
+        print_formatted_object(
+            cluster['registry'],
+            ['url', 'login', 'password']
+        )
 
 
 @click.command(short_help='Open cluster dashboard in a browser.')
