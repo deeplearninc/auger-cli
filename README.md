@@ -17,6 +17,21 @@ auger --help
 
 # Usage scenarios
 
+## Login
+
+The first step you'll need to do is login to auger with:
+
+```sh
+auger auth login
+```
+
+Note you can login to a different auger hub instance by passing the `--url` argument:
+
+```sh
+auger auth login --url https://test-instance.auger.ai
+```
+
+
 ## Organizations
 
 Organization allocates S3 bucket where all data can be stored between cluster runs.
@@ -31,7 +46,7 @@ or create your own organization:
 auger orgs create --access-key="<AWS acess key>" --secret-key="<AWS secret key>" <organization name>
 ```
 
-AWS key pair should have next permissions:
+AWS key pair should have the following statements:
 ```json
 {
     "Version": "2012-10-17",
@@ -101,7 +116,7 @@ AWS key pair should have next permissions:
                 "s3:*"
             ],
             "Resource": [
-                "arn:aws:s3::*:auger-*"
+                "arn:aws:s3:::auger-*"
             ]
         },
         {
@@ -122,7 +137,7 @@ AWS key pair should have next permissions:
                 "iam:RemoveUserFromGroup"
             ],
             "Resource": [
-                "arn:aws:iam::*:user/vault-*"
+                "arn:aws:iam:::user/vault-*"
             ]
         }
     ]
@@ -159,7 +174,7 @@ Create project:
 auger apps create --app <project name> --organization-id <organization id>
 ```
 
-Project allocates name, it belongs to the organization and it is cross-cluster. Which means project can be deployed to the cluster, cluster can be terminated, and project can be deployed to another one.
+The project name must be unique within the organization. This means that a project can be deployed to a cluster, the cluster can be terminated, and the project can be deployed to another one. **NOTE** If you delete the application, another project with the same name can be used. 
 
 Deploy project:
 ```sh
