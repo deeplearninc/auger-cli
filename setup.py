@@ -16,6 +16,12 @@ here = path.abspath(path.dirname(__file__))
 with codecs.open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
+with open(path.join(here, 'requirements.txt')) as f:
+    REQUIRES = f.readlines()
+
+with open(path.join(here, 'test-requirements.txt')) as f:
+    TESTS_REQUIRES = f.readlines()
+
 setup(
     name='auger-cli',
     version=VERSION,
@@ -39,23 +45,8 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
     ],
-    install_requires=[
-        'coreapi==2.1.1',
-        'coreapi-cli==1.0.6',
-        'openapi-codec==1.2.1',
-        'click>=6.7',
-    ],
-    extras_require={
-        'dotenv': ['python-dotenv'],
-        'dev': [
-            'blinker',
-            'python-dotenv',
-            'coverage',
-            'flake8',
-            'tox',
-        ],
-    },
-    tests_require=['vcrpy'],
+    install_requires=REQUIRES,
+    tests_require=TESTS_REQUIRES,
     entry_points={
         'console_scripts': [
             'auger=auger_cli.cli:cli',

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from auger_cli.cli import pass_client
-from auger_cli.utils import print_formatted_list, print_formatted_object, clusters_command_progress_bar
+from ..cli import pass_client
+from ..cluster_config import ClusterConfig
+from ..utils import print_formatted_list, print_formatted_object, clusters_command_progress_bar
 import click
 import sys
 import webbrowser
@@ -16,8 +17,7 @@ attributes = [
     'uptime_seconds',
     'worker_nodes_count',
     'instance_type',
-    'ip_address',
-    'registry'
+    'ip_address'
 ]
 
 
@@ -67,26 +67,33 @@ def cli(ctx):
 )
 @pass_client
 def create(ctx, name, organization_id, worker_count, instance_type, wait):
-    cluster = ctx.client.action(
-        ctx.document,
-        ['clusters', 'create'],
-        params={
-            'name': name,
-            'organization_id': organization_id,
-            'worker_nodes_count': worker_count,
-            'instance_type': instance_type
-        }
-    )['data']
-    print_formatted_object(cluster, attributes)
-    if wait:
-        ok = clusters_command_progress_bar(
+    with ctx.coreapi_action():
+        cluster = ctx.client.action(
+            ctx.document,
+            ['clusters', 'create'],
+            params={
+                'name': name,
+                'organization_id': organization_id,
+                'worker_nodes_count': worker_count,
+                'instance_type': instance_type
+            }
+        )['data']
+        cluster_dict = cluster
+        ClusterConfig(
             ctx,
-            cluster['id'],
-            cluster['status'],
-            ['waiting', 'provisioning', 'bootstrapping'],
-            'running'
+            cluster_dict=cluster,
+            cluster_id=cluster['id']
         )
-        sys.exit(0 if ok else 1)
+        print_formatted_object(cluster, attributes)
+        if wait:
+            ok = clusters_command_progress_bar(
+                ctx,
+                cluster['id'],
+                cluster['status'],
+                ['waiting', 'provisioning', 'bootstrapping'],
+                'running'
+            )
+            sys.exit(0 if ok else 1)
 
 
 @click.command(short_help='Open cluster dashboard in a browser.')
@@ -102,15 +109,10 @@ def create(ctx, name, organization_id, worker_count, instance_type, wait):
 )
 @pass_client
 def dashboard(ctx, cluster_id, dashboard_name):
-    cluster = ctx.client.action(
-        ctx.document,
-        ['clusters', 'read'],
-        params={
-            'id': cluster_id
-        }
-    )
-    dashboard_url = cluster['data']['{}_url'.format(dashboard_name)]
-    webbrowser.open_new_tab(dashboard_url)
+    with ctx.coreapi_action():
+        cluster = ClusterConfig.fetch(ctx, cluster_id)
+        dashboard_url = cluster['{}_url'.format(dashboard_name)]
+        webbrowser.open_new_tab(dashboard_url)
 
 
 @click.command(short_help='Terminate a cluster.')
@@ -123,39 +125,34 @@ def dashboard(ctx, cluster_id, dashboard_name):
 )
 @pass_client
 def delete(ctx, cluster_id, wait):
-    cluster = ctx.client.action(
-        ctx.document,
-        ['clusters', 'delete'],
-        params={
-            'id': cluster_id
-        }
-    )['data']
-    cluster_id = cluster['id']
-    if cluster_id == int(cluster_id):
-        click.echo("Deleting {}.".format(cluster['name']))
-        if wait:
-            ok = clusters_command_progress_bar(
-                ctx,
-                cluster['id'],
-                cluster['status'],
-                ['running', 'terminating'],
-                'terminated'
-            )
-            sys.exit(0 if ok else 1)
+    with ctx.coreapi_action():
+        cluster = ctx.client.action(
+            ctx.document,
+            ['clusters', 'delete'],
+            params={
+                'id': cluster_id
+            }
+        )['data']
+        if cluster['id'] == int(cluster_id):
+            click.echo("Deleting {}.".format(cluster['name']))
+            if wait:
+                ok = clusters_command_progress_bar(
+                    ctx,
+                    cluster['id'],
+                    cluster['status'],
+                    ['running', 'terminating'],
+                    'terminated'
+                )
+                sys.exit(0 if ok else 1)
 
 
 @click.command(short_help='Display cluster details.')
 @click.argument('cluster_id')
 @pass_client
 def show(ctx, cluster_id):
-    cluster = ctx.client.action(
-        ctx.document,
-        ['clusters', 'read'],
-        params={
-            'id': cluster_id
-        }
-    )
-    print_formatted_object(cluster['data'], attributes)
+    with ctx.coreapi_action():
+        cluster = ClusterConfig.fetch(ctx, cluster_id)
+        print_formatted_object(cluster, attributes)
 
 
 cli.add_command(create)

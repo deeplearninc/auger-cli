@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import click
+from .cluster_config import ClusterConfig
 from .client import Client
 import logging
 import os
@@ -10,6 +11,7 @@ log = logging.getLogger("auger")
 
 CONTEXT_SETTINGS = dict(auto_envvar_prefix='AUGER')
 pass_client = click.make_pass_decorator(Client, ensure=True)
+pass_cluster = click.make_pass_decorator(ClusterConfig, ensure=True)
 
 
 class AugerCLI(click.MultiCommand):

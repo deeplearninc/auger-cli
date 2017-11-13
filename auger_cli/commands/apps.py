@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from auger_cli.cli import pass_client
-from auger_cli.utils import print_formatted_list, print_formatted_object, apps_command_progress_bar
+from ..cli import pass_client
+from ..cluster_config import ClusterConfig
+from ..utils import (
+    print_formatted_list,
+    print_formatted_object,
+    print_line,
+    apps_command_progress_bar
+)
 import click
 import sys
 from coreapi.transports import HTTPTransport
@@ -119,8 +125,19 @@ def delete(ctx, app):
 )
 @pass_client
 def deploy(ctx, app, cluster_id, wait):
+    cluster_config = ClusterConfig(
+        ctx,
+        app=app,
+        cluster_id=cluster_id
+    )
+    print_line('Setting up docker registry.')
+    cluster_config.login()
+    print_line('Preparing application to deploy.')
+    cluster_config.docker_client.build()
+    print_line('Deploying application. (This may take a few minutes.)')
+    cluster_config.docker_client.push()
     definition = ''
-    with open('.docker/service.yml') as f:
+    with open('.auger/service.yml') as f:
         definition = f.read()
 
     app = ctx.client.action(
@@ -142,6 +159,8 @@ def deploy(ctx, app, cluster_id, wait):
             'ready'
         )
         sys.exit(0 if ok else 1)
+    else:
+        print_line('Done.')
 
 
 @click.command(short_help='Display app logs.')

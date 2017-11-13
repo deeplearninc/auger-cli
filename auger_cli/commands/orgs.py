@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from auger_cli.cli import pass_client
-import auger_cli.constants as constants
-from auger_cli.utils import print_formatted_list, print_formatted_object
+from ..cli import pass_client
+from ..constants import CMD_ALIASES
+from ..utils import print_formatted_list, print_formatted_object
 import click
 
 
-attributes = ['id', 'name', 'main_bucket']
+attributes = ['id', 'name', 'main_bucket', 'status']
 
 
 @click.group(
@@ -42,7 +42,7 @@ def cli(ctx):
 def create(ctx, name, access_key, secret_key):
     org = ctx.client.action(
         ctx.document,
-        [constants.CMD_ALIASES['orgs'], 'create'],
+        [CMD_ALIASES['orgs'], 'create'],
         params={
             'name': name,
             'access_key': access_key,
