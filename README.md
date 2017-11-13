@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/deeplearninc/auger-cli.svg?style=shield&circle-token=4f5b3d5d345f38b5bce6b267251a03c1ed52708b)](https://circleci.com/gh/deeplearninc/auger-cli)
+
 # Auger CLI
 
 A command line tool for the [Auger AI platform](https://auger.ai).
@@ -17,7 +19,7 @@ auger --help
 
 # Usage scenarios
 
-## Help 
+## Help
 
 To access the usage information, simply add the `--help` option to any command or sub-command. For example:
 
@@ -209,7 +211,7 @@ Create project:
 auger apps create --app <project name> --organization-id <organization id>
 ```
 
-The project name must be unique within the organization. This means that a project can be deployed to a cluster, the cluster can be terminated, and the project can be deployed to another one. **NOTE** If you delete the application, another project with the same name can be used. 
+The project name must be unique within the organization. This means that a project can be deployed to a cluster, the cluster can be terminated, and the project can be deployed to another one. **NOTE** If you delete the application, another project with the same name can be used.
 
 Deploy project:
 ```sh
@@ -217,5 +219,3 @@ auger apps create --app <project name> --cluster-id <cluster-id>
 ```
 
 Deploy uses files from `.auger` folder. From `.auger/service.yml` it takes project definition.
-
-
