@@ -2,6 +2,7 @@
 
 import click
 import collections
+from .constants import API_POLL_INTERVAL
 import time
 import sys
 
@@ -46,6 +47,7 @@ def string_for_attrib(attrib):
     else:
         return attrib
 
+
 def urlparse(*args, **kwargs):
     if sys.version_info[0] < 3:
         from urlparse import urlparse
@@ -54,15 +56,17 @@ def urlparse(*args, **kwargs):
         from urllib.parse import urlparse
     return urlparse(*args, **kwargs)
 
-def clusters_command_progress_bar(ctx, cluster_id, first_status, in_progress_statuses, desired_status):
+
+def clusters_command_progress_bar(
+        ctx, cluster_id, first_status, in_progress_statuses, desired_status):
     status = first_status
     last_status = ''
     while status in in_progress_statuses:
         if status != last_status:
-            click.echo('\n%s..' % status, nl=False)
+            click.echo('\n{}...'.format(camelize(status), nl=False))
             last_status = status
         click.echo('.', nl=False)
-        time.sleep(1)
+        time.sleep(API_POLL_INTERVAL)
         status = ctx.client.action(
             ctx.document,
             ['clusters', 'read'],
@@ -70,29 +74,27 @@ def clusters_command_progress_bar(ctx, cluster_id, first_status, in_progress_sta
                 'id': cluster_id
             }
         )['data']['status']
-    click.echo()
-    click.echo(status)
+    click.echo('\n{}.'.format(camelize(status)))
     return status == desired_status
 
-def apps_command_progress_bar(ctx, app_id, first_status, in_progress_statuses, desired_status):
+
+def projects_command_progress_bar(
+        ctx, name, first_status, in_progress_statuses, desired_status):
     status = first_status
     last_status = ''
     while status in in_progress_statuses:
         if status != last_status:
-            click.echo('\n%s..' % status, nl=False)
+            click.echo('{}...'.format(camelize(status), nl=False))
             last_status = status
         click.echo('.', nl=False)
-        time.sleep(1)
-        apps = ctx.client.action(
+        time.sleep(API_POLL_INTERVAL)
+        project = ctx.client.action(
             ctx.document,
-            ['apps', 'list']
+            ['projects', 'read'],
+            params={
+                'name': name
+            }
         )['data']
-        app = None
-        for a in apps:
-            if a['id'] == app_id:
-                app = a
-                break
-        status = app['status']
-    click.echo()
-    click.echo(status)
+        status = project['status']
+    click.echo('\n{}.'.format(camelize(status)))
     return status == desired_status

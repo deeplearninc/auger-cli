@@ -2,7 +2,11 @@
 
 from ..cli import pass_client
 from ..cluster_config import ClusterConfig
-from ..utils import print_formatted_list, print_formatted_object, clusters_command_progress_bar
+from ..utils import (
+    clusters_command_progress_bar,
+    print_formatted_list,
+    print_formatted_object
+)
 import click
 import sys
 import webbrowser
@@ -78,7 +82,6 @@ def create(ctx, name, organization_id, worker_count, instance_type, wait):
                 'instance_type': instance_type
             }
         )['data']
-        cluster_dict = cluster
         ClusterConfig(
             ctx,
             cluster_dict=cluster,

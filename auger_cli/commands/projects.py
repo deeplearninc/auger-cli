@@ -6,7 +6,7 @@ from ..utils import (
     print_formatted_list,
     print_formatted_object,
     print_line,
-    apps_command_progress_bar
+    projects_command_progress_bar
 )
 import click
 import sys
@@ -113,10 +113,10 @@ def delete(ctx, project):
     '--wait/--no-wait',
     '-w/',
     default=False,
-    help='Wait for application to be ready.'
+    help='Wait for project to be ready.'
 )
 @pass_client
-def deploy(ctx, project, cluster_id):
+def deploy(ctx, project, cluster_id, wait):
     cluster_config = ClusterConfig(
         ctx,
         project=project,
@@ -132,7 +132,7 @@ def deploy(ctx, project, cluster_id):
     with open('.auger/service.yml') as f:
         definition = f.read()
 
-    app = ctx.client.action(
+    project_data = ctx.client.action(
         ctx.document,
         ['projects', 'deploy'],
         params={
@@ -141,12 +141,12 @@ def deploy(ctx, project, cluster_id):
             'definition': definition
         }
     )['data']
-    print_formatted_object(app, attributes)
+    print_formatted_object(project_data, attributes)
     if wait:
-        ok = apps_command_progress_bar(
+        ok = projects_command_progress_bar(
             ctx,
-            app['id'],
-            app['status'],
+            project_data['name'],
+            project_data['status'],
             ['undeployed'],
             'ready'
         )
@@ -202,7 +202,6 @@ def open_project(ctx, project):
         ['projects', 'list']
     )
     for _, project_data in iter(projects.items()):
-        print(project_data[0])
         if project_data[0]['name'] == project:
             project_url = project_data[0]['url']
             return webbrowser.open_new_tab(project_url)
