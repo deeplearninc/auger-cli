@@ -10,10 +10,10 @@ class DockerClient(dict):
     _dockerfile_path = '.auger/Dockerfile'
 
     def __init__(
-            self, username=None, password=None, hostname=None, app=None):
+            self, username=None, password=None, hostname=None, project=None):
         super(DockerClient, self).__init__()
-        self.client = docker.from_env(timeout=300)
-        self['app'] = app
+        self.client = docker.from_env(timeout=600)
+        self['project'] = project
         self['username'] = username
         self['password'] = password
         self['hostname'] = hostname
@@ -52,4 +52,4 @@ class DockerClient(dict):
             )
 
     def _image_name(self):
-        return '{}/{}'.format(self['hostname'], self['app'])
+        return '{}/{}'.format(self['hostname'], self['project'])
