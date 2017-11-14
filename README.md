@@ -33,7 +33,7 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  apps       Manage Auger Apps.
+  projects       Manage Auger Projects.
   auth       Authentication with Auger.
   clusters   Manage Auger Clusters.
   instances  Display available instance types for clusters.
@@ -208,14 +208,14 @@ auger clusters delete <cluster id>
 
 Create project:
 ```sh
-auger apps create --app <project name> --organization-id <organization id>
+auger project create --project <project name> --organization-id <organization id>
 ```
 
-The project name must be unique within the organization. This means that a project can be deployed to a cluster, the cluster can be terminated, and the project can be deployed to another one. **NOTE** If you delete the application, another project with the same name can be used.
+The project name must be unique within the organization. This means that a project can be deployed to a cluster, the cluster can be terminated, and the project can be deployed to another one. **NOTE:** If you delete the project, another project with the same name can be used.
 
 Deploy project:
 ```sh
-auger apps create --app <project name> --cluster-id <cluster-id>
+auger projects create --project <project name> --cluster-id <cluster-id>
 ```
 
 Deploy uses files from `.auger` folder. From `.auger/service.yml` it takes project definition.
