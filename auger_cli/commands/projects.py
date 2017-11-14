@@ -26,96 +26,88 @@ attributes = [
 
 
 @click.group(
-    'apps',
+    'projects',
     invoke_without_command=True,
-    short_help='Manage Auger Apps.'
+    short_help='Manage Auger Projects.'
 )
 @click.pass_context
 def cli(ctx):
     if ctx.invoked_subcommand is None:
-        apps = ctx.obj.client.action(
+        projects = ctx.obj.client.action(
             ctx.obj.document,
-            ['apps', 'list']
+            ['projects', 'list']
         )
         print_formatted_list(
-            list_data=apps['data'],
+            list_data=projects['data'],
             attributes=attributes
         )
     else:
         pass
 
 
-@click.command(short_help='Create a new Auger app.')
+@click.command(short_help='Create a new Auger project.')
 @click.option(
-    '--app',
-    '-a',
+    '--project',
+    '-p',
     type=click.STRING,
     required=True,
-    help='Name of the app to create.'
-)
-@click.option(
-    '--cluster-id',
-    '-c',
-    type=click.INT,
-    help='Optional cluster the app will be deployed to.'
+    help='Name of the project to create.'
 )
 @click.option(
     '--organization-id',
     '-o',
     type=click.INT,
     required=True,
-    help='Organization for the app.'
+    help='Organization for the project.'
 )
 @pass_client
-def create(ctx, app, cluster_id, organization_id):
+def create(ctx, project, organization_id):
     params = {
-        'name': app,
+        'name': project,
         'organization_id': organization_id
     }
-    if cluster_id is not None:
-        params['cluster_id'] = cluster_id
     result = ctx.client.action(
         ctx.document,
-        ['apps', 'create'],
+        ['projects', 'create'],
         params=params
     )
     print_formatted_object(result['data'], attributes)
 
 
 @click.command(
-    short_help='Delete an app from Auger Hub. This cannot be undone.'
+    short_help='Delete an project from Auger Hub. This cannot be undone.'
 )
 @click.option(
-    '--app',
-    '-a',
+    '--project',
+    '-p',
     type=click.STRING,
     required=True,
-    help='Name of the app to delete.'
+    help='Name of the project to delete.'
 )
 @pass_client
-def delete(ctx, app):
+def delete(ctx, project):
     ctx.client.action(
         ctx.document,
-        ['apps', 'delete'],
-        params={'name': app}
+        ['projects', 'delete'],
+        params={'name': project}
     )
-    click.echo('Deleted {}.'.format(app))
+    click.echo('Deleted {}.'.format(project))
 
 
-@click.command(short_help='Deploy an app to a cluster.')
+@click.command(short_help='Deploy an project to a cluster.')
 @click.option(
-    '--app',
-    '-a',
+    '--project',
+    '-p',
     type=click.STRING,
     required=True,
-    help='Name of the app to deploy.'
+    help='Name of the project to deploy.'
 )
 @click.option(
     '--cluster-id',
     '-c',
     type=click.INT,
     required=True,
-    help='Cluster the app will be deployed to.'
+    help='Cluster the project will be deployed to.'
 )
 @click.option(
     '--wait/--no-wait',
@@ -124,17 +116,17 @@ def delete(ctx, app):
     help='Wait for application to be ready.'
 )
 @pass_client
-def deploy(ctx, app, cluster_id, wait):
+def deploy(ctx, project, cluster_id):
     cluster_config = ClusterConfig(
         ctx,
-        app=app,
+        project=project,
         cluster_id=cluster_id
     )
     print_line('Setting up docker registry.')
     cluster_config.login()
-    print_line('Preparing application to deploy.')
+    print_line('Preparing project to deploy.')
     cluster_config.docker_client.build()
-    print_line('Deploying application. (This may take a few minutes.)')
+    print_line('Deploying project. (This may take a few minutes.)')
     cluster_config.docker_client.push()
     definition = ''
     with open('.auger/service.yml') as f:
@@ -142,9 +134,9 @@ def deploy(ctx, app, cluster_id, wait):
 
     app = ctx.client.action(
         ctx.document,
-        ['apps', 'deploy'],
+        ['projects', 'deploy'],
         params={
-            'name': app,
+            'name': project,
             'cluster_id': cluster_id,
             'definition': definition
         }
@@ -163,13 +155,13 @@ def deploy(ctx, app, cluster_id, wait):
         print_line('Done.')
 
 
-@click.command(short_help='Display app logs.')
+@click.command(short_help='Display project logs.')
 @click.option(
-    '--app',
-    '-a',
+    '--project',
+    '-p',
     type=click.STRING,
     required=True,
-    help='Name of the app.'
+    help='Name of the project.'
 )
 @click.option(
     '--tail',
@@ -179,59 +171,59 @@ def deploy(ctx, app, cluster_id, wait):
     help='Stream logs to console.'
 )
 @pass_client
-def logs(ctx, app, tail):
+def logs(ctx, project, tail):
     if tail:
         params = {
-            'name': app
+            'name': project
         }
         _stream_logs(ctx, params)
     else:
         result = ctx.client.action(
             ctx.document,
-            ['apps', 'logs'],
+            ['projects', 'logs'],
             params={
-                'name': app
+                'name': project
             }
         )
         click.echo(result)
 
 
-@click.command(short_help='Open application in a browser.')
+@click.command(short_help='Open project in a browser.')
 @click.option(
-    '--app',
-    '-a',
+    '--project',
+    '-p',
     type=click.STRING,
-    help='Name of application to open.'
+    help='Name of project to open.'
 )
 @pass_client
-def open_app(ctx, app):
-    apps = ctx.client.action(
+def open_project(ctx, project):
+    projects = ctx.client.action(
         ctx.document,
-        ['apps', 'list']
+        ['projects', 'list']
     )
-    for _, app_data in iter(apps.items()):
-        print(app_data[0])
-        if app_data[0]['name'] == app:
-            app_url = app_data[0]['url']
-            return webbrowser.open_new_tab(app_url)
+    for _, project_data in iter(projects.items()):
+        print(project_data[0])
+        if project_data[0]['name'] == project:
+            project_url = project_data[0]['url']
+            return webbrowser.open_new_tab(project_url)
 
 
-@click.command(short_help='Undeploy an app from the cluster.')
+@click.command(short_help='Undeploy an project from the cluster.')
 @click.option(
-    '--app',
-    '-a',
+    '--project',
+    '-p',
     type=click.STRING,
     required=True,
-    help='Name of the app to undeploy.'
+    help='Name of the project to undeploy.'
 )
 @pass_client
-def undeploy(ctx, app):
+def undeploy(ctx, project):
     ctx.client.action(
         ctx.document,
-        ['apps', 'undeploy'],
-        params={'name': app}
+        ['projects', 'undeploy'],
+        params={'name': project}
     )
-    click.echo('Undeployed {}.'.format(app))
+    click.echo('Undeployed {}.'.format(project))
 
 
 def _stream_logs(ctx, params):
@@ -283,5 +275,5 @@ cli.add_command(create)
 cli.add_command(delete)
 cli.add_command(deploy)
 cli.add_command(logs)
-cli.add_command(open_app, name='open')
+cli.add_command(open_project, name='open')
 cli.add_command(undeploy)

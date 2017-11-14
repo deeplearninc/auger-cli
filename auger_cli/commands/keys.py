@@ -40,7 +40,7 @@ def cli(ctx, organization_id):
     '-p',
     type=click.STRING,
     required=True,
-    help='A local file path to an SSH public key used to push app code.'
+    help='A local file path to an SSH public key used to deploy projects.'
 )
 @click.option(
     '--organization-id',
