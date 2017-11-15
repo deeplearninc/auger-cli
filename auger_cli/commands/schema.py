@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from ..cli import pass_client
 import click
 
 
 @click.command('schema', short_help='Display current Auger schema.')
-@click.pass_context
+@pass_client
 def cli(ctx):
-    click.echo(ctx.obj.document)
+    ctx.fetch_document(url=ctx.document.url)
+    click.echo(ctx.document)

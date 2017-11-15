@@ -40,15 +40,9 @@ class Client(object):
             sys.exit(1)
 
         if not self._cached_document:
-            doc = self.coreapi_cli.get_document()
-            if doc is None:
-                self._cached_document = self.client.get(
-                    self.coreapi_schema_url,
-                    format='openapi'
-                )
-                self.coreapi_cli.set_document(self._cached_document)
-            else:
-                self._cached_document = doc
+            self._cached_document = self.coreapi_cli.get_document()
+            if self._cached_document is None:
+                self.fetch_document(url=self.coreapi_schema_url)
         return self._cached_document
 
     @contextmanager
@@ -67,6 +61,10 @@ class Client(object):
 
     def get_credentials(self):
         return self.coreapi_cli.get_credentials()
+
+    def fetch_document(self, url):
+        self._cached_document = self.client.get(url, format='openapi')
+        self.coreapi_cli.set_document(self._cached_document)
 
     def setup_client(self):
         self.credentials = self.coreapi_cli.get_credentials()
