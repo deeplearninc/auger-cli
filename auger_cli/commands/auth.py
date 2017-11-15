@@ -3,6 +3,7 @@
 from .. import constants
 from ..cli import pass_client
 from ..client import Client
+from ..formatter import print_line
 from ..utils import urlparse
 import base64
 from coreapi.compat import b64encode
@@ -75,7 +76,7 @@ def login(ctx, debug, url, username, password):
 @click.pass_context
 def logout(ctx):
     ctx.obj.clear()
-    click.echo('You are now logged out.')
+    print_line('You are now logged out.')
 
 
 @click.command(short_help='Display the current logged in user.')
@@ -85,7 +86,7 @@ def whoami(ctx):
     for host, cred in creds.items():
         decoded = base64.b64decode(cred.split(' ')[1]).decode('utf8')
         username = decoded.split(':')[0]
-        click.echo('{} on {}'.format(username, host))
+        print_line('{} on {}'.format(username, host))
 
 
 cli.add_command(login)

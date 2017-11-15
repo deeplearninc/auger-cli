@@ -2,14 +2,14 @@
 
 from ..cli import pass_client
 from ..cluster_config import ClusterConfig
-from ..utils import (
-    clusters_command_progress_bar,
-    print_formatted_list,
-    print_formatted_object
+from ..formatter import (
+    command_progress_bar,
+    print_line,
+    print_list,
+    print_record
 )
 import click
 import sys
-import webbrowser
 
 
 attributes = [
@@ -38,7 +38,7 @@ def cli(ctx):
                 ctx.obj.document,
                 ['clusters', 'list']
             )
-            print_formatted_list(clusters['data'], attributes)
+            print_list(clusters['data'], attributes)
     else:
         pass
 
@@ -87,14 +87,17 @@ def create(ctx, name, organization_id, worker_count, instance_type, wait):
             cluster_dict=cluster,
             cluster_id=cluster['id']
         )
-        print_formatted_object(cluster, attributes)
+        print_record(cluster, attributes)
         if wait:
-            ok = clusters_command_progress_bar(
-                ctx,
-                cluster['id'],
-                cluster['status'],
-                ['waiting', 'provisioning', 'bootstrapping'],
-                'running'
+            ok = command_progress_bar(
+                ctx=ctx,
+                endpoint=['clusters', 'read'],
+                params={'id': cluster['id']},
+                first_status=cluster['status'],
+                progress_statuses=[
+                    'waiting', 'provisioning', 'bootstrapping'
+                ],
+                desired_status='running'
             )
             sys.exit(0 if ok else 1)
 
@@ -105,7 +108,7 @@ def create(ctx, name, organization_id, worker_count, instance_type, wait):
 def credentials(ctx, cluster_id):
     with ctx.coreapi_action():
         cluster = ClusterConfig.fetch(ctx, cluster_id)
-        print_formatted_object(
+        print_record(
             cluster['registry'],
             ['url', 'login', 'password']
         )
@@ -127,7 +130,7 @@ def dashboard(ctx, cluster_id, dashboard_name):
     with ctx.coreapi_action():
         cluster = ClusterConfig.fetch(ctx, cluster_id)
         dashboard_url = cluster['{}_url'.format(dashboard_name)]
-        webbrowser.open_new_tab(dashboard_url)
+        click.launch(dashboard_url)
 
 
 @click.command(short_help='Terminate a cluster.')
@@ -149,14 +152,17 @@ def delete(ctx, cluster_id, wait):
             }
         )['data']
         if cluster['id'] == int(cluster_id):
-            click.echo("Deleting {}.".format(cluster['name']))
+            print_line("Deleting {}.".format(cluster['name']))
             if wait:
-                ok = clusters_command_progress_bar(
-                    ctx,
-                    cluster['id'],
-                    cluster['status'],
-                    ['running', 'terminating'],
-                    'terminated'
+                ok = command_progress_bar(
+                    ctx=ctx,
+                    endpoint=['clusters', 'read'],
+                    params={'id': cluster['id']},
+                    first_status=cluster['status'],
+                    progress_statuses=[
+                        'running', 'terminating'
+                    ],
+                    desired_status='terminated'
                 )
                 sys.exit(0 if ok else 1)
 
@@ -167,7 +173,7 @@ def delete(ctx, cluster_id, wait):
 def show(ctx, cluster_id):
     with ctx.coreapi_action():
         cluster = ClusterConfig.fetch(ctx, cluster_id)
-        print_formatted_object(cluster, attributes)
+        print_record(cluster, attributes)
 
 
 cli.add_command(create)

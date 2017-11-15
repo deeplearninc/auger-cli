@@ -2,17 +2,15 @@
 
 from ..cli import pass_client
 from ..cluster_config import ClusterConfig
-from ..utils import (
-    print_formatted_list,
-    print_formatted_object,
+from ..formatter import (
+    command_progress_bar,
     print_line,
-    projects_command_progress_bar
+    print_list,
+    print_stream,
+    print_record
 )
 import click
 import sys
-from coreapi.transports import HTTPTransport
-from coreapi.transports import http as coreapi_http
-import webbrowser
 
 
 attributes = [
@@ -37,7 +35,7 @@ def cli(ctx):
             ctx.obj.document,
             ['projects', 'list']
         )
-        print_formatted_list(
+        print_list(
             list_data=projects['data'],
             attributes=attributes
         )
@@ -71,7 +69,7 @@ def create(ctx, project, organization_id):
         ['projects', 'create'],
         params=params
     )
-    print_formatted_object(result['data'], attributes)
+    print_record(result['data'], attributes)
 
 
 @click.command(
@@ -91,7 +89,7 @@ def delete(ctx, project):
         ['projects', 'delete'],
         params={'name': project}
     )
-    click.echo('Deleted {}.'.format(project))
+    print_line('Deleted {}.'.format(project))
 
 
 @click.command(short_help='Deploy an project to a cluster.')
@@ -141,14 +139,15 @@ def deploy(ctx, project, cluster_id, wait):
             'definition': definition
         }
     )['data']
-    print_formatted_object(project_data, attributes)
+    print_record(project_data, attributes)
     if wait:
-        ok = projects_command_progress_bar(
-            ctx,
-            project_data['name'],
-            project_data['status'],
-            ['undeployed'],
-            'ready'
+        ok = command_progress_bar(
+            ctx=ctx,
+            endpoint=['projects', 'read'],
+            params={'name': project_data['name']},
+            first_status=project_data['status'],
+            progress_statuses=['undeployed'],
+            desired_status='ready'
         )
         sys.exit(0 if ok else 1)
     else:
@@ -176,7 +175,7 @@ def logs(ctx, project, tail):
         params = {
             'name': project
         }
-        _stream_logs(ctx, params)
+        print_stream(ctx, params)
     else:
         result = ctx.client.action(
             ctx.document,
@@ -185,7 +184,7 @@ def logs(ctx, project, tail):
                 'name': project
             }
         )
-        click.echo(result)
+        print_line(result)
 
 
 @click.command(short_help='Open project in a browser.')
@@ -197,14 +196,15 @@ def logs(ctx, project, tail):
 )
 @pass_client
 def open_project(ctx, project):
-    projects = ctx.client.action(
+    project = ctx.client.action(
         ctx.document,
-        ['projects', 'list']
+        ['projects', 'read'],
+        params={
+            'name': project
+        }
     )
-    for _, project_data in iter(projects.items()):
-        if project_data[0]['name'] == project:
-            project_url = project_data[0]['url']
-            return webbrowser.open_new_tab(project_url)
+    project_url = project['url']
+    return click.launch(project_url)
 
 
 @click.command(short_help='Undeploy an project from the cluster.')
@@ -222,52 +222,7 @@ def undeploy(ctx, project):
         ['projects', 'undeploy'],
         params={'name': project}
     )
-    click.echo('Undeployed {}.'.format(project))
-
-
-def _stream_logs(ctx, params):
-    # Patch HTTPTransport to handle streaming responses
-    def stream_request(self, link, decoders,
-                       params=None, link_ancestors=None, force_codec=False):
-        session = self._session
-        method = coreapi_http._get_method(link.action)
-        encoding = coreapi_http._get_encoding(link.encoding)
-        params = coreapi_http._get_params(
-            method, encoding, link.fields, params
-        )
-        url = coreapi_http._get_url(link.url, params.path)
-        headers = coreapi_http._get_headers(url, decoders, self.credentials)
-        headers.update(self.headers)
-
-        request = coreapi_http._build_http_request(
-            session, url, method, headers, encoding, params
-        )
-
-        with session.send(request, stream=True) as response:
-            print(response)
-            for line in response.iter_lines():
-                line = line.decode('utf-8')
-                if line != 'ping':
-                    print(line)
-
-    HTTPTransport.stream_request = stream_request
-    # Patch done
-
-    doc = ctx.document
-
-    def flatten(list):
-        return [item for sublist in list for item in sublist]
-
-    links = flatten(
-        list(map(lambda link: list(link._data.values()), doc.data.values()))
-    )
-    link = list(filter(lambda link: 'stream_logs' in link.url, links))[0]
-    credentials = ctx.credentials
-    headers = ctx.headers
-    decoders = ctx.decoders
-
-    http_transport = HTTPTransport(credentials=credentials, headers=headers)
-    http_transport.stream_request(link, decoders, params=params)
+    print_line('Undeployed {}.'.format(project))
 
 
 cli.add_command(create)
