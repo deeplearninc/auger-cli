@@ -3,7 +3,7 @@
 import sys
 
 from ...cluster_config import ClusterConfig
-from ...formatter import command_progress_bar, print_record
+from ...formatter import command_progress_bar, print_record, print_line
 
 
 clusters_attributes = [
