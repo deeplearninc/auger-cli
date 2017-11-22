@@ -8,21 +8,13 @@ from ..formatter import (
     print_list,
     print_record
 )
+from .lib.lib import clusters_attributes, clusters_create
+
 import click
 import sys
 
 
-attributes = [
-    'name',
-    'id',
-    'organization_id',
-    'status',
-    'seconds_since_created',
-    'uptime_seconds',
-    'worker_nodes_count',
-    'instance_type',
-    'ip_address'
-]
+attributes = clusters_attributes
 
 
 @click.group(
@@ -71,35 +63,9 @@ def cli(ctx):
 )
 @pass_client
 def create(ctx, name, organization_id, worker_count, instance_type, wait):
-    with ctx.coreapi_action():
-        cluster = ctx.client.action(
-            ctx.document,
-            ['clusters', 'create'],
-            params={
-                'name': name,
-                'organization_id': organization_id,
-                'worker_nodes_count': worker_count,
-                'instance_type': instance_type
-            }
-        )['data']
-        ClusterConfig(
-            ctx,
-            cluster_dict=cluster,
-            cluster_id=cluster['id']
-        )
-        print_record(cluster, attributes)
-        if wait:
-            ok = command_progress_bar(
-                ctx=ctx,
-                endpoint=['clusters', 'read'],
-                params={'id': cluster['id']},
-                first_status=cluster['status'],
-                progress_statuses=[
-                    'waiting', 'provisioning', 'bootstrapping'
-                ],
-                desired_status='running'
-            )
-            sys.exit(0 if ok else 1)
+    result = clusters_create(ctx, name, organization_id, worker_count, instance_type, wait)
+    if result is not None:
+        sys.exit(0 if result.ok else 1)
 
 
 @click.command(short_help='Print cluster registry credentials.')

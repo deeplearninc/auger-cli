@@ -9,18 +9,13 @@ from ..formatter import (
     print_stream,
     print_record
 )
+from .lib.lib import projects_attributes, projects_create, projects_deploy
+
 import click
 import sys
 
 
-attributes = [
-    'id',
-    'name',
-    'attached',
-    'status',
-    'cluster_id',
-    'created_at'
-]
+attributes = projects_attributes
 
 
 @click.group(
@@ -60,16 +55,7 @@ def cli(ctx):
 )
 @pass_client
 def create(ctx, project, organization_id):
-    params = {
-        'name': project,
-        'organization_id': organization_id
-    }
-    result = ctx.client.action(
-        ctx.document,
-        ['projects', 'create'],
-        params=params
-    )
-    print_record(result['data'], attributes)
+    projects_create(ctx, project, organization_id)
 
 
 @click.command(
@@ -115,43 +101,9 @@ def delete(ctx, project):
 )
 @pass_client
 def deploy(ctx, project, cluster_id, wait):
-    cluster_config = ClusterConfig(
-        ctx,
-        project=project,
-        cluster_id=cluster_id
-    )
-    print_line('Setting up docker registry.')
-    cluster_config.login()
-    print_line('Preparing project to deploy.')
-    cluster_config.docker_client.build()
-    print_line('Deploying project. (This may take a few minutes.)')
-    cluster_config.docker_client.push()
-    definition = ''
-    with open('.auger/service.yml') as f:
-        definition = f.read()
-
-    project_data = ctx.client.action(
-        ctx.document,
-        ['projects', 'deploy'],
-        params={
-            'name': project,
-            'cluster_id': cluster_id,
-            'definition': definition
-        }
-    )['data']
-    print_record(project_data, attributes)
-    if wait:
-        ok = command_progress_bar(
-            ctx=ctx,
-            endpoint=['projects', 'read'],
-            params={'name': project_data['name']},
-            first_status=project_data['status'],
-            progress_statuses=['undeployed'],
-            desired_status='ready'
-        )
+    ok = projects_deploy(ctx, project, cluster_id, wait)
+    if ok is not None:
         sys.exit(0 if ok else 1)
-    else:
-        print_line('Done.')
 
 
 @click.command(short_help='Display project logs.')
