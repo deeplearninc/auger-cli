@@ -1,31 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from .lib.lib import clusters_create, projects_create, projects_deploy
-from ..cli import pass_client
-from ..cluster_config import ClusterConfig
-from ..formatter import (
-    command_progress_bar,
-    print_line,
-    print_list,
-    print_record
-)
 import click
-import subprocess
+import re
 import sys
 import time
 
-
-attributes = [
-    'name',
-    'id',
-    'organization_id',
-    'status',
-    'seconds_since_created',
-    'uptime_seconds',
-    'worker_nodes_count',
-    'instance_type',
-    'ip_address'
-]
+from .lib.lib import (clusters_list, clusters_create, clusters_delete, projects_list, projects_create,
+                      projects_delete, projects_deploy)
+from ..cli import pass_client
 
 
 @click.group(
@@ -72,9 +54,23 @@ def start(ctx, project, organization_id):
 @click.argument('project')
 @pass_client
 def stop(ctx, project):
-    result = subprocess.run(['auger', 'clusters', 'delete', '--wait', 'for-%s' % project])
-    if result.returncode != 0:
-        sys.exit(result.returncode)
+    projects = projects_list(ctx)['data']
+
+    found = False
+    for p in projects:
+        if p['name'] == project:
+            found = True
+    if found:
+        projects_delete(ctx, project)
+
+    ok = True
+    for c in clusters_list(ctx)['data']:
+        if c['status'] != 'terminated':
+            m = re.match('^for-([^-]+)-([\d]+)$', c['name'])
+            if m is not None:
+                if not clusters_delete(ctx, cluster_id=c['id'], wait=True):
+                    ok = False
+    sys.exit(0 if ok else 1)
 
 
 cli.add_command(start)

@@ -19,6 +19,10 @@ clusters_attributes = [
 ]
 
 
+def clusters_list(ctx):
+    return ctx.client.action(ctx.document, ['clusters', 'list'])
+
+
 class ClustersCreateResult(object):
     def __init__(self, ok, cluster_id):
         self.ok = ok
@@ -57,6 +61,30 @@ def clusters_create(ctx, name, organization_id, worker_count, instance_type, wai
             return ClustersCreateResult(ok, cluster['id'])
 
 
+def clusters_delete(ctx, cluster_id, wait):
+    with ctx.coreapi_action():
+        cluster = ctx.client.action(
+            ctx.document,
+            ['clusters', 'delete'],
+            params={
+                'id': cluster_id
+            }
+        )['data']
+        if cluster['id'] == int(cluster_id):
+            print_line("Deleting {}.".format(cluster['name']))
+            if wait:
+                return command_progress_bar(
+                    ctx=ctx,
+                    endpoint=['clusters', 'read'],
+                    params={'id': cluster['id']},
+                    first_status=cluster['status'],
+                    progress_statuses=[
+                        'running', 'terminating'
+                    ],
+                    desired_status='terminated'
+                )
+
+
 projects_attributes = [
     'id',
     'name',
@@ -65,6 +93,10 @@ projects_attributes = [
     'cluster_id',
     'created_at'
 ]
+
+
+def projects_list(ctx):
+    return ctx.client.action(ctx.document, ['projects', 'list'])
 
 
 def projects_create(ctx, project, organization_id):
@@ -78,6 +110,15 @@ def projects_create(ctx, project, organization_id):
         params=params
     )
     print_record(result['data'], projects_attributes)
+
+
+def projects_delete(ctx, project):
+    ctx.client.action(
+        ctx.document,
+        ['projects', 'delete'],
+        params={'name': project}
+    )
+    print_line('Deleted {}.'.format(project))
 
 
 def projects_deploy(ctx, project, cluster_id, wait):

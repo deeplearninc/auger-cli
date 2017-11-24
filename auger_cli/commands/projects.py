@@ -9,7 +9,7 @@ from ..formatter import (
     print_stream,
     print_record
 )
-from .lib.lib import projects_attributes, projects_create, projects_deploy
+from .lib.lib import projects_attributes, projects_list, projects_create, projects_delete, projects_deploy
 
 import click
 import sys
@@ -26,12 +26,8 @@ attributes = projects_attributes
 @click.pass_context
 def cli(ctx):
     if ctx.invoked_subcommand is None:
-        projects = ctx.obj.client.action(
-            ctx.obj.document,
-            ['projects', 'list']
-        )
         print_list(
-            list_data=projects['data'],
+            list_data=projects_list(ctx.obj)['data'],
             attributes=attributes
         )
     else:
@@ -70,12 +66,7 @@ def create(ctx, project, organization_id):
 )
 @pass_client
 def delete(ctx, project):
-    ctx.client.action(
-        ctx.document,
-        ['projects', 'delete'],
-        params={'name': project}
-    )
-    print_line('Deleted {}.'.format(project))
+    projects_delete(ctx, project)
 
 
 @click.command(short_help='Deploy an project to a cluster.')

@@ -8,7 +8,7 @@ from ..formatter import (
     print_list,
     print_record
 )
-from .lib.lib import clusters_attributes, clusters_create
+from .lib.lib import clusters_attributes, clusters_list, clusters_create, clusters_delete
 
 import click
 import sys
@@ -26,11 +26,7 @@ attributes = clusters_attributes
 def cli(ctx):
     if ctx.invoked_subcommand is None:
         with ctx.obj.coreapi_action():
-            clusters = ctx.obj.client.action(
-                ctx.obj.document,
-                ['clusters', 'list']
-            )
-            print_list(clusters['data'], attributes)
+            print_list(clusters_list(ctx.obj)['data'], attributes)
     else:
         pass
 
@@ -109,28 +105,9 @@ def dashboard(ctx, cluster_id, dashboard_name):
 )
 @pass_client
 def delete(ctx, cluster_id, wait):
-    with ctx.coreapi_action():
-        cluster = ctx.client.action(
-            ctx.document,
-            ['clusters', 'delete'],
-            params={
-                'id': cluster_id
-            }
-        )['data']
-        if cluster['id'] == int(cluster_id):
-            print_line("Deleting {}.".format(cluster['name']))
-            if wait:
-                ok = command_progress_bar(
-                    ctx=ctx,
-                    endpoint=['clusters', 'read'],
-                    params={'id': cluster['id']},
-                    first_status=cluster['status'],
-                    progress_statuses=[
-                        'running', 'terminating'
-                    ],
-                    desired_status='terminated'
-                )
-                sys.exit(0 if ok else 1)
+    ok = clusters_delete(ctx, cluster_id, wait)
+    if ok is not None:
+        sys.exit(0 if ok else 1)
 
 
 @click.command(short_help='Display cluster details.')
