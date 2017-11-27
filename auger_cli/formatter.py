@@ -17,7 +17,7 @@ def command_progress_bar(
     last_status = ''
     while status in progress_statuses:
         if status != last_status:
-            print_line('\n{}... '.format(camelize(status)), nl=False)
+            print_line('{}... '.format(camelize(status)))
             last_status = status
         with click_spinner.spinner():
             while status == last_status:
@@ -27,7 +27,7 @@ def command_progress_bar(
                     endpoint,
                     params=params
                 )['data']['status']
-    print_line('\n{}.'.format(camelize(status)))
+    print_line('{}.'.format(camelize(status)))
     return status == desired_status
 
 
