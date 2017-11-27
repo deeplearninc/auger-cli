@@ -66,7 +66,7 @@ def stop(ctx, project):
     ok = True
     for c in clusters_list(ctx)['data']:
         if c['status'] != 'terminated':
-            m = re.match('^for-([^-]+)-([\d]+)$', c['name'])
+            m = re.match('^for-(.+)-([\d]+)$', c['name'])
             if m is not None:
                 if not clusters_delete(ctx, cluster_id=c['id'], wait=True):
                     ok = False
