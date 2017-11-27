@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import click
+import click_spinner
 import collections
 from .constants import API_POLL_INTERVAL
 from coreapi.transports import HTTPTransport
@@ -16,15 +17,16 @@ def command_progress_bar(
     last_status = ''
     while status in progress_statuses:
         if status != last_status:
-            print_line('\n{}...'.format(camelize(status), nl=False))
+            print_line('\n{}... '.format(camelize(status)), nl=False)
             last_status = status
-        print_line('.', nl=False)
-        time.sleep(API_POLL_INTERVAL)
-        status = ctx.client.action(
-            ctx.document,
-            endpoint,
-            params=params
-        )['data']['status']
+        with click_spinner.spinner():
+            while status == last_status:
+                time.sleep(API_POLL_INTERVAL)
+                status = ctx.client.action(
+                    ctx.document,
+                    endpoint,
+                    params=params
+                )['data']['status']
     print_line('\n{}.'.format(camelize(status)))
     return status == desired_status
 
