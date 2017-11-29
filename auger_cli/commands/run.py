@@ -6,9 +6,8 @@ import sys
 import time
 
 from .lib.lib import (clusters_list, clusters_create, clusters_delete, projects_list, projects_create,
-                      projects_delete, projects_deploy)
+                      projects_delete, projects_deploy, projects_open)
 from ..cli import pass_client
-
 
 @click.group(
     'run',
@@ -47,6 +46,7 @@ def start(ctx, project, organization_id):
     if not projects_deploy_ok:
         sys.exit(1)
 
+    projects_open(ctx, project)
     sys.exit(0)
 
 

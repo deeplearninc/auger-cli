@@ -9,7 +9,7 @@ from ..formatter import (
     print_stream,
     print_record
 )
-from .lib.lib import projects_attributes, projects_list, projects_create, projects_delete, projects_deploy
+from .lib.lib import projects_attributes, projects_list, projects_create, projects_delete, projects_deploy, projects_open
 
 import click
 import sys
@@ -139,15 +139,7 @@ def logs(ctx, project, tail):
 )
 @pass_client
 def open_project(ctx, project):
-    project = ctx.client.action(
-        ctx.document,
-        ['projects', 'read'],
-        params={
-            'name': project
-        }
-    )
-    project_url = project['url']
-    return click.launch(project_url)
+    projects_open(ctx, project)
 
 
 @click.command(short_help='Undeploy an project from the cluster.')

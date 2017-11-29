@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import click
 
 from ...cluster_config import ClusterConfig
 from ...formatter import command_progress_bar, print_record, print_line
@@ -30,7 +31,7 @@ class ClustersCreateResult(object):
 
 
 def clusters_create(ctx, name, organization_id, worker_count, instance_type, wait):
-    with ctx.coreapi_action():
+    with ctx.client.coreapi_action():
         cluster = ctx.client.action(
             ctx.document,
             ['clusters', 'create'],
@@ -158,3 +159,15 @@ def projects_deploy(ctx, project, cluster_id, wait):
         )
     else:
         print_line('Done.')
+
+def projects_open(ctx, project):
+    project = ctx.client.action(
+        ctx.document,
+        ['projects', 'read'],
+        params={
+            'name': project
+        }
+    )
+    print(project)
+    project_url = project['data']['url']
+    return click.launch(project_url)
