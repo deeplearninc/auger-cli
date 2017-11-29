@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import click
-import re
 import sys
 
 from .lib.lib import (
