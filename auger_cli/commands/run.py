@@ -96,18 +96,24 @@ def stop(ctx, project):
 @pass_client
 def show(ctx, project):
     for c in clusters_list(ctx)['data']:
-        if c['status'] != 'terminated':
-            m = re.match('^for-(.+)-[\d]+$', c['name'])
-            if m is not None and m.group(1) == project:
-                cluster_config = ClusterConfig(
-                    ctx,
-                    project=project,
-                    cluster_id=c['id']
-                )
-                print_record(
-                    cluster_config.project_config,
-                    ['cluster_id', 'registry_host']
-                )
+        if c['status'] != 'terminated' and c['name'] == project:
+            project = ClusterConfig(
+                ctx,
+                project=project,
+                cluster_id=c['id']
+            ).project_config
+            registry = ClusterConfig.fetch(ctx, cluster_id=c['id'])[
+                'registry'
+            ]
+            print_record(
+                {
+                    'cluster_id': project['cluster_id'],
+                    'registry_host': project['registry_host'],
+                    'login': registry.get('login'),
+                    'password': registry.get('password')
+                },
+                ['cluster_id', 'registry_host', 'login', 'password']
+            )
 
 
 cli.add_command(start)
