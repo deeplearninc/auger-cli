@@ -31,7 +31,7 @@ class ClustersCreateResult(object):
 def clusters_create(
         ctx, name, organization_id,
         worker_count, instance_type, wait):
-    with ctx.client.coreapi_action():
+    with ctx.coreapi_action():
         cluster = ctx.client.action(
             ctx.document,
             ['clusters', 'create'],
