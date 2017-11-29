@@ -3,7 +3,6 @@
 import click
 import re
 import sys
-import time
 
 from .lib.lib import (
     clusters_list,
@@ -48,7 +47,7 @@ def start(ctx, project, organization_id):
 
     clusters_create_result = clusters_create(
         ctx,
-        name='for-%s-%d'.format(project, int(time.time())),
+        name=project,
         organization_id=organization_id,
         worker_count=1,
         instance_type='t2.medium',
@@ -86,11 +85,9 @@ def stop(ctx, project):
 
     ok = True
     for c in clusters_list(ctx)['data']:
-        if c['status'] != 'terminated':
-            m = re.match('^for-(.+)-[\d]+$', c['name'])
-            if m is not None and m.group(1) == project:
-                if not clusters_delete(ctx, cluster_id=c['id'], wait=True):
-                    ok = False
+        if c['status'] != 'terminated' and c['name'] == project:
+            if not clusters_delete(ctx, cluster_id=c['id'], wait=True):
+                ok = False
     sys.exit(0 if ok else 1)
 
 
