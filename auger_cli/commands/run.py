@@ -94,7 +94,7 @@ def stop(ctx, project):
     sys.exit(0 if ok else 1)
 
 
-@click.command(short_help='Show application config.')
+@click.command(short_help='Show project configuration.')
 @click.argument('project')
 @pass_client
 def show(ctx, project):
@@ -107,7 +107,10 @@ def show(ctx, project):
                     project=project,
                     cluster_id=c['id']
                 )
-                print_record(cluster_config.project_config, ['cluster_id', 'registry_host'])
+                print_record(
+                    cluster_config.project_config,
+                    ['cluster_id', 'registry_host']
+                )
 
 
 cli.add_command(start)
