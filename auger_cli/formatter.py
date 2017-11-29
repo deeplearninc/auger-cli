@@ -27,7 +27,7 @@ def command_progress_bar(
                     endpoint,
                     params=params
                 )['data']['status']
-    print_line('{}.'.format(camelize(status)))
+    print_line('{}.'.format(camelize(desired_status)))
     return status == desired_status
 
 
@@ -38,11 +38,11 @@ def print_list(list_data, attributes):
 
 def print_record(object_data, attributes):
     print_line('=======')
-    width = len(max(attributes, key=len)) + 1
+    width = len(max(attributes, key=len)) + 2
     for attrib in attributes:
         print_line(
-            '{name:<{width}}: {value}'.format(
-                name=camelize(attrib),
+            '{name:<{width}} {value}'.format(
+                name=camelize(attrib) + ':',
                 width=width,
                 value=string_for_attrib(object_data[attrib])
             )
@@ -104,11 +104,11 @@ def print_stream(ctx, params):
 def string_for_attrib(attrib):
     if type(attrib) in (int, str):
         return attrib
-    elif type(attrib) is list:
-        return attrib.join(',')
     if isinstance(attrib, collections.OrderedDict):
-        return ' - '.join(
-            [v for k, v in attrib.items() if k != 'object']
-        )
+        items = []
+        for k, v in attrib.items():
+            if type(k) == str and k != 'object':
+                items.append('\n  {}: {}'.format(camelize(k), v))
+        return ' '.join(items)
     else:
         return attrib

@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
 
 from ..cli import pass_client
-from ..cluster_config import ClusterConfig
 from ..formatter import (
-    command_progress_bar,
     print_line,
     print_list,
-    print_stream,
-    print_record
+    print_stream
 )
-from .lib.lib import projects_attributes, projects_list, projects_create, projects_delete, projects_deploy, projects_open
+from .lib.lib import (
+    projects_attributes,
+    projects_list,
+    projects_create,
+    projects_delete,
+    projects_deploy,
+    projects_open
+)
 
 import click
 import sys

@@ -5,44 +5,63 @@ import re
 import sys
 import time
 
-from .lib.lib import (clusters_list, clusters_create, clusters_delete, projects_list, projects_create,
-                      projects_delete, projects_deploy, projects_open)
+from .lib.lib import (
+    clusters_list,
+    clusters_create,
+    clusters_delete,
+    projects_list,
+    projects_create,
+    projects_delete,
+    projects_deploy,
+    projects_open
+)
 from ..cli import pass_client
+
 
 @click.group(
     'run',
     invoke_without_command=True,
-    short_help='Run application.'
+    short_help='Run project.'
 )
 @click.pass_context
 def cli(ctx):
-    if ctx.invoked_subcommand is None:
-        with ctx.obj.coreapi_action():
-            print('UGU')
-    else:
-        pass
+    pass
 
 
-@click.command(short_help='Start application.')
+@click.command(short_help='Start project.')
 @click.argument('project')
 @click.option(
     '--organization-id',
     '-o',
     required=True,
-    help='Organization the cluster will use.'
+    help='Organization the project will use.'
 )
 @pass_client
 def start(ctx, project, organization_id):
-    clusters_create_result = clusters_create(ctx, name='for-%s-%d' % (project, int(time.time())),
-                                             organization_id=organization_id, worker_count=1,
-                                             instance_type='t2.medium', wait=True)
+    projects_create(
+        ctx,
+        project=project,
+        organization_id=organization_id
+    )
+
+    clusters_create_result = clusters_create(
+        ctx,
+        name='for-%s-%d'.format(project, int(time.time())),
+        organization_id=organization_id,
+        worker_count=1,
+        instance_type='t2.medium',
+        wait=True
+    )
+
     if not clusters_create_result.ok:
         sys.exit(1)
 
-    projects_create(ctx, project=project, organization_id=organization_id)
-
-    projects_deploy_ok = projects_deploy(ctx, project=project, cluster_id=clusters_create_result.cluster_id,
-                                         wait=True)
+    projects_deploy_ok = projects_deploy(
+        ctx,
+        project=project,
+        cluster_id=clusters_create_result.cluster_id,
+        wait=True
+    )
     if not projects_deploy_ok:
         sys.exit(1)
 
@@ -50,7 +69,7 @@ def start(ctx, project, organization_id):
     sys.exit(0)
 
 
-@click.command(short_help='Stop application.')
+@click.command(short_help='Stop project.')
 @click.argument('project')
 @pass_client
 def stop(ctx, project):

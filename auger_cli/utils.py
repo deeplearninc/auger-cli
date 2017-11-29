@@ -11,7 +11,7 @@ def camelize(snake_cased_string):
 def urlparse(*args, **kwargs):
     if sys.version_info[0] < 3:
         from urlparse import urlparse
-        input = raw_input
+        input = raw_input  # noqa: F841,F821
     else:
         from urllib.parse import urlparse
     return urlparse(*args, **kwargs)

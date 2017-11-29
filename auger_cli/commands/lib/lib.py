@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import sys
 import click
 
 from ...cluster_config import ClusterConfig
 from ...formatter import command_progress_bar, print_record, print_line
-
 
 clusters_attributes = [
     'name',
@@ -15,8 +13,8 @@ clusters_attributes = [
     'seconds_since_created',
     'uptime_seconds',
     'worker_nodes_count',
-    'instance_type',
-    'ip_address'
+    'ip_address',
+    'instance_type'
 ]
 
 
@@ -30,7 +28,9 @@ class ClustersCreateResult(object):
         self.cluster_id = cluster_id
 
 
-def clusters_create(ctx, name, organization_id, worker_count, instance_type, wait):
+def clusters_create(
+        ctx, name, organization_id,
+        worker_count, instance_type, wait):
     with ctx.client.coreapi_action():
         cluster = ctx.client.action(
             ctx.document,
@@ -89,37 +89,42 @@ def clusters_delete(ctx, cluster_id, wait):
 projects_attributes = [
     'id',
     'name',
-    'attached',
     'status',
     'cluster_id',
-    'created_at'
+    'created_at',
+    'deploy_progress',
+    'services_status',
+    'jobs_status'
 ]
 
 
 def projects_list(ctx):
-    return ctx.client.action(ctx.document, ['projects', 'list'])
+    with ctx.coreapi_action():
+        return ctx.client.action(ctx.document, ['projects', 'list'])
 
 
 def projects_create(ctx, project, organization_id):
-    params = {
-        'name': project,
-        'organization_id': organization_id
-    }
-    result = ctx.client.action(
-        ctx.document,
-        ['projects', 'create'],
-        params=params
-    )
-    print_record(result['data'], projects_attributes)
+    with ctx.coreapi_action():
+        params = {
+            'name': project,
+            'organization_id': organization_id
+        }
+        result = ctx.client.action(
+            ctx.document,
+            ['projects', 'create'],
+            params=params
+        )
+        print_record(result['data'], projects_attributes)
 
 
 def projects_delete(ctx, project):
-    ctx.client.action(
-        ctx.document,
-        ['projects', 'delete'],
-        params={'name': project}
-    )
-    print_line('Deleted {}.'.format(project))
+    with ctx.coreapi_action():
+        ctx.client.action(
+            ctx.document,
+            ['projects', 'delete'],
+            params={'name': project}
+        )
+        print_line('Deleted {}.'.format(project))
 
 
 def projects_deploy(ctx, project, cluster_id, wait):
@@ -159,6 +164,7 @@ def projects_deploy(ctx, project, cluster_id, wait):
         )
     else:
         print_line('Done.')
+
 
 def projects_open(ctx, project):
     project = ctx.client.action(

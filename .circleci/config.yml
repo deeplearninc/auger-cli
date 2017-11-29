@@ -21,6 +21,10 @@ jobs:
       - run:
           command: |
             . venv/bin/activate
+            python setup.py flake8
+      - run:
+          command: |
+            . venv/bin/activate
             python setup.py test
       - store_artifacts:
           path: test-reports/

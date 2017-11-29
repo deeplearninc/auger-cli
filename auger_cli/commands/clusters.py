@@ -3,12 +3,15 @@
 from ..cli import pass_client
 from ..cluster_config import ClusterConfig
 from ..formatter import (
-    command_progress_bar,
-    print_line,
     print_list,
     print_record
 )
-from .lib.lib import clusters_attributes, clusters_list, clusters_create, clusters_delete
+from .lib.lib import (
+    clusters_attributes,
+    clusters_list,
+    clusters_create,
+    clusters_delete
+)
 
 import click
 import sys
@@ -59,7 +62,10 @@ def cli(ctx):
 )
 @pass_client
 def create(ctx, name, organization_id, worker_count, instance_type, wait):
-    result = clusters_create(ctx, name, organization_id, worker_count, instance_type, wait)
+    result = clusters_create(
+        ctx, name, organization_id,
+        worker_count, instance_type, wait
+    )
     if result is not None:
         sys.exit(0 if result.ok else 1)
 
