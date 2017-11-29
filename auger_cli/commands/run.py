@@ -16,6 +16,8 @@ from .lib.lib import (
     projects_open
 )
 from ..cli import pass_client
+from ..cluster_config import ClusterConfig
+from ..formatter import print_record
 
 
 @click.group(
@@ -85,12 +87,29 @@ def stop(ctx, project):
     ok = True
     for c in clusters_list(ctx)['data']:
         if c['status'] != 'terminated':
-            m = re.match('^for-(.+)-([\d]+)$', c['name'])
-            if m is not None:
+            m = re.match('^for-(.+)-[\d]+$', c['name'])
+            if m is not None and m.group(1) == project:
                 if not clusters_delete(ctx, cluster_id=c['id'], wait=True):
                     ok = False
     sys.exit(0 if ok else 1)
 
 
+@click.command(short_help='Show application config.')
+@click.argument('project')
+@pass_client
+def show(ctx, project):
+    for c in clusters_list(ctx)['data']:
+        if c['status'] != 'terminated':
+            m = re.match('^for-(.+)-[\d]+$', c['name'])
+            if m is not None and m.group(1) == project:
+                cluster_config = ClusterConfig(
+                    ctx,
+                    project=project,
+                    cluster_id=c['id']
+                )
+                print_record(cluster_config.project_config, ['cluster_id', 'registry_host'])
+
+
 cli.add_command(start)
 cli.add_command(stop)
+cli.add_command(show)
