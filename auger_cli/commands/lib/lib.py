@@ -174,6 +174,5 @@ def projects_open(ctx, project):
             'name': project
         }
     )
-    print(project)
     project_url = project['data']['url']
     return click.launch(project_url)
