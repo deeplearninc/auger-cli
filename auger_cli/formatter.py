@@ -44,7 +44,7 @@ def print_record(object_data, attributes):
             '{name:<{width}} {value}'.format(
                 name=camelize(attrib) + ':',
                 width=width,
-                value=string_for_attrib(object_data[attrib])
+                value=string_for_attrib(object_data.get(attrib))
             )
         )
     print_line()
