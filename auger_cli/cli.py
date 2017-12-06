@@ -26,12 +26,21 @@ class AugerCLI(click.MultiCommand):
         return rv
 
     def get_command(self, ctx, name):
-        if sys.version_info[0] == 2:
-            name = name.encode('ascii', 'replace')
-        mod = __import__(
-            'auger_cli.commands.' + name, None, None, ['cli']
-        )
-        return mod.cli
+        try:
+            if sys.version_info[0] == 2:
+                name = name.encode('ascii', 'replace')
+            mod = __import__(
+                'auger_cli.commands.' + name, None, None, ['cli']
+            )
+            return mod.cli
+        except ImportError:
+            raise click.UsageError(
+                message=(
+                    "'{}' is not an auger command.\n"
+                    "Run 'auger help' for a list of "
+                    "available topics."
+                ).format(name)
+            )
 
 
 @click.command('auger', cls=AugerCLI, context_settings=CONTEXT_SETTINGS)
