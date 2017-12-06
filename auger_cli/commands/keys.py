@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ..cli import pass_client
-from ..utils import print_formatted_list, print_formatted_object
+from ..formatter import print_line, print_list, print_record
 import click
 
 
@@ -29,7 +29,7 @@ def cli(ctx, organization_id):
                 'organization_id': organization_id
             }
         )
-        print_formatted_list(keys['data'], attributes)
+        print_list(keys['data'], attributes)
     else:
         pass
 
@@ -62,9 +62,9 @@ def add(ctx, public_key, organization_id):
                     'organization_id': organization_id
                 }
             )
-            print_formatted_object(result['data'], attributes)
+            print_record(result['data'], attributes)
     except IOError:
-        click.echo('Error loading public key {}'.format(public_key))
+        print_line('Error loading public key {}'.format(public_key))
 
 
 @click.command(short_help='Delete an SSH key from a cluster.')
@@ -86,7 +86,7 @@ def delete(ctx, key_id, organization_id):
             'organization_id': organization_id
         }
     )
-    click.echo("Deleted SSH key.")
+    print_line("Deleted SSH key.")
 
 
 cli.add_command(add)

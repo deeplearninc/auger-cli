@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import click
-import collections
 import sys
 
 
@@ -10,46 +8,10 @@ def camelize(snake_cased_string):
     return " ".join((x.upper() if len(x) < 4 else x.title()) for x in parts)
 
 
-def print_line(line, nl=True):
-    click.echo(line, nl=nl)
-
-
-def print_formatted_list(list_data, attributes):
-    for object_data in iter(list_data):
-        print_formatted_object(object_data, attributes)
-
-
-def print_formatted_object(object_data, attributes):
-    click.echo('=======')
-    width = len(max(attributes, key=len)) + 1
-    for attrib in attributes:
-        click.echo(
-            '{name:<{width}}: {value}'.format(
-                name=camelize(attrib),
-                width=width,
-                value=string_for_attrib(object_data[attrib])
-            )
-        )
-    click.echo()
-
-
-def string_for_attrib(attrib):
-    if type(attrib) in (int, str):
-        return attrib
-    elif type(attrib) is list:
-        return attrib.join(',')
-    if isinstance(attrib, collections.OrderedDict):
-        return ' - '.join(
-            [v for k, v in attrib.items() if k != 'object']
-        )
-    else:
-        return attrib
-
-
 def urlparse(*args, **kwargs):
     if sys.version_info[0] < 3:
         from urlparse import urlparse
-        input = raw_input
+        input = raw_input  # noqa: F841,F821
     else:
         from urllib.parse import urlparse
     return urlparse(*args, **kwargs)

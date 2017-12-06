@@ -1,26 +1,25 @@
 # -*- coding: utf-8 -*-
 
 from ..cli import pass_client
-from ..cluster_config import ClusterConfig
-from ..utils import (
-    print_formatted_list,
-    print_formatted_object,
-    print_line
+from ..formatter import (
+    print_line,
+    print_list,
+    print_stream
 )
+from .lib.lib import (
+    projects_attributes,
+    projects_list,
+    projects_create,
+    projects_delete,
+    projects_deploy,
+    projects_open
+)
+
 import click
-from coreapi.transports import HTTPTransport
-from coreapi.transports import http as coreapi_http
-import webbrowser
+import sys
 
 
-attributes = [
-    'id',
-    'name',
-    'attached',
-    'status',
-    'cluster_id',
-    'created_at'
-]
+attributes = projects_attributes
 
 
 @click.group(
@@ -31,12 +30,8 @@ attributes = [
 @click.pass_context
 def cli(ctx):
     if ctx.invoked_subcommand is None:
-        projects = ctx.obj.client.action(
-            ctx.obj.document,
-            ['projects', 'list']
-        )
-        print_formatted_list(
-            list_data=projects['data'],
+        print_list(
+            list_data=projects_list(ctx.obj)['data'],
             attributes=attributes
         )
     else:
@@ -60,16 +55,7 @@ def cli(ctx):
 )
 @pass_client
 def create(ctx, project, organization_id):
-    params = {
-        'name': project,
-        'organization_id': organization_id
-    }
-    result = ctx.client.action(
-        ctx.document,
-        ['projects', 'create'],
-        params=params
-    )
-    print_formatted_object(result['data'], attributes)
+    projects_create(ctx, project, organization_id)
 
 
 @click.command(
@@ -84,12 +70,7 @@ def create(ctx, project, organization_id):
 )
 @pass_client
 def delete(ctx, project):
-    ctx.client.action(
-        ctx.document,
-        ['projects', 'delete'],
-        params={'name': project}
-    )
-    click.echo('Deleted {}.'.format(project))
+    projects_delete(ctx, project)
 
 
 @click.command(short_help='Deploy an project to a cluster.')
@@ -107,34 +88,17 @@ def delete(ctx, project):
     required=True,
     help='Cluster the project will be deployed to.'
 )
+@click.option(
+    '--wait/--no-wait',
+    '-w/',
+    default=False,
+    help='Wait for project to be ready.'
+)
 @pass_client
-def deploy(ctx, project, cluster_id):
-    cluster_config = ClusterConfig(
-        ctx,
-        project=project,
-        cluster_id=cluster_id
-    )
-    print_line('Setting up docker registry.')
-    cluster_config.login()
-    print_line('Preparing project to deploy.')
-    cluster_config.docker_client.build()
-    print_line('Deploying project. (This may take a few minutes.)')
-    cluster_config.docker_client.push()
-    definition = ''
-    with open('.auger/service.yml') as f:
-        definition = f.read()
-
-    result = ctx.client.action(
-        ctx.document,
-        ['projects', 'deploy'],
-        params={
-            'name': project,
-            'cluster_id': cluster_id,
-            'definition': definition
-        }
-    )
-    print_formatted_object(result['data'], attributes)
-    print_line('Done.')
+def deploy(ctx, project, cluster_id, wait):
+    ok = projects_deploy(ctx, project, cluster_id, wait)
+    if ok is not None:
+        sys.exit(0 if ok else 1)
 
 
 @click.command(short_help='Display project logs.')
@@ -158,7 +122,7 @@ def logs(ctx, project, tail):
         params = {
             'name': project
         }
-        _stream_logs(ctx, params)
+        print_stream(ctx, params)
     else:
         result = ctx.client.action(
             ctx.document,
@@ -167,7 +131,7 @@ def logs(ctx, project, tail):
                 'name': project
             }
         )
-        click.echo(result)
+        print_line(result)
 
 
 @click.command(short_help='Open project in a browser.')
@@ -179,15 +143,7 @@ def logs(ctx, project, tail):
 )
 @pass_client
 def open_project(ctx, project):
-    projects = ctx.client.action(
-        ctx.document,
-        ['projects', 'list']
-    )
-    for _, project_data in iter(projects.items()):
-        print(project_data[0])
-        if project_data[0]['name'] == project:
-            project_url = project_data[0]['url']
-            return webbrowser.open_new_tab(project_url)
+    projects_open(ctx, project)
 
 
 @click.command(short_help='Undeploy an project from the cluster.')
@@ -205,52 +161,7 @@ def undeploy(ctx, project):
         ['projects', 'undeploy'],
         params={'name': project}
     )
-    click.echo('Undeployed {}.'.format(project))
-
-
-def _stream_logs(ctx, params):
-    # Patch HTTPTransport to handle streaming responses
-    def stream_request(self, link, decoders,
-                       params=None, link_ancestors=None, force_codec=False):
-        session = self._session
-        method = coreapi_http._get_method(link.action)
-        encoding = coreapi_http._get_encoding(link.encoding)
-        params = coreapi_http._get_params(
-            method, encoding, link.fields, params
-        )
-        url = coreapi_http._get_url(link.url, params.path)
-        headers = coreapi_http._get_headers(url, decoders, self.credentials)
-        headers.update(self.headers)
-
-        request = coreapi_http._build_http_request(
-            session, url, method, headers, encoding, params
-        )
-
-        with session.send(request, stream=True) as response:
-            print(response)
-            for line in response.iter_lines():
-                line = line.decode('utf-8')
-                if line != 'ping':
-                    print(line)
-
-    HTTPTransport.stream_request = stream_request
-    # Patch done
-
-    doc = ctx.document
-
-    def flatten(list):
-        return [item for sublist in list for item in sublist]
-
-    links = flatten(
-        list(map(lambda link: list(link._data.values()), doc.data.values()))
-    )
-    link = list(filter(lambda link: 'stream_logs' in link.url, links))[0]
-    credentials = ctx.credentials
-    headers = ctx.headers
-    decoders = ctx.decoders
-
-    http_transport = HTTPTransport(credentials=credentials, headers=headers)
-    http_transport.stream_request(link, decoders, params=params)
+    print_line('Undeployed {}.'.format(project))
 
 
 cli.add_command(create)

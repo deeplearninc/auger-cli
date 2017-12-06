@@ -2,22 +2,22 @@
 
 from ..cli import pass_client
 from ..cluster_config import ClusterConfig
-from ..utils import print_formatted_list, print_formatted_object
+from ..formatter import (
+    print_list,
+    print_record
+)
+from .lib.lib import (
+    clusters_attributes,
+    clusters_list,
+    clusters_create,
+    clusters_delete
+)
+
 import click
-import webbrowser
+import sys
 
 
-attributes = [
-    'name',
-    'id',
-    'organization_id',
-    'status',
-    'seconds_since_created',
-    'uptime_seconds',
-    'worker_nodes_count',
-    'instance_type',
-    'ip_address'
-]
+attributes = clusters_attributes
 
 
 @click.group(
@@ -29,11 +29,7 @@ attributes = [
 def cli(ctx):
     if ctx.invoked_subcommand is None:
         with ctx.obj.coreapi_action():
-            clusters = ctx.obj.client.action(
-                ctx.obj.document,
-                ['clusters', 'list']
-            )
-            print_formatted_list(clusters['data'], attributes)
+            print_list(clusters_list(ctx.obj)['data'], attributes)
     else:
         pass
 
@@ -58,26 +54,20 @@ def cli(ctx):
     default='t2.medium',
     help='Instance type for the worker nodes.'
 )
+@click.option(
+    '--wait/--no-wait',
+    '-w/',
+    default=False,
+    help='Wait for cluster to run.'
+)
 @pass_client
-def create(ctx, name, organization_id, worker_count, instance_type):
-    with ctx.coreapi_action():
-        cluster = ctx.client.action(
-            ctx.document,
-            ['clusters', 'create'],
-            params={
-                'name': name,
-                'organization_id': organization_id,
-                'worker_nodes_count': worker_count,
-                'instance_type': instance_type
-            }
-        )
-        cluster_dict = cluster['data']
-        ClusterConfig(
-            ctx,
-            cluster_dict=cluster_dict,
-            cluster_id=cluster_dict['id']
-        )
-        print_formatted_object(cluster_dict, attributes)
+def create(ctx, name, organization_id, worker_count, instance_type, wait):
+    result = clusters_create(
+        ctx, name, organization_id,
+        worker_count, instance_type, wait
+    )
+    if result is not None:
+        sys.exit(0 if result.ok else 1)
 
 
 @click.command(short_help='Print cluster registry credentials.')
@@ -86,7 +76,7 @@ def create(ctx, name, organization_id, worker_count, instance_type):
 def credentials(ctx, cluster_id):
     with ctx.coreapi_action():
         cluster = ClusterConfig.fetch(ctx, cluster_id)
-        print_formatted_object(
+        print_record(
             cluster['registry'],
             ['url', 'login', 'password']
         )
@@ -108,24 +98,22 @@ def dashboard(ctx, cluster_id, dashboard_name):
     with ctx.coreapi_action():
         cluster = ClusterConfig.fetch(ctx, cluster_id)
         dashboard_url = cluster['{}_url'.format(dashboard_name)]
-        webbrowser.open_new_tab(dashboard_url)
+        click.launch(dashboard_url)
 
 
 @click.command(short_help='Terminate a cluster.')
 @click.argument('cluster_id')
+@click.option(
+    '--wait/--no-wait',
+    '-w/',
+    default=False,
+    help='Wait for cluster to be terminated.'
+)
 @pass_client
-def delete(ctx, cluster_id):
-    with ctx.coreapi_action():
-        clusters = ctx.client.action(
-            ctx.document,
-            ['clusters', 'delete'],
-            params={
-                'id': cluster_id
-            }
-        )
-        cluster = clusters['data']
-        if cluster['id'] == int(cluster_id):
-            click.echo("Deleting {}.".format(cluster['name']))
+def delete(ctx, cluster_id, wait):
+    ok = clusters_delete(ctx, cluster_id, wait)
+    if ok is not None:
+        sys.exit(0 if ok else 1)
 
 
 @click.command(short_help='Display cluster details.')
@@ -134,7 +122,7 @@ def delete(ctx, cluster_id):
 def show(ctx, cluster_id):
     with ctx.coreapi_action():
         cluster = ClusterConfig.fetch(ctx, cluster_id)
-        print_formatted_object(cluster, attributes)
+        print_record(cluster, attributes)
 
 
 cli.add_command(create)

@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from ..cli import pass_client
-from ..constants import CMD_ALIASES
-from ..utils import print_formatted_list, print_formatted_object
 import click
+from ..formatter import print_line, print_list, print_record
 
 
 attributes = ['id', 'name', 'main_bucket', 'status']
@@ -21,7 +20,7 @@ def cli(ctx):
             ctx.obj.document,
             ['organizations', 'list']
         )
-        print_formatted_list(orgs['data'], attributes)
+        print_list(orgs['data'], attributes)
     else:
         pass
 
@@ -42,14 +41,14 @@ def cli(ctx):
 def create(ctx, name, access_key, secret_key):
     org = ctx.client.action(
         ctx.document,
-        [CMD_ALIASES['orgs'], 'create'],
+        ['orgs', 'create'],
         params={
             'name': name,
             'access_key': access_key,
             'secret_key': secret_key
         }
     )
-    print_formatted_object(org['data'], attributes)
+    print_record(org['data'], attributes)
 
 
 @click.command()
@@ -65,7 +64,7 @@ def delete(ctx, organization_id):
     )
     org = orgs['data']
     if org['id'] == int(organization_id):
-        click.echo("Deleting {0}.".format(org['name']))
+        print_line("Deleting {0}.".format(org['name']))
 
 
 cli.add_command(create)

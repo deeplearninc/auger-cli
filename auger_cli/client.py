@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import click
 from .constants import COREAPI_SCHEMA_PATH, DEFAULT_COREAPI_URL
 from contextlib import contextmanager
 import coreapi
 import coreapi_cli.main as coreapi_cli
 from coreapi.codecs import JSONCodec, TextCodec
 from coreapi.compat import force_bytes
+from .formatter import print_line
 from openapi_codec import OpenAPICodec
 import json
 import os
@@ -36,7 +36,7 @@ class Client(object):
     def document(self):
         """Load the schema from cache if available."""
         if not self.credentials:
-            click.echo('Please login to Auger and try again.')
+            print_line('Please login to Auger and try again.')
             sys.exit(1)
 
         if not self._cached_document:
@@ -50,13 +50,13 @@ class Client(object):
         try:
             yield
         except coreapi.exceptions.ErrorMessage as exc:
-            click.echo(exc)
+            print_line(exc)
             sys.exit(1)
         except coreapi.exceptions.LinkLookupError as exc:
-            click.echo(exc)
+            print_line(exc)
             sys.exit(1)
         except coreapi.exceptions.ParseError as exc:
-            click.echo('Error connecting to {0}'.format(self.coreapi_url))
+            print_line('Error connecting to {0}'.format(self.coreapi_url))
             sys.exit(1)
 
     def get_credentials(self):

@@ -3,10 +3,8 @@
 import click
 from .cluster_config import ClusterConfig
 from .client import Client
-import logging
 import os
 import sys
-log = logging.getLogger("auger")
 
 
 CONTEXT_SETTINGS = dict(auto_envvar_prefix='AUGER')

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import click
-from ..utils import print_formatted_list
+from ..formatter import print_list
 
 
 attributes = ['id', 'description']
@@ -17,4 +17,4 @@ def cli(ctx):
         ctx.obj.document,
         ['instance_types', 'list']
     )
-    print_formatted_list(result['data'], attributes)
+    print_list(result['data'], attributes)
