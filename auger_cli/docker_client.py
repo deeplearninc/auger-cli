@@ -45,7 +45,7 @@ class DockerClient(dict):
         if os.path.isfile(self._dockerfile_path):
             return self._dockerfile_path
         else:
-            raise FileNotFoundError(
+            raise errno.FileNotFoundError(
                 errno.ENOENT,
                 os.strerror(errno.ENOENT),
                 self._dockerfile_path
