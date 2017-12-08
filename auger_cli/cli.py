@@ -11,7 +11,8 @@ import auger_cli.commands.instances
 import auger_cli.commands.keys
 import auger_cli.commands.orgs
 import auger_cli.commands.projects.cli
-import auger_cli.commands.run
+import auger_cli.commands.start.cli
+import auger_cli.commands.stop.cli
 import auger_cli.commands.schema
 
 
@@ -24,7 +25,8 @@ COMMANDS = {
     'keys':      auger_cli.commands.keys,
     'orgs':      auger_cli.commands.orgs,
     'projects':  auger_cli.commands.projects.cli,
-    'run':       auger_cli.commands.run,
+    'start':     auger_cli.commands.start.cli,
+    'stop':      auger_cli.commands.stop.cli,
     'schema':    auger_cli.commands.schema
 }
 
