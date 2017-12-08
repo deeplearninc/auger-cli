@@ -3,21 +3,18 @@
 import click
 import sys
 
-from ..client import pass_client
-from ..cluster_config import ClusterConfig
-from ..formatter import (
+from ...client import pass_client
+from ...cluster_config import ClusterConfig
+from ...formatter import (
     print_list,
     print_record
 )
-from .lib.lib import (
-    clusters_attributes,
-    clusters_list,
-    clusters_create,
-    clusters_delete
+from .api import (
+    cluster_attributes,
+    list_clusters,
+    create_cluster,
+    delete_cluster
 )
-
-
-attributes = clusters_attributes
 
 
 @click.group(
@@ -29,7 +26,7 @@ attributes = clusters_attributes
 def cli(ctx):
     if ctx.invoked_subcommand is None:
         with ctx.obj.coreapi_action():
-            print_list(clusters_list(ctx.obj)['data'], attributes)
+            print_list(list_clusters(ctx.obj)['data'], cluster_attributes)
     else:
         pass
 
@@ -62,7 +59,7 @@ def cli(ctx):
 )
 @pass_client
 def create(ctx, name, organization_id, worker_count, instance_type, wait):
-    result = clusters_create(
+    result = create_cluster(
         ctx, name, organization_id,
         worker_count, instance_type, wait
     )
@@ -111,7 +108,7 @@ def dashboard(ctx, cluster_id, dashboard_name):
 )
 @pass_client
 def delete(ctx, cluster_id, wait):
-    ok = clusters_delete(ctx, cluster_id, wait)
+    ok = delete_cluster(ctx, cluster_id, wait)
     if ok is not None:
         sys.exit(0 if ok else 1)
 
@@ -122,7 +119,7 @@ def delete(ctx, cluster_id, wait):
 def show(ctx, cluster_id):
     with ctx.coreapi_action():
         cluster = ClusterConfig.fetch(ctx, cluster_id)
-        print_record(cluster, attributes)
+        print_record(cluster, cluster_attributes)
 
 
 cli.add_command(create)

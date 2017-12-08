@@ -5,12 +5,12 @@ import click
 from . import client
 
 import auger_cli.commands.auth
-import auger_cli.commands.clusters
+import auger_cli.commands.clusters.cli
 import auger_cli.commands.help
 import auger_cli.commands.instances
 import auger_cli.commands.keys
 import auger_cli.commands.orgs
-import auger_cli.commands.projects
+import auger_cli.commands.projects.cli
 import auger_cli.commands.run
 import auger_cli.commands.schema
 
@@ -18,12 +18,12 @@ import auger_cli.commands.schema
 CONTEXT_SETTINGS = dict(auto_envvar_prefix='AUGER')
 COMMANDS = {
     'auth':      auger_cli.commands.auth,
-    'clusters':  auger_cli.commands.clusters,
+    'clusters':  auger_cli.commands.clusters.cli,
     'help':      auger_cli.commands.help,
     'instances': auger_cli.commands.instances,
     'keys':      auger_cli.commands.keys,
     'orgs':      auger_cli.commands.orgs,
-    'projects':  auger_cli.commands.projects,
+    'projects':  auger_cli.commands.projects.cli,
     'run':       auger_cli.commands.run,
     'schema':    auger_cli.commands.schema
 }

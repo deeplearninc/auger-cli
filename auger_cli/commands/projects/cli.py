@@ -3,23 +3,20 @@
 import click
 import sys
 
-from ..client import pass_client
-from ..formatter import (
+from ...client import pass_client
+from ...formatter import (
     print_line,
     print_list,
     print_stream
 )
-from .lib.lib import (
-    projects_attributes,
-    projects_list,
-    projects_create,
-    projects_delete,
-    projects_deploy,
-    projects_open
+from .api import (
+    project_attributes,
+    list_projects,
+    create_project,
+    delete_project,
+    deploy_project,
+    launch_project_url
 )
-
-
-attributes = projects_attributes
 
 
 @click.group(
@@ -31,8 +28,8 @@ attributes = projects_attributes
 def cli(ctx):
     if ctx.invoked_subcommand is None:
         print_list(
-            list_data=projects_list(ctx.obj)['data'],
-            attributes=attributes
+            list_data=list_projects(ctx.obj)['data'],
+            attributes=project_attributes
         )
     else:
         pass
@@ -55,7 +52,7 @@ def cli(ctx):
 )
 @pass_client
 def create(ctx, project, organization_id):
-    projects_create(ctx, project, organization_id)
+    create_project(ctx, project, organization_id)
 
 
 @click.command(
@@ -70,7 +67,7 @@ def create(ctx, project, organization_id):
 )
 @pass_client
 def delete(ctx, project):
-    projects_delete(ctx, project)
+    delete_project(ctx, project)
 
 
 @click.command(short_help='Deploy an project to a cluster.')
@@ -96,7 +93,7 @@ def delete(ctx, project):
 )
 @pass_client
 def deploy(ctx, project, cluster_id, wait):
-    ok = projects_deploy(ctx, project, cluster_id, wait)
+    ok = deploy_project(ctx, project, cluster_id, wait)
     if ok is not None:
         sys.exit(0 if ok else 1)
 
@@ -143,7 +140,7 @@ def logs(ctx, project, tail):
 )
 @pass_client
 def open_project(ctx, project):
-    projects_open(ctx, project)
+    launch_project_url(ctx, project)
 
 
 @click.command(short_help='Undeploy an project from the cluster.')
