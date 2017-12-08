@@ -2,8 +2,8 @@
 
 import click
 
-from ..client import pass_client
-from ..formatter import print_line, print_list, print_record
+from ...client import pass_client
+from ...formatter import print_line, print_list, print_record
 
 
 attributes = ['id', 'name', 'main_bucket', 'status']

@@ -2,12 +2,12 @@
 
 import base64
 import click
-
-from .. import constants
-from ..client import pass_client, Client
-from ..formatter import print_line
-from ..utils import urlparse
 from coreapi.compat import b64encode
+
+from ... import constants
+from ...client import pass_client, Client
+from ...formatter import print_line
+from ...utils import urlparse
 
 
 @click.group('auth', short_help='Authentication with Auger.')

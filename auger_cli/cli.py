@@ -4,30 +4,30 @@ import click
 
 from . import client
 
-import auger_cli.commands.auth
+import auger_cli.commands.auth.cli
 import auger_cli.commands.clusters.cli
-import auger_cli.commands.help
-import auger_cli.commands.instances
-import auger_cli.commands.keys
-import auger_cli.commands.orgs
+import auger_cli.commands.help.cli
+import auger_cli.commands.instances.cli
+import auger_cli.commands.keys.cli
+import auger_cli.commands.orgs.cli
 import auger_cli.commands.projects.cli
+import auger_cli.commands.schema.cli
 import auger_cli.commands.start.cli
 import auger_cli.commands.stop.cli
-import auger_cli.commands.schema
 
 
 CONTEXT_SETTINGS = dict(auto_envvar_prefix='AUGER')
 COMMANDS = {
-    'auth':      auger_cli.commands.auth,
+    'auth':      auger_cli.commands.auth.cli,
     'clusters':  auger_cli.commands.clusters.cli,
-    'help':      auger_cli.commands.help,
-    'instances': auger_cli.commands.instances,
-    'keys':      auger_cli.commands.keys,
-    'orgs':      auger_cli.commands.orgs,
+    'help':      auger_cli.commands.help.cli,
+    'instances': auger_cli.commands.instances.cli,
+    'keys':      auger_cli.commands.keys.cli,
+    'orgs':      auger_cli.commands.orgs.cli,
     'projects':  auger_cli.commands.projects.cli,
+    'schema':    auger_cli.commands.schema.cli,
     'start':     auger_cli.commands.start.cli,
-    'stop':      auger_cli.commands.stop.cli,
-    'schema':    auger_cli.commands.schema
+    'stop':      auger_cli.commands.stop.cli
 }
 
 

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import click
-from ..formatter import print_list
+
+from ...formatter import print_list
 
 
 attributes = ['id', 'description']
