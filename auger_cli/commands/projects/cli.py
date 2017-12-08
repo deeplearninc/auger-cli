@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import click
-import sys
 
 from ...client import pass_client
 from ...formatter import (
@@ -94,8 +93,8 @@ def delete(ctx, project):
 @pass_client
 def deploy(ctx, project, cluster_id, wait):
     ok = deploy_project(ctx, project, cluster_id, wait)
-    if ok is not None:
-        sys.exit(0 if ok else 1)
+    if ok is not None and not ok:
+        raise click.ClickException('Failed to deploy project.')
 
 
 @click.command(short_help='Display project logs.')

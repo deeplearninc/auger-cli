@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import click
-import sys
 
 from ...client import pass_client
 from ...cluster_config import ClusterConfig
@@ -63,8 +62,8 @@ def create(ctx, name, organization_id, worker_count, instance_type, wait):
         ctx, name, organization_id,
         worker_count, instance_type, wait
     )
-    if result is not None:
-        sys.exit(0 if result.ok else 1)
+    if result is not None and not result.ok:
+        raise click.ClickException('Failed to create cluster.')
 
 
 @click.command(short_help='Print cluster registry credentials.')
@@ -109,8 +108,8 @@ def dashboard(ctx, cluster_id, dashboard_name):
 @pass_client
 def delete(ctx, cluster_id, wait):
     ok = delete_cluster(ctx, cluster_id, wait)
-    if ok is not None:
-        sys.exit(0 if ok else 1)
+    if ok is not None and not ok:
+        raise click.ClickException('Failed to delete cluster.')
 
 
 @click.command(short_help='Display cluster details.')

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import click
-import sys
 
 from ..clusters.api import create_cluster
 from ..projects.api import (
@@ -38,7 +37,7 @@ def cli(ctx, project, organization_id):
     )
 
     if not clusters_create_result.ok:
-        sys.exit(1)
+        raise click.ClickException('Failed to create cluster.')
 
     ok = deploy_project(
         ctx,
@@ -47,7 +46,6 @@ def cli(ctx, project, organization_id):
         wait=True
     )
     if not ok:
-        sys.exit(1)
+        raise click.ClickException('Failed to deploy project.')
 
     launch_project_url(ctx, project)
-    sys.exit(0)

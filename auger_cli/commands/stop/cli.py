@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import click
-import sys
 
 from ..clusters.api import list_clusters, delete_cluster
 from ..projects.api import list_projects, delete_project
@@ -26,4 +25,5 @@ def cli(ctx, project):
         if c['status'] != 'terminated' and c['name'] == project:
             if not delete_cluster(ctx, cluster_id=c['id'], wait=True):
                 ok = False
-    sys.exit(0 if ok else 1)
+    if not ok:
+        raise click.ClickException('Failed to delete cluster.')
