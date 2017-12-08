@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from ..cli import pass_client
+import click
+import sys
+
+from ..client import pass_client
 from ..cluster_config import ClusterConfig
 from ..formatter import (
     print_list,
@@ -12,9 +15,6 @@ from .lib.lib import (
     clusters_create,
     clusters_delete
 )
-
-import click
-import sys
 
 
 attributes = clusters_attributes

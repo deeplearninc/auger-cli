@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import base64
+import click
+
 from .. import constants
-from ..cli import pass_client
-from ..client import Client
+from ..client import pass_client, Client
 from ..formatter import print_line
 from ..utils import urlparse
-import base64
 from coreapi.compat import b64encode
-import click
 
 
 @click.group('auth', short_help='Authentication with Auger.')

@@ -12,6 +12,7 @@ import json
 import os
 import shutil
 import sys
+import click
 
 
 def init_coreapi_cli():
@@ -82,3 +83,6 @@ class Client(object):
     def set_credentials(self, credentials):
         with open(self.coreapi_cli.credentials_path, 'wb') as store:
             store.write(force_bytes(json.dumps(credentials)))
+
+
+pass_client = click.make_pass_decorator(Client, ensure=True)

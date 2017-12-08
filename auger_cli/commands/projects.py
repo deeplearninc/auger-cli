@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from ..cli import pass_client
+import click
+import sys
+
+from ..client import pass_client
 from ..formatter import (
     print_line,
     print_list,
@@ -14,9 +17,6 @@ from .lib.lib import (
     projects_deploy,
     projects_open
 )
-
-import click
-import sys
 
 
 attributes = projects_attributes

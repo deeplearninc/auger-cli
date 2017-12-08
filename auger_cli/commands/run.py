@@ -13,7 +13,7 @@ from .lib.lib import (
     projects_deploy,
     projects_open
 )
-from ..cli import pass_client
+from ..client import pass_client
 from ..cluster_config import ClusterConfig
 from ..formatter import print_record
 

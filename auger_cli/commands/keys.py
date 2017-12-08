@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from ..cli import pass_client
-from ..formatter import print_line, print_list, print_record
 import click
+
+from ..client import pass_client
+from ..formatter import print_line, print_list, print_record
 
 
 attributes = ['id', 'public_key', 'created_at']
