@@ -2,7 +2,7 @@
 
 import unittest
 import vcr
-from auger_cli.commands.auth import cli
+from auger_cli.commands.auth.cli import cli
 from click.testing import CliRunner
 
 
