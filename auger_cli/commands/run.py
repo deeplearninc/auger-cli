@@ -92,31 +92,5 @@ def stop(ctx, project):
     sys.exit(0 if ok else 1)
 
 
-@click.command(short_help='Show project configuration.')
-@click.argument('project')
-@pass_client
-def show(ctx, project):
-    for c in list_clusters(ctx)['data']:
-        if c['status'] != 'terminated' and c['name'] == project:
-            project = ClusterConfig(
-                ctx,
-                project=project,
-                cluster_id=c['id']
-            ).project_config
-            registry = ClusterConfig.fetch(ctx, cluster_id=c['id'])[
-                'registry'
-            ]
-            print_record(
-                {
-                    'cluster_id': project['cluster_id'],
-                    'registry_host': project['registry_host'],
-                    'login': registry.get('login'),
-                    'password': registry.get('password')
-                },
-                ['cluster_id', 'registry_host', 'login', 'password']
-            )
-
-
 cli.add_command(start)
 cli.add_command(stop)
-cli.add_command(show)
