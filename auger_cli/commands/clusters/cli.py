@@ -22,7 +22,7 @@ from .api import (
     short_help='Manage Auger Clusters.'
 )
 @click.pass_context
-def cli(ctx):
+def clusters_group(ctx):
     if ctx.invoked_subcommand is None:
         with ctx.obj.coreapi_action():
             print_list(list_clusters(ctx.obj)['data'], cluster_attributes)
@@ -121,8 +121,8 @@ def show(ctx, cluster_id):
         print_record(cluster, cluster_attributes)
 
 
-cli.add_command(create)
-cli.add_command(credentials)
-cli.add_command(dashboard)
-cli.add_command(delete)
-cli.add_command(show)
+clusters_group.add_command(create)
+clusters_group.add_command(credentials)
+clusters_group.add_command(dashboard)
+clusters_group.add_command(delete)
+clusters_group.add_command(show)

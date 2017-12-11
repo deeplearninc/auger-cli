@@ -24,7 +24,7 @@ from .api import (
     short_help='Manage Auger Projects.'
 )
 @click.pass_context
-def cli(ctx):
+def projects_group(ctx):
     if ctx.invoked_subcommand is None:
         print_list(
             list_data=list_projects(ctx.obj)['data'],
@@ -160,9 +160,9 @@ def undeploy(ctx, project):
     print_line('Undeployed {}.'.format(project))
 
 
-cli.add_command(create)
-cli.add_command(delete)
-cli.add_command(deploy)
-cli.add_command(logs)
-cli.add_command(open_project, name='open')
-cli.add_command(undeploy)
+projects_group.add_command(create)
+projects_group.add_command(delete)
+projects_group.add_command(deploy)
+projects_group.add_command(logs)
+projects_group.add_command(open_project, name='open')
+projects_group.add_command(undeploy)

@@ -4,30 +4,30 @@ import click
 
 from . import client
 
-import auger_cli.commands.auth.cli
-import auger_cli.commands.clusters.cli
-import auger_cli.commands.help.cli
-import auger_cli.commands.instances.cli
-import auger_cli.commands.keys.cli
-import auger_cli.commands.orgs.cli
-import auger_cli.commands.projects.cli
-import auger_cli.commands.schema.cli
-import auger_cli.commands.start.cli
-import auger_cli.commands.stop.cli
+from auger_cli.commands.auth.cli import auth_group
+from auger_cli.commands.clusters.cli import clusters_group
+from auger_cli.commands.help.cli import help_group
+from auger_cli.commands.instances.cli import instances_group
+from auger_cli.commands.keys.cli import keys_group
+from auger_cli.commands.orgs.cli import orgs_group
+from auger_cli.commands.projects.cli import projects_group
+from auger_cli.commands.schema.cli import schema_group
+from auger_cli.commands.start.cli import start_group
+from auger_cli.commands.stop.cli import stop_group
 
 
 CONTEXT_SETTINGS = dict(auto_envvar_prefix='AUGER')
 COMMANDS = {
-    'auth':      auger_cli.commands.auth.cli,
-    'clusters':  auger_cli.commands.clusters.cli,
-    'help':      auger_cli.commands.help.cli,
-    'instances': auger_cli.commands.instances.cli,
-    'keys':      auger_cli.commands.keys.cli,
-    'orgs':      auger_cli.commands.orgs.cli,
-    'projects':  auger_cli.commands.projects.cli,
-    'schema':    auger_cli.commands.schema.cli,
-    'start':     auger_cli.commands.start.cli,
-    'stop':      auger_cli.commands.stop.cli
+    'auth':      auth_group,
+    'clusters':  clusters_group,
+    'help':      help_group,
+    'instances': instances_group,
+    'keys':      keys_group,
+    'orgs':      orgs_group,
+    'projects':  projects_group,
+    'schema':    schema_group,
+    'start':     start_group,
+    'stop':      stop_group
 }
 
 
@@ -43,7 +43,7 @@ class AugerCLI(click.MultiCommand):
                     "Run 'auger help' for a list of available topics."
                 ).format(name)
             )
-        return COMMANDS[name].cli
+        return COMMANDS[name]
 
 
 @click.command('auger', cls=AugerCLI, context_settings=CONTEXT_SETTINGS)

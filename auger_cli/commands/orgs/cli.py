@@ -15,7 +15,7 @@ attributes = ['id', 'name', 'main_bucket', 'status']
     short_help='Manage Auger Organizations.'
 )
 @click.pass_context
-def cli(ctx):
+def orgs_group(ctx):
     if ctx.invoked_subcommand is None:
         orgs = ctx.obj.client.action(
             ctx.obj.document,
@@ -68,5 +68,5 @@ def delete(ctx, organization_id):
         print_line("Deleting {0}.".format(org['name']))
 
 
-cli.add_command(create)
-cli.add_command(delete)
+orgs_group.add_command(create)
+orgs_group.add_command(delete)

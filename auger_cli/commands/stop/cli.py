@@ -10,7 +10,7 @@ from ...client import pass_client
 @click.command(short_help='Stop project.')
 @click.argument('project')
 @pass_client
-def cli(ctx, project):
+def stop_group(ctx, project):
     projects = list_projects(ctx)['data']
 
     found = False

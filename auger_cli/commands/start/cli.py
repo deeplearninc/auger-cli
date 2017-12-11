@@ -20,7 +20,7 @@ from ...client import pass_client
     help='Organization the project will use.'
 )
 @pass_client
-def cli(ctx, project, organization_id):
+def start_group(ctx, project, organization_id):
     create_project(
         ctx,
         project=project,

@@ -13,7 +13,7 @@ attributes = ['id', 'description']
     short_help='Display available instance types for clusters.'
 )
 @click.pass_context
-def cli(ctx):
+def instances_group(ctx):
     result = ctx.obj.client.action(
         ctx.obj.document,
         ['instance_types', 'list']
