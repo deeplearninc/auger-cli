@@ -1,23 +1,19 @@
 # -*- coding: utf-8 -*-
 
-from ..cli import pass_client
-from ..cluster_config import ClusterConfig
-from ..formatter import (
+import click
+
+from ...client import pass_client
+from ...cluster_config import ClusterConfig
+from ...formatter import (
     print_list,
     print_record
 )
-from .lib.lib import (
-    clusters_attributes,
-    clusters_list,
-    clusters_create,
-    clusters_delete
+from .api import (
+    cluster_attributes,
+    list_clusters,
+    create_cluster,
+    delete_cluster
 )
-
-import click
-import sys
-
-
-attributes = clusters_attributes
 
 
 @click.group(
@@ -26,10 +22,10 @@ attributes = clusters_attributes
     short_help='Manage Auger Clusters.'
 )
 @click.pass_context
-def cli(ctx):
+def clusters_group(ctx):
     if ctx.invoked_subcommand is None:
         with ctx.obj.coreapi_action():
-            print_list(clusters_list(ctx.obj)['data'], attributes)
+            print_list(list_clusters(ctx.obj)['data'], cluster_attributes)
     else:
         pass
 
@@ -62,12 +58,12 @@ def cli(ctx):
 )
 @pass_client
 def create(ctx, name, organization_id, worker_count, instance_type, wait):
-    result = clusters_create(
+    result = create_cluster(
         ctx, name, organization_id,
         worker_count, instance_type, wait
     )
-    if result is not None:
-        sys.exit(0 if result.ok else 1)
+    if result is not None and not result.ok:
+        raise click.ClickException('Failed to create cluster.')
 
 
 @click.command(short_help='Print cluster registry credentials.')
@@ -111,9 +107,9 @@ def dashboard(ctx, cluster_id, dashboard_name):
 )
 @pass_client
 def delete(ctx, cluster_id, wait):
-    ok = clusters_delete(ctx, cluster_id, wait)
-    if ok is not None:
-        sys.exit(0 if ok else 1)
+    ok = delete_cluster(ctx, cluster_id, wait)
+    if ok is not None and not ok:
+        raise click.ClickException('Failed to delete cluster.')
 
 
 @click.command(short_help='Display cluster details.')
@@ -122,11 +118,11 @@ def delete(ctx, cluster_id, wait):
 def show(ctx, cluster_id):
     with ctx.coreapi_action():
         cluster = ClusterConfig.fetch(ctx, cluster_id)
-        print_record(cluster, attributes)
+        print_record(cluster, cluster_attributes)
 
 
-cli.add_command(create)
-cli.add_command(credentials)
-cli.add_command(dashboard)
-cli.add_command(delete)
-cli.add_command(show)
+clusters_group.add_command(create)
+clusters_group.add_command(credentials)
+clusters_group.add_command(dashboard)
+clusters_group.add_command(delete)
+clusters_group.add_command(show)

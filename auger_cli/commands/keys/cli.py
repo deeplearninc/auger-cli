@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from ..cli import pass_client
-from ..formatter import print_line, print_list, print_record
 import click
+
+from ...client import pass_client
+from ...formatter import print_line, print_list, print_record
 
 
 attributes = ['id', 'public_key', 'created_at']
@@ -20,7 +21,7 @@ attributes = ['id', 'public_key', 'created_at']
     help='Display keys for a given organization.'
 )
 @click.pass_context
-def cli(ctx, organization_id):
+def keys_group(ctx, organization_id):
     if ctx.invoked_subcommand is None and organization_id is not None:
         keys = ctx.obj.client.action(
             ctx.obj.document,
@@ -89,5 +90,5 @@ def delete(ctx, key_id, organization_id):
     print_line("Deleted SSH key.")
 
 
-cli.add_command(add)
-cli.add_command(delete)
+keys_group.add_command(add)
+keys_group.add_command(delete)

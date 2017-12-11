@@ -1,25 +1,21 @@
 # -*- coding: utf-8 -*-
 
-from ..cli import pass_client
-from ..formatter import (
+import click
+
+from ...client import pass_client
+from ...formatter import (
     print_line,
     print_list,
     print_stream
 )
-from .lib.lib import (
-    projects_attributes,
-    projects_list,
-    projects_create,
-    projects_delete,
-    projects_deploy,
-    projects_open
+from .api import (
+    project_attributes,
+    list_projects,
+    create_project,
+    delete_project,
+    deploy_project,
+    launch_project_url
 )
-
-import click
-import sys
-
-
-attributes = projects_attributes
 
 
 @click.group(
@@ -28,11 +24,11 @@ attributes = projects_attributes
     short_help='Manage Auger Projects.'
 )
 @click.pass_context
-def cli(ctx):
+def projects_group(ctx):
     if ctx.invoked_subcommand is None:
         print_list(
-            list_data=projects_list(ctx.obj)['data'],
-            attributes=attributes
+            list_data=list_projects(ctx.obj)['data'],
+            attributes=project_attributes
         )
     else:
         pass
@@ -55,7 +51,7 @@ def cli(ctx):
 )
 @pass_client
 def create(ctx, project, organization_id):
-    projects_create(ctx, project, organization_id)
+    create_project(ctx, project, organization_id)
 
 
 @click.command(
@@ -70,7 +66,7 @@ def create(ctx, project, organization_id):
 )
 @pass_client
 def delete(ctx, project):
-    projects_delete(ctx, project)
+    delete_project(ctx, project)
 
 
 @click.command(short_help='Deploy an project to a cluster.')
@@ -96,9 +92,9 @@ def delete(ctx, project):
 )
 @pass_client
 def deploy(ctx, project, cluster_id, wait):
-    ok = projects_deploy(ctx, project, cluster_id, wait)
-    if ok is not None:
-        sys.exit(0 if ok else 1)
+    ok = deploy_project(ctx, project, cluster_id, wait)
+    if ok is not None and not ok:
+        raise click.ClickException('Failed to deploy project.')
 
 
 @click.command(short_help='Display project logs.')
@@ -143,7 +139,7 @@ def logs(ctx, project, tail):
 )
 @pass_client
 def open_project(ctx, project):
-    projects_open(ctx, project)
+    launch_project_url(ctx, project)
 
 
 @click.command(short_help='Undeploy an project from the cluster.')
@@ -164,9 +160,9 @@ def undeploy(ctx, project):
     print_line('Undeployed {}.'.format(project))
 
 
-cli.add_command(create)
-cli.add_command(delete)
-cli.add_command(deploy)
-cli.add_command(logs)
-cli.add_command(open_project, name='open')
-cli.add_command(undeploy)
+projects_group.add_command(create)
+projects_group.add_command(delete)
+projects_group.add_command(deploy)
+projects_group.add_command(logs)
+projects_group.add_command(open_project, name='open')
+projects_group.add_command(undeploy)

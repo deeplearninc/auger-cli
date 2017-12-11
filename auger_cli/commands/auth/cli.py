@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 
-from .. import constants
-from ..cli import pass_client
-from ..client import Client
-from ..formatter import print_line
-from ..utils import urlparse
 import base64
-from coreapi.compat import b64encode
 import click
+from coreapi.compat import b64encode
+
+from ... import constants
+from ...client import pass_client, Client
+from ...formatter import print_line
+from ...utils import urlparse
 
 
 @click.group('auth', short_help='Authentication with Auger.')
 @pass_client
-def cli(ctx):
+def auth_group(ctx):
     pass
 
 
@@ -89,6 +89,6 @@ def whoami(ctx):
         print_line('{} on {}'.format(username, host))
 
 
-cli.add_command(login)
-cli.add_command(logout)
-cli.add_command(whoami)
+auth_group.add_command(login)
+auth_group.add_command(logout)
+auth_group.add_command(whoami)

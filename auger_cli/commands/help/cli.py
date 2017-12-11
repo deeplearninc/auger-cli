@@ -5,5 +5,5 @@ import click
 
 @click.command('help')
 @click.pass_context
-def cli(ctx):
+def help_group(ctx):
     print(ctx.parent.get_help())

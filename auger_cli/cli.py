@@ -1,49 +1,52 @@
 # -*- coding: utf-8 -*-
 
 import click
-from .cluster_config import ClusterConfig
-from .client import Client
-import os
-import sys
+
+from . import client
+
+from auger_cli.commands.auth.cli import auth_group
+from auger_cli.commands.clusters.cli import clusters_group
+from auger_cli.commands.help.cli import help_group
+from auger_cli.commands.instances.cli import instances_group
+from auger_cli.commands.keys.cli import keys_group
+from auger_cli.commands.orgs.cli import orgs_group
+from auger_cli.commands.projects.cli import projects_group
+from auger_cli.commands.schema.cli import schema_group
+from auger_cli.commands.start.cli import start_group
+from auger_cli.commands.stop.cli import stop_group
 
 
 CONTEXT_SETTINGS = dict(auto_envvar_prefix='AUGER')
-pass_client = click.make_pass_decorator(Client, ensure=True)
-pass_cluster = click.make_pass_decorator(ClusterConfig, ensure=True)
+COMMANDS = {
+    'auth':      auth_group,
+    'clusters':  clusters_group,
+    'help':      help_group,
+    'instances': instances_group,
+    'keys':      keys_group,
+    'orgs':      orgs_group,
+    'projects':  projects_group,
+    'schema':    schema_group,
+    'start':     start_group,
+    'stop':      stop_group
+}
 
 
 class AugerCLI(click.MultiCommand):
-    cmd_folder = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), 'commands')
-    )
-
     def list_commands(self, ctx):
-        rv = []
-        for filename in os.listdir(AugerCLI.cmd_folder):
-            if filename.endswith('.py') and not filename.startswith('__'):
-                rv.append(filename[:-3])
-        rv.sort()
-        return rv
+        return sorted(COMMANDS.keys())
 
     def get_command(self, ctx, name):
-        try:
-            if sys.version_info[0] == 2:
-                name = name.encode('ascii', 'replace')
-            mod = __import__(
-                'auger_cli.commands.' + name, None, None, ['cli']
-            )
-            return mod.cli
-        except ImportError:
+        if name not in COMMANDS:
             raise click.UsageError(
                 message=(
                     "'{}' is not an auger command.\n"
-                    "Run 'auger help' for a list of "
-                    "available topics."
+                    "Run 'auger help' for a list of available topics."
                 ).format(name)
             )
+        return COMMANDS[name]
 
 
 @click.command('auger', cls=AugerCLI, context_settings=CONTEXT_SETTINGS)
-@pass_client
+@client.pass_client
 def cli(ctx):
     """Auger command line interface."""
