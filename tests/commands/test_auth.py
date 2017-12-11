@@ -2,7 +2,7 @@
 
 import unittest
 import vcr
-from auger_cli.commands.auth.cli import cli
+from auger_cli.commands.auth.cli import auth_group
 from click.testing import CliRunner
 
 
@@ -15,7 +15,7 @@ class TestLogin(unittest.TestCase):
     def test_login_success(self):
         runner = CliRunner()
         result = runner.invoke(
-            cli,
+            auth_group,
             [
                 'login',
                 '--password',
@@ -42,7 +42,7 @@ class TestLogout(unittest.TestCase):
     )
     def test_logout_success(self):
         runner = CliRunner()
-        result = runner.invoke(cli, ['logout'])
+        result = runner.invoke(auth_group, ['logout'])
         self.assertEqual(0, result.exit_code)
         self.assertEqual(
             'You are now logged out.\n',
