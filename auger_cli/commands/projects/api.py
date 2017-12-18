@@ -79,7 +79,7 @@ def deploy_project(ctx, project, cluster_id, wait):
             endpoint=['projects', 'read'],
             params={'name': project_data['name']},
             first_status=project_data['status'],
-            progress_statuses=['undeployed', 'ready'],
+            progress_statuses=['undeployed', 'deploying', 'deployed'],
             desired_status='running'
         )
     else:
