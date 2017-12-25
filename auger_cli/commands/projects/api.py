@@ -22,7 +22,11 @@ project_attributes = [
 
 def list_projects(ctx):
     with ctx.coreapi_action():
-        return ctx.client.action(ctx.document, ['projects', 'list'])
+        return ctx.client.action(
+            ctx.document,
+            ['projects', 'list'],
+            params={'limit': 1000000000}
+        )
 
 
 def create_project(ctx, project, organization_id):
@@ -61,20 +65,16 @@ def deploy_project(ctx, project, cluster_id, wait):
     cluster_config.docker_client.build()
     print_line('Deploying project. (This may take a few minutes.)')
     cluster_config.docker_client.push()
-    definition = ''
-    with open(SERVICE_YAML_PATH) as f:
-        definition = f.read()
 
-    project_data = ctx.client.action(
-        ctx.document,
-        ['projects', 'deploy'],
-        params={
-            'name': project,
-            'cluster_id': cluster_id,
-            'definition': definition
-        }
-    )['data']
-    print_record(project_data, project_attributes)
+    project_id = None
+    for p in list_projects(ctx)['data']:
+        if p['name'] == project:
+            project_id = p['id']
+            break
+    if project_id is None:
+        raise click.ClickException('Failed to find project ({}).'.formal(
+            project
+        ))
 
     # remove old project files
     # get list and remove listed files in loop (as list is limited)
@@ -82,7 +82,7 @@ def deploy_project(ctx, project, cluster_id, wait):
         file_list = ctx.client.action(
             ctx.document,
             ['project_files', 'list'],
-            params={'project_id': project_data['id']}
+            params={'project_id': project_id}
         )['data']
         if len(file_list) == 0:
             break
@@ -92,7 +92,7 @@ def deploy_project(ctx, project, cluster_id, wait):
                 ['project_files', 'delete'],
                 params={
                     'id': item['id'],
-                    'project_id': project_data['id']
+                    'project_id': project_id
                 }
             )
 
@@ -118,9 +118,21 @@ def deploy_project(ctx, project, cluster_id, wait):
                 params={
                     'name': filepath[len(PROJECT_FILES_PATH) + 1:],
                     'content': content,
-                    'project_id': project_data['id']
+                    'project_id': project_id
                 }
             )
+
+    # deploy project itself
+    project_data = ctx.client.action(
+        ctx.document,
+        ['projects', 'deploy'],
+        params={
+            'name': project,
+            'cluster_id': cluster_id,
+            'definition': open(SERVICE_YAML_PATH, 'r').read()
+        }
+    )['data']
+    print_record(project_data, project_attributes)
 
     if wait:
         return command_progress_bar(
