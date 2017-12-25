@@ -104,7 +104,12 @@ def deploy_project(ctx, project, cluster_id, wait):
             try:
                 content = content.decode('utf-8')
             except UnicodeDecodeError:
-                print_line('Warning: Cannot deploy binary file ({}).'.format(filepath), err=True)
+                print_line(
+                    'Warning: Cannot deploy binary file ({}).'.format(
+                        filepath
+                    ),
+                    err=True
+                )
                 continue
             assert filepath.startswith('{}/'.format(PROJECT_FILES_PATH))
             ctx.client.action(
