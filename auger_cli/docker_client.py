@@ -3,12 +3,12 @@
 import docker
 import errno
 import os
+
+from .constants import DOCKERFILE_PATH
 from . import shell
 
 
 class DockerClient(dict):
-    _dockerfile_path = '.auger/Dockerfile'
-
     def __init__(
             self, username=None, password=None, hostname=None, project=None):
         super(DockerClient, self).__init__()
@@ -42,13 +42,13 @@ class DockerClient(dict):
         pass
 
     def _docker_path(self):
-        if os.path.isfile(self._dockerfile_path):
-            return self._dockerfile_path
+        if os.path.isfile(DOCKERFILE_PATH):
+            return DOCKERFILE_PATH
         else:
             raise errno.FileNotFoundError(
                 errno.ENOENT,
                 os.strerror(errno.ENOENT),
-                self._dockerfile_path
+                DOCKERFILE_PATH
             )
 
     def _image_name(self):

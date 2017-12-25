@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import click
+import os
 
+from ...constants import SERVICE_YAML_PATH, PROJECT_FILES_PATH
 from ...cluster_config import ClusterConfig
 from ...formatter import command_progress_bar, print_record, print_line
 
@@ -60,7 +62,7 @@ def deploy_project(ctx, project, cluster_id, wait):
     print_line('Deploying project. (This may take a few minutes.)')
     cluster_config.docker_client.push()
     definition = ''
-    with open('.auger/service.yml') as f:
+    with open(SERVICE_YAML_PATH) as f:
         definition = f.read()
 
     project_data = ctx.client.action(
@@ -73,6 +75,48 @@ def deploy_project(ctx, project, cluster_id, wait):
         }
     )['data']
     print_record(project_data, project_attributes)
+
+    # remove old project files
+    # get list and remove listed files in loop (as list is limited)
+    while True:
+        file_list = ctx.client.action(
+            ctx.document,
+            ['project_files', 'list'],
+            params={'project_id': project_data['id']}
+        )['data']
+        if len(file_list) == 0:
+            break
+        for item in file_list:
+            ctx.client.action(
+                ctx.document,
+                ['project_files', 'delete'],
+                params={
+                    'id': item['id'],
+                    'project_id': project_data['id']
+                }
+            )
+
+    # deploy project files
+    for dirpath, _, filenames in os.walk(PROJECT_FILES_PATH, followlinks=True):
+        for filename in filenames:
+            filepath = os.path.join(dirpath, filename)
+            content = open(filepath, 'rb').read()
+            try:
+                content = content.decode('utf-8')
+            except UnicodeDecodeError:
+                print_line('Warning: Cannot deploy binary file ({}).'.format(filepath), err=True)
+                continue
+            assert filepath.startswith('{}/'.format(PROJECT_FILES_PATH))
+            ctx.client.action(
+                ctx.document,
+                ['project_files', 'create'],
+                params={
+                    'name': filepath[len(PROJECT_FILES_PATH) + 1:],
+                    'content': content,
+                    'project_id': project_data['id']
+                }
+            )
+
     if wait:
         return command_progress_bar(
             ctx=ctx,

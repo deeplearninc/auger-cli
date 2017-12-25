@@ -50,8 +50,8 @@ def print_record(object_data, attributes):
     print_line()
 
 
-def print_line(line='', nl=True):
-    click.echo(line, nl=nl)
+def print_line(line='', nl=True, err=False):
+    click.echo(line, nl=nl, err=err)
 
 
 def print_stream(ctx, params):
