@@ -13,7 +13,6 @@ attributes = ['id', 'description']
     'instance-types',
     short_help='Display available instance types for clusters.'
 )
-
 @click.pass_context
 def instances_group(ctx):
     print_list(request_list(ctx.obj, 'instance_types'), attributes)
