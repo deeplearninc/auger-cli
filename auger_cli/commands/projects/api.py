@@ -6,6 +6,7 @@ import os
 from ...constants import SERVICE_YAML_PATH, PROJECT_FILES_PATH
 from ...cluster_config import ClusterConfig
 from ...formatter import command_progress_bar, print_record, print_line
+from ...utils import request_list
 
 
 project_attributes = [
@@ -20,38 +21,37 @@ project_attributes = [
 ]
 
 
-def list_projects(ctx):
-    with ctx.coreapi_action():
-        return ctx.client.action(ctx.document, ['projects', 'list'])
+def list_projects(auger_client):
+    return request_list(auger_client, 'projects')
 
 
-def create_project(ctx, project, organization_id):
-    with ctx.coreapi_action():
+def create_project(auger_client, project, organization_id):
+    with auger_client.coreapi_action():
         params = {
             'name': project,
             'organization_id': organization_id
         }
-        result = ctx.client.action(
-            ctx.document,
+        result = auger_client.client.action(
+            auger_client.document,
             ['projects', 'create'],
             params=params
         )
         print_record(result['data'], project_attributes)
 
 
-def delete_project(ctx, project):
-    with ctx.coreapi_action():
-        ctx.client.action(
-            ctx.document,
+def delete_project(auger_client, project):
+    with auger_client.coreapi_action():
+        auger_client.client.action(
+            auger_client.document,
             ['projects', 'delete'],
             params={'name': project}
         )
         print_line('Deleted {}.'.format(project))
 
 
-def deploy_project(ctx, project, cluster_id, wait):
+def deploy_project(auger_client, project, cluster_id, wait):
     cluster_config = ClusterConfig(
-        ctx,
+        auger_client,
         project=project,
         cluster_id=cluster_id
     )
@@ -63,28 +63,28 @@ def deploy_project(ctx, project, cluster_id, wait):
     cluster_config.docker_client.push()
 
     project_id = None
-    for p in list_projects(ctx)['data']:
+    for p in list_projects(auger_client):
         if p['name'] == project:
             project_id = p['id']
             break
     if project_id is None:
-        raise click.ClickException('Failed to find project ({}).'.formal(
+        raise click.ClickException('Failed to find project ({}).'.format(
             project
         ))
 
     # remove old project files
-    # get list and remove listed files in loop (as list is limited)
+    # get list and remove listed files in loop (as list is limited in size)
     while True:
-        file_list = ctx.client.action(
-            ctx.document,
+        file_list = auger_client.client.action(
+            auger_client.document,
             ['project_files', 'list'],
             params={'project_id': project_id}
         )['data']
         if len(file_list) == 0:
             break
         for item in file_list:
-            ctx.client.action(
-                ctx.document,
+            auger_client.client.action(
+                auger_client.document,
                 ['project_files', 'delete'],
                 params={
                     'id': item['id'],
@@ -108,8 +108,8 @@ def deploy_project(ctx, project, cluster_id, wait):
                 )
                 continue
             assert filepath.startswith('{}/'.format(PROJECT_FILES_PATH))
-            ctx.client.action(
-                ctx.document,
+            auger_client.client.action(
+                auger_client.document,
                 ['project_files', 'create'],
                 params={
                     'name': filepath[len(PROJECT_FILES_PATH) + 1:],
@@ -119,8 +119,8 @@ def deploy_project(ctx, project, cluster_id, wait):
             )
 
     # deploy project itself
-    project_data = ctx.client.action(
-        ctx.document,
+    project_data = auger_client.client.action(
+        auger_client.document,
         ['projects', 'deploy'],
         params={
             'name': project,
@@ -132,7 +132,7 @@ def deploy_project(ctx, project, cluster_id, wait):
 
     if wait:
         return command_progress_bar(
-            ctx=ctx,
+            auger_client=auger_client,
             endpoint=['projects', 'read'],
             params={'name': project_data['name']},
             first_status=project_data['status'],
@@ -143,9 +143,9 @@ def deploy_project(ctx, project, cluster_id, wait):
         print_line('Done.')
 
 
-def launch_project_url(ctx, project):
-    project = ctx.client.action(
-        ctx.document,
+def launch_project_url(auger_client, project):
+    project = auger_client.client.action(
+        auger_client.document,
         ['projects', 'read'],
         params={
             'name': project

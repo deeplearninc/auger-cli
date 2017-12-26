@@ -4,6 +4,7 @@ import click
 
 from ...client import pass_client
 from ...formatter import print_line, print_list, print_record
+from ...utils import request_list
 
 
 attributes = ['id', 'name', 'main_bucket', 'status']
@@ -17,13 +18,7 @@ attributes = ['id', 'name', 'main_bucket', 'status']
 @click.pass_context
 def orgs_group(ctx):
     if ctx.invoked_subcommand is None:
-        orgs = ctx.obj.client.action(
-            ctx.obj.document,
-            ['organizations', 'list']
-        )
-        print_list(orgs['data'], attributes)
-    else:
-        pass
+        print_list(request_list(ctx.obj, 'organizations'), attributes)
 
 
 @click.command()

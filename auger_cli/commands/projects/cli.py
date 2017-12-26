@@ -26,12 +26,8 @@ from .api import (
 @click.pass_context
 def projects_group(ctx):
     if ctx.invoked_subcommand is None:
-        print_list(
-            list_data=list_projects(ctx.obj)['data'],
-            attributes=project_attributes
-        )
-    else:
-        pass
+        with ctx.obj.coreapi_action():
+            print_list(list_projects(ctx.obj), project_attributes)
 
 
 @click.command(short_help='Create a new Auger project.')

@@ -15,3 +15,24 @@ def urlparse(*args, **kwargs):
     else:
         from urllib.parse import urlparse
     return urlparse(*args, **kwargs)
+
+
+def request_list(auger_client, what, params={}):
+    offset = 0
+    while True:
+        p = {'offset': offset}
+        assert 'limit' not in params
+        assert 'offset' not in params
+        p.update(params)
+        response = auger_client.client.action(
+            auger_client.document,
+            [what, 'list'],
+            params=p
+        )
+        for item in response['data']:
+            yield item
+        assert offset == int(response['meta']['pagination']['offset'])
+        assert len(response['data']) == response['meta']['pagination']['count']
+        offset += len(response['data'])
+        if offset >= response['meta']['pagination']['total']:
+            break
