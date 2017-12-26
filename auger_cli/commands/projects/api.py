@@ -22,11 +22,7 @@ project_attributes = [
 
 def list_projects(ctx):
     with ctx.coreapi_action():
-        return ctx.client.action(
-            ctx.document,
-            ['projects', 'list'],
-            params={'limit': 1000000000}
-        )
+        return ctx.client.action(ctx.document, ['projects', 'list'])
 
 
 def create_project(ctx, project, organization_id):
