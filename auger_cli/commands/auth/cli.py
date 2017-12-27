@@ -16,7 +16,7 @@ def auth_group(ctx):
     pass
 
 
-@click.command(short_help='Login to auger.')
+@click.command(short_help='Login to Auger.')
 @click.option('--debug', is_flag=True, help='Show extra environment info.')
 @click.option(
     '--username',
