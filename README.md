@@ -33,12 +33,16 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  projects       Manage Auger Projects.
   auth       Authentication with Auger.
   clusters   Manage Auger Clusters.
+  help
   instances  Display available instance types for clusters.
-  keys       Manage Auger SSH keys.
   orgs       Manage Auger Organizations.
+  projects   Manage Auger Projects.
+  schema     Display current Auger schema.
+  start      Start project.
+  stop       Stop project.
+
 ```
 
 ```sh
@@ -49,20 +53,20 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  login   Login to auger.
+  login   Login to Auger.
   logout  Logout from Auger.
   whoami  Display the current logged in user.
 ```
 
 ## Login
 
-The first step you'll need to do is login to auger with:
+The first step you'll need to do is login to Auger with:
 
 ```sh
 auger auth login
 ```
 
-Note you can login to a different auger hub instance by passing the `--url` argument:
+Note you can login to a different Auger hub instance by passing the `--url` argument:
 
 ```sh
 auger auth login --url https://test-instance.auger.ai

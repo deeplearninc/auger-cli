@@ -8,7 +8,6 @@ from auger_cli.commands.auth.cli import auth_group
 from auger_cli.commands.clusters.cli import clusters_group
 from auger_cli.commands.help.cli import help_group
 from auger_cli.commands.instances.cli import instances_group
-from auger_cli.commands.keys.cli import keys_group
 from auger_cli.commands.orgs.cli import orgs_group
 from auger_cli.commands.projects.cli import projects_group
 from auger_cli.commands.schema.cli import schema_group
@@ -22,7 +21,6 @@ COMMANDS = {
     'clusters':  clusters_group,
     'help':      help_group,
     'instances': instances_group,
-    'keys':      keys_group,
     'orgs':      orgs_group,
     'projects':  projects_group,
     'schema':    schema_group,
