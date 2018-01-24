@@ -76,22 +76,21 @@ def deploy_project(ctx, project, cluster_id, wait):
     # remove old project files
     # get list and remove listed files in loop (as list is limited)
     while True:
-        file_list = ctx.client.action(
-            ctx.document,
-            ['project_files', 'list'],
-            params={'project_id': project_id}
-        )['data']
+        with ctx.coreapi_action():
+            file_list = ctx.client.action(
+                ctx.document,
+                ['project_files', 'list'],
+                params={'project_id': project_id}
+            )['data']
         if len(file_list) == 0:
             break
         for item in file_list:
-            ctx.client.action(
-                ctx.document,
-                ['project_files', 'delete'],
-                params={
-                    'id': item['id'],
-                    'project_id': project_id
-                }
-            )
+            with ctx.coreapi_action():
+                ctx.client.action(
+                    ctx.document,
+                    ['project_files', 'delete'],
+                    params={'id': item['id'], 'project_id': project_id}
+                )
 
     # deploy project files
     for dirpath, _, filenames in os.walk(PROJECT_FILES_PATH, followlinks=True):
