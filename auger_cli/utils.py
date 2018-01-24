@@ -17,13 +17,13 @@ def urlparse(*args, **kwargs):
     return urlparse(*args, **kwargs)
 
 
-def request_list(auger_client, what, params={}):
-    offset = 0
-    while True:
-        p = {'offset': offset}
-        assert 'limit' not in params
-        assert 'offset' not in params
-        p.update(params)
+def request_list(auger_client, what, params):
+    offset = params.get('offset', 0)
+    limit = params['limit']  # limit is mandatory key in params
+    p = params.copy()
+    while limit >= 0:
+        p['offset'] = offset
+        p['limit'] = limit
         response = auger_client.client.action(
             auger_client.document,
             [what, 'list'],
@@ -32,7 +32,10 @@ def request_list(auger_client, what, params={}):
         for item in response['data']:
             yield item
         assert offset == int(response['meta']['pagination']['offset'])
-        assert len(response['data']) == response['meta']['pagination']['count']
-        offset += len(response['data'])
+        received = len(response['data'])
+        assert received == response['meta']['pagination']['count']
+        assert received <= limit
+        offset += received
+        limit -= received
         if offset >= response['meta']['pagination']['total']:
             break

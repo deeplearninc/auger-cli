@@ -22,7 +22,8 @@ project_attributes = [
 
 
 def list_projects(auger_client):
-    return request_list(auger_client, 'projects')
+    # request_list requires some limit and we use one big enough
+    return request_list(auger_client, 'projects', params={'limit': 1000000000})
 
 
 def create_project(auger_client, project, organization_id):

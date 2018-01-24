@@ -18,7 +18,15 @@ attributes = ['id', 'name', 'main_bucket', 'status']
 @click.pass_context
 def orgs_group(ctx):
     if ctx.invoked_subcommand is None:
-        print_list(request_list(ctx.obj, 'organizations'), attributes)
+        # request_list requires some limit and we use one big enough
+        print_list(
+            request_list(
+                ctx.obj,
+                'organizations',
+                params={'limit': 1000000000}
+            ),
+            attributes
+        )
 
 
 @click.command()

@@ -19,7 +19,8 @@ cluster_attributes = [
 
 
 def list_clusters(auger_client):
-    return request_list(auger_client, 'clusters')
+    # request_list requires some limit and we use one big enough
+    return request_list(auger_client, 'clusters', params={'limit': 1000000000})
 
 
 class CreateResult(object):
