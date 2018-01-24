@@ -108,15 +108,16 @@ def deploy_project(ctx, project, cluster_id, wait):
                 )
                 continue
             assert filepath.startswith('{}/'.format(PROJECT_FILES_PATH))
-            ctx.client.action(
-                ctx.document,
-                ['project_files', 'create'],
-                params={
-                    'name': filepath[len(PROJECT_FILES_PATH) + 1:],
-                    'content': content,
-                    'project_id': project_id
-                }
-            )
+            with ctx.coreapi_action():
+                ctx.client.action(
+                    ctx.document,
+                    ['project_files', 'create'],
+                    params={
+                        'name': filepath[len(PROJECT_FILES_PATH) + 1:],
+                        'content': content,
+                        'project_id': project_id
+                    }
+                )
 
     # deploy project itself
     project_data = ctx.client.action(
