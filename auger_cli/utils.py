@@ -24,11 +24,12 @@ def request_list(auger_client, what, params):
     while limit >= 0:
         p['offset'] = offset
         p['limit'] = limit
-        response = auger_client.client.action(
-            auger_client.document,
-            [what, 'list'],
-            params=p
-        )
+        with auger_client.coreapi_action():
+            response = auger_client.client.action(
+                auger_client.document,
+                [what, 'list'],
+                params=p
+            )
         for item in response['data']:
             yield item
         assert offset == int(response['meta']['pagination']['offset'])
