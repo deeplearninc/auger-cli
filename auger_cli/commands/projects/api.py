@@ -66,15 +66,11 @@ def deploy_project(ctx, project, cluster_id, wait):
     with open(SERVICE_YAML_PATH) as f:
         definition = f.read()
 
-    project_id = None
-    for p in list_projects(ctx)['data']:
-        if p['name'] == project:
-            project_id = p['id']
-            break
-    if project_id is None:
-        raise click.ClickException('Failed to find project ({}).'.formal(
-            project
-        ))
+    project_id = ctx.client.action(
+        ctx.document,
+        ['projects', 'read'],
+        params={'name': project}
+    )['data']['id']
 
     # remove old project files
     # get list and remove listed files in loop (as list is limited)
