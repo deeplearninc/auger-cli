@@ -62,6 +62,10 @@ def deploy_project(ctx, project, cluster_id, wait):
     print_line('Deploying project. (This may take a few minutes.)')
     cluster_config.docker_client.push()
 
+    definition = ''
+    with open(SERVICE_YAML_PATH) as f:
+        definition = f.read()
+
     project_id = None
     for p in list_projects(ctx)['data']:
         if p['name'] == project:
@@ -125,7 +129,7 @@ def deploy_project(ctx, project, cluster_id, wait):
         params={
             'name': project,
             'cluster_id': cluster_id,
-            'definition': open(SERVICE_YAML_PATH, 'r').read()
+            'definition': definition
         }
     )['data']
     print_record(project_data, project_attributes)
