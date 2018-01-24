@@ -66,11 +66,12 @@ def deploy_project(ctx, project, cluster_id, wait):
     with open(SERVICE_YAML_PATH) as f:
         definition = f.read()
 
-    project_id = ctx.client.action(
-        ctx.document,
-        ['projects', 'read'],
-        params={'name': project}
-    )['data']['id']
+    with ctx.coreapi_action():
+        project_id = ctx.client.action(
+            ctx.document,
+            ['projects', 'read'],
+            params={'name': project}
+        )['data']['id']
 
     # remove old project files
     # get list and remove listed files in loop (as list is limited)
