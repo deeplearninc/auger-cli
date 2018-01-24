@@ -20,23 +20,32 @@ project_attributes = [
 ]
 
 
+def read_project(ctx, name):
+    with ctx.coreapi_action():
+        return ctx.client.action(
+            ctx.document,
+            ['projects', 'read'],
+            params={'name': name}
+        )['data']
+
+
 def list_projects(ctx):
     with ctx.coreapi_action():
         return ctx.client.action(ctx.document, ['projects', 'list'])
 
 
 def create_project(ctx, project, organization_id):
+    params = {
+        'name': project,
+        'organization_id': organization_id
+    }
     with ctx.coreapi_action():
-        params = {
-            'name': project,
-            'organization_id': organization_id
-        }
         result = ctx.client.action(
             ctx.document,
             ['projects', 'create'],
             params=params
         )
-        print_record(result['data'], project_attributes)
+    print_record(result['data'], project_attributes)
 
 
 def delete_project(ctx, project):
@@ -66,12 +75,7 @@ def deploy_project(ctx, project, cluster_id, wait):
     with open(SERVICE_YAML_PATH) as f:
         definition = f.read()
 
-    with ctx.coreapi_action():
-        project_id = ctx.client.action(
-            ctx.document,
-            ['projects', 'read'],
-            params={'name': project}
-        )['data']['id']
+    project_id = read_project(ctx, project)['id']
 
     # remove old project files
     # get list and remove listed files in loop (as list is limited)
@@ -120,15 +124,16 @@ def deploy_project(ctx, project, cluster_id, wait):
                 )
 
     # deploy project itself
-    project_data = ctx.client.action(
-        ctx.document,
-        ['projects', 'deploy'],
-        params={
-            'name': project,
-            'cluster_id': cluster_id,
-            'definition': definition
-        }
-    )['data']
+    with ctx.coreapi_action():
+        project_data = ctx.client.action(
+            ctx.document,
+            ['projects', 'deploy'],
+            params={
+                'name': project,
+                'cluster_id': cluster_id,
+                'definition': definition
+            }
+        )['data']
     print_record(project_data, project_attributes)
 
     if wait:
@@ -145,12 +150,4 @@ def deploy_project(ctx, project, cluster_id, wait):
 
 
 def launch_project_url(ctx, project):
-    project = ctx.client.action(
-        ctx.document,
-        ['projects', 'read'],
-        params={
-            'name': project
-        }
-    )
-    project_url = project['data']['url']
-    return click.launch(project_url)
+    return click.launch(read_project(ctx, project)['url'])
