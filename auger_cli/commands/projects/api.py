@@ -58,18 +58,20 @@ def delete_project(ctx, project):
         print_line('Deleted {}.'.format(project))
 
 
-def deploy_project(ctx, project, cluster_id, wait):
+def deploy_project(
+        ctx, project, cluster_id, push_images=True, wait=False):
     cluster_config = ClusterConfig(
         ctx,
         project=project,
         cluster_id=cluster_id
     )
-    print_line('Setting up docker registry.')
-    cluster_config.login()
-    print_line('Preparing project to deploy.')
-    cluster_config.docker_client.build()
-    print_line('Deploying project. (This may take a few minutes.)')
-    cluster_config.docker_client.push()
+    if push_images:
+        print_line('Setting up docker registry.')
+        cluster_config.login()
+        print_line('Preparing project to deploy.')
+        cluster_config.docker_client.build()
+        print_line('Deploying project. (This may take a few minutes.)')
+        # cluster_config.docker_client.push()
 
     definition = ''
     with open(SERVICE_YAML_PATH) as f:
