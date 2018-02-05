@@ -3,7 +3,7 @@
 import click
 
 from ...client import pass_client
-from ...formatter import print_list, print_record
+from ...formatter import print_list
 
 from .api import (
     org_attributes,
