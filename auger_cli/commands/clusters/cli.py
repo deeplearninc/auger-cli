@@ -53,7 +53,7 @@ def clusters_group(ctx):
 @click.option(
     '--kubernetes-stack',
     '-k',
-    default='default',
+    default='',
     help='Kubernetes stack name for the cluster.'
 )
 @click.option(
