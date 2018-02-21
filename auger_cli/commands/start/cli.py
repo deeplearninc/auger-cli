@@ -33,6 +33,7 @@ def start_group(ctx, project, organization_id):
         organization_id=organization_id,
         worker_count=1,
         instance_type='c5.large',
+        kubernetes_stack='default',
         wait=True
     )
 
