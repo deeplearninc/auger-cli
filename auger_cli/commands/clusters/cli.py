@@ -63,8 +63,8 @@ def clusters_group(ctx):
     help='Wait for cluster to run.'
 )
 @pass_client
-def create(ctx, name, organization_id, worker_count, 
-    instance_type, kubernetes_stack, wait):
+def create(ctx, name, organization_id, worker_count,
+           instance_type, kubernetes_stack, wait):
     result = create_cluster(
         ctx, name, organization_id,
         worker_count, instance_type, kubernetes_stack, wait
