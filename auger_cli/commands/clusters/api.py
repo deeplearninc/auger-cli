@@ -13,7 +13,8 @@ cluster_attributes = [
     'uptime_seconds',
     'worker_nodes_count',
     'ip_address',
-    'instance_type'
+    'instance_type',
+    'kubernetes_stack'
 ]
 
 
@@ -29,7 +30,7 @@ class CreateResult(object):
 
 def create_cluster(
         ctx, name, organization_id,
-        worker_count, instance_type, wait):
+        worker_count, instance_type, kubernetes_stack, wait):
     with ctx.coreapi_action():
         cluster = ctx.client.action(
             ctx.document,
@@ -38,7 +39,8 @@ def create_cluster(
                 'name': name,
                 'organization_id': organization_id,
                 'worker_nodes_count': worker_count,
-                'instance_type': instance_type
+                'instance_type': instance_type,
+                'kubernetes_stack': kubernetes_stack
             }
         )['data']
         ClusterConfig(
