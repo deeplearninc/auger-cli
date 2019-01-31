@@ -14,7 +14,8 @@ cluster_attributes = [
     'uptime_seconds',
     'worker_nodes_count',
     'ip_address',
-    'instance_type'
+    'instance_type',
+    'kubernetes_stack'
 ]
 
 
@@ -31,7 +32,7 @@ class CreateResult(object):
 
 def create_cluster(
         auger_client, name, organization_id,
-        worker_count, instance_type, wait):
+        worker_count, instance_type, kubernetes_stack, wait):
     with auger_client.coreapi_action():
         cluster = auger_client.client.action(
             auger_client.document,
@@ -40,7 +41,8 @@ def create_cluster(
                 'name': name,
                 'organization_id': organization_id,
                 'worker_nodes_count': worker_count,
-                'instance_type': instance_type
+                'instance_type': instance_type,
+                'kubernetes_stack': kubernetes_stack
             }
         )['data']
         ClusterConfig(

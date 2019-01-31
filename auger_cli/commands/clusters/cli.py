@@ -49,16 +49,23 @@ def clusters_group(ctx):
     help='Instance type for the worker nodes.'
 )
 @click.option(
+    '--kubernetes-stack',
+    '-k',
+    default='',
+    help='Kubernetes stack name for the cluster.'
+)
+@click.option(
     '--wait/--no-wait',
     '-w/',
     default=False,
     help='Wait for cluster to run.'
 )
 @pass_client
-def create(ctx, name, organization_id, worker_count, instance_type, wait):
+def create(ctx, name, organization_id, worker_count,
+           instance_type, kubernetes_stack, wait):
     result = create_cluster(
         ctx, name, organization_id,
-        worker_count, instance_type, wait
+        worker_count, instance_type, kubernetes_stack, wait
     )
     if result is not None and not result.ok:
         raise click.ClickException('Failed to create cluster.')

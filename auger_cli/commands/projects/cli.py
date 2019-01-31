@@ -65,7 +65,7 @@ def delete(ctx, project):
     delete_project(ctx, project)
 
 
-@click.command(short_help='Deploy an project to a cluster.')
+@click.command(short_help='Deploy project to a cluster.')
 @click.option(
     '--project',
     '-p',
@@ -81,14 +81,19 @@ def delete(ctx, project):
     help='Cluster the project will be deployed to.'
 )
 @click.option(
+    '--push-images/--skip-push',
+    default=True,
+    help='Upload local docker images defined in `.auger/`.'
+)
+@click.option(
     '--wait/--no-wait',
     '-w/',
     default=False,
     help='Wait for project to be ready.'
 )
 @pass_client
-def deploy(ctx, project, cluster_id, wait):
-    ok = deploy_project(ctx, project, cluster_id, wait)
+def deploy(ctx, project, cluster_id, push_images, wait):
+    ok = deploy_project(ctx, project, cluster_id, push_images, wait)
     if ok is not None and not ok:
         raise click.ClickException('Failed to deploy project.')
 
