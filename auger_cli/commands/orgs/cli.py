@@ -4,7 +4,6 @@ import click
 
 from ...client import pass_client
 from ...formatter import print_list
-from ...utils import request_list
 
 from .api import (
     org_attributes,
@@ -25,11 +24,7 @@ def orgs_group(ctx):
     if ctx.invoked_subcommand is None:
         # request_list requires some limit and we use one big enough
         print_list(
-            request_list(
-                ctx.obj,
-                'organizations',
-                params={'limit': 1000000000}
-            ),
+            list_data=list_orgs(ctx),
             attributes=org_attributes
         )
     else:
