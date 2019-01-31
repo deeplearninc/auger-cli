@@ -3,7 +3,6 @@
 import click
 
 from ...client import pass_client
-<<<<<<< HEAD
 from ...formatter import print_list
 from ...utils import request_list
 
