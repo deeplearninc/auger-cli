@@ -2,6 +2,7 @@
 
 from ...cluster_config import ClusterConfig
 from ...formatter import command_progress_bar, print_record, print_line
+from ...utils import request_list
 
 
 cluster_attributes = [
@@ -18,8 +19,9 @@ cluster_attributes = [
 ]
 
 
-def list_clusters(ctx):
-    return ctx.client.action(ctx.document, ['clusters', 'list'])
+def list_clusters(auger_client):
+    # request_list requires some limit and we use one big enough
+    return request_list(auger_client, 'clusters', params={'limit': 1000000000})
 
 
 class CreateResult(object):
@@ -29,11 +31,11 @@ class CreateResult(object):
 
 
 def create_cluster(
-        ctx, name, organization_id,
+        auger_client, name, organization_id,
         worker_count, instance_type, kubernetes_stack, wait):
-    with ctx.coreapi_action():
-        cluster = ctx.client.action(
-            ctx.document,
+    with auger_client.coreapi_action():
+        cluster = auger_client.client.action(
+            auger_client.document,
             ['clusters', 'create'],
             params={
                 'name': name,
@@ -44,14 +46,14 @@ def create_cluster(
             }
         )['data']
         ClusterConfig(
-            ctx,
+            auger_client,
             cluster_dict=cluster,
             cluster_id=cluster['id']
         )
         print_record(cluster, cluster_attributes)
         if wait:
             ok = command_progress_bar(
-                ctx=ctx,
+                auger_client=auger_client,
                 endpoint=['clusters', 'read'],
                 params={'id': cluster['id']},
                 first_status=cluster['status'],
@@ -63,10 +65,10 @@ def create_cluster(
             return CreateResult(ok, cluster['id'])
 
 
-def delete_cluster(ctx, cluster_id, wait):
-    with ctx.coreapi_action():
-        cluster = ctx.client.action(
-            ctx.document,
+def delete_cluster(auger_client, cluster_id, wait):
+    with auger_client.coreapi_action():
+        cluster = auger_client.client.action(
+            auger_client.document,
             ['clusters', 'delete'],
             params={
                 'id': cluster_id
@@ -76,7 +78,7 @@ def delete_cluster(ctx, cluster_id, wait):
             print_line("Deleting {}.".format(cluster['name']))
             if wait:
                 return command_progress_bar(
-                    ctx=ctx,
+                    auger_client=auger_client,
                     endpoint=['clusters', 'read'],
                     params={'id': cluster['id']},
                     first_status=cluster['status'],

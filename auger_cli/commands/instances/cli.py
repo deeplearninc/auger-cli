@@ -3,6 +3,7 @@
 import click
 
 from ...formatter import print_list
+from ...utils import request_list
 
 
 attributes = ['id', 'description']
@@ -14,8 +15,8 @@ attributes = ['id', 'description']
 )
 @click.pass_context
 def instances_group(ctx):
-    result = ctx.obj.client.action(
-        ctx.obj.document,
-        ['instance_types', 'list']
+    # request_list requires some limit and we use one big enough
+    print_list(
+        request_list(ctx.obj, 'instance_types', params={'limit': 1000000000}),
+        attributes
     )
-    print_list(result['data'], attributes)

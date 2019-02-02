@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 
+from coreapi.transports import HTTPTransport
+from coreapi.transports import http as coreapi_http
 import click
 import click_spinner
 import collections
-from .constants import API_POLL_INTERVAL
-from coreapi.transports import HTTPTransport
-from coreapi.transports import http as coreapi_http
 import time
+
+from .constants import API_POLL_INTERVAL
 from .utils import camelize
 
 
 def command_progress_bar(
-        ctx, endpoint, params, first_status,
+        auger_client, endpoint, params, first_status,
         progress_statuses, desired_status):
     status = first_status
     last_status = ''
@@ -22,8 +23,8 @@ def command_progress_bar(
         with click_spinner.spinner():
             while status == last_status:
                 time.sleep(API_POLL_INTERVAL)
-                status = ctx.client.action(
-                    ctx.document,
+                status = auger_client.client.action(
+                    auger_client.document,
                     endpoint,
                     params=params
                 )['data']['status']

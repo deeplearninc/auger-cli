@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 
 from ...formatter import print_line, print_record
+from ...utils import request_list
 
 
 org_attributes = ['id', 'name', 'main_bucket', 'status']
 
 
 def list_orgs(ctx):
-    with ctx.coreapi_action():
-        return ctx.client.action(
-            ctx.document,
-            ['organizations', 'list']
-        )['data']
+    with ctx.obj.coreapi_action():
+        return request_list(
+            ctx.obj,
+            'organizations',
+            params={'limit': 1000000000}
+        )
 
 
 def create_org(ctx, name, access_key, secret_key):

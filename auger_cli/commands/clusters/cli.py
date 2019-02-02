@@ -25,9 +25,7 @@ from .api import (
 def clusters_group(ctx):
     if ctx.invoked_subcommand is None:
         with ctx.obj.coreapi_action():
-            print_list(list_clusters(ctx.obj)['data'], cluster_attributes)
-    else:
-        pass
+            print_list(list_clusters(ctx.obj), cluster_attributes)
 
 
 @click.command(short_help='Create a new cluster.')

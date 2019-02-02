@@ -10,20 +10,17 @@ from ...client import pass_client
 @click.command(short_help='Stop project.')
 @click.argument('project')
 @pass_client
-def stop_group(ctx, project):
-    projects = list_projects(ctx)['data']
-
-    found = False
-    for p in projects:
+def stop_group(auger_client, project):
+    for p in list_projects(auger_client):
         if p['name'] == project:
-            found = True
-    if found:
-        delete_project(ctx, project)
+            delete_project(auger_client, project)
+            break
 
     ok = True
-    for c in list_clusters(ctx)['data']:
+    # call to list is to avoid race condition with delete_cluster
+    for c in list(list_clusters(auger_client)):
         if c['status'] != 'terminated' and c['name'] == project:
-            if not delete_cluster(ctx, cluster_id=c['id'], wait=True):
+            if not delete_cluster(auger_client, cluster_id=c['id'], wait=True):
                 ok = False
     if not ok:
         raise click.ClickException('Failed to delete cluster.')
