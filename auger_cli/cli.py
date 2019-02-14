@@ -13,12 +13,13 @@ from auger_cli.commands.projects.cli import projects_group
 from auger_cli.commands.schema.cli import schema_group
 from auger_cli.commands.start.cli import start_group
 from auger_cli.commands.stop.cli import stop_group
-
+from auger_cli.commands.cluster_tasks.cli import cluster_tasks_group
 
 CONTEXT_SETTINGS = dict(auto_envvar_prefix='AUGER')
 COMMANDS = {
     'auth':      auth_group,
     'clusters':  clusters_group,
+    'cluster_tasks':  cluster_tasks_group,
     'help':      help_group,
     'instances': instances_group,
     'orgs':      orgs_group,
