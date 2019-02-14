@@ -14,6 +14,7 @@ from .api import (
     create_cluster_task
 )
 
+
 @click.group(
     'cluster-tasks',
     invoke_without_command=True,
@@ -34,6 +35,7 @@ def cluster_tasks_group(ctx, project_id):
                 list_cluster_tasks(ctx.obj, project_id),
                 cluster_task_attributes
             )
+
 
 @click.command(short_help='Display cluster task details.')
 @click.argument('cluster_task_id')
@@ -59,7 +61,7 @@ def show(ctx, cluster_task_id):
 @pass_client
 def create(ctx, project_id, name, args):
     with ctx.coreapi_action():
-        result = create_cluster_task(ctx, project_id, name, args)    
+        result = create_cluster_task(ctx, project_id, name, args)
         if result is not None and not result.ok:
             raise click.ClickException('Failed to create cluster task.')
 
