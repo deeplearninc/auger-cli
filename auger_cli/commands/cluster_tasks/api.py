@@ -7,7 +7,8 @@ cluster_task_attributes = ['id', 'cluster_id', 'project_id',
 
 def list_cluster_tasks(auger_client, project_id):
     # request_list requires some limit and we use one big enough
-    return request_list(auger_client, 'cluster_tasks', params={'limit': 1000000000, 'project_id': project_id})
+    return request_list(auger_client, 'cluster_tasks', 
+        params={'limit': 1000000000, 'project_id': project_id})
 
 
 class CreateResult(object):
@@ -28,7 +29,8 @@ def create_cluster_task(auger_client, project_id, name, args):
             'args': args,
         }
     )['data']
-    #print_record(cluster_task, attributes)
+
+    # print_record(cluster_task, attributes)
     # if wait:
     #     ok = command_progress_bar(
     #         auger_client=auger_client,

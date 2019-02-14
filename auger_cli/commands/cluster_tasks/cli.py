@@ -65,5 +65,6 @@ def create(ctx, project_id, name, args):
         if result is not None and not result.ok:
             raise click.ClickException('Failed to create cluster task.')
 
+
 cluster_tasks_group.add_command(create)
 cluster_tasks_group.add_command(show)
