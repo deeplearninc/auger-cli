@@ -56,12 +56,43 @@ def show(ctx, cluster_task_id):
 
 @click.command(short_help='Create a new cluster task.')
 @click.argument('project_id')
-@click.argument('name')
-@click.argument('args')
+@click.option(
+    '--taskname',
+    '-n',
+    type=click.STRING,
+    help='Cluster task name.',
+    required=False
+)
+
+@click.option(
+    '--taskargs',
+    '-a',
+    type=click.STRING,
+    help='Cluster task arguments(json encoded).',
+    required=False
+)
+
+@click.option(
+    '--taskfile',
+    '-f',
+    type=click.STRING,
+    help='Python file with get_cluster_task_info method implemented.',
+    required=False
+)
+
 @pass_client
-def create(ctx, project_id, name, args):
+def create(ctx, project_id, taskname, taskargs, taskfile):
+    from importlib import import_module
+    import json
+
     with ctx.coreapi_action():
-        result = create_cluster_task(ctx, project_id, name, args)
+        if taskfile is not None:
+            task_info_func = getattr(import_module(taskfile), 'get_cluster_task_info')
+            res = task_info_func()
+            taskname = res[0]
+            taskargs = json.dumps([res[1]])
+
+        result = create_cluster_task(ctx, project_id, taskname, taskargs)
         if result is not None and not result.ok:
             raise click.ClickException('Failed to create cluster task.')
 

@@ -1,4 +1,3 @@
-
 from ...utils import request_list
 
 cluster_task_attributes = ['id', 'cluster_id', 'project_id',
@@ -26,10 +25,10 @@ def create_cluster_task(auger_client, project_id, name, args):
         params={
             'project_id': project_id,
             'name': name,
-            'args': args,
+            'args_encoded': args,
         }
     )['data']
-
+    print(cluster_task)
     # print_record(cluster_task, attributes)
     # if wait:
     #     ok = command_progress_bar(
