@@ -68,7 +68,7 @@ def show(ctx, cluster_task_id):
     '--taskargs',
     '-a',
     type=click.STRING,
-    help='Cluster task arguments(json encoded).',
+    help="Cluster task arguments(json encoded): [{\"augerInfo\":{\"experiment_id\": null}}]",
     required=False
 )
 
