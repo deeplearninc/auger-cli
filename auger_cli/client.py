@@ -77,7 +77,7 @@ class Client(object):
         self.transports = coreapi.transports.HTTPTransport(
             credentials=self.credentials,
             headers=self.headers,
-            request_callback = test_callback
+            request_callback=test_callback
         )
         self.decoders = [OpenAPICodec(), JSONCodec(), TextCodec()]
         self.client = coreapi.Client(

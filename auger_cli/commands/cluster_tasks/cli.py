@@ -63,7 +63,6 @@ def show(ctx, cluster_task_id):
     help='Cluster task name.',
     required=False
 )
-
 @click.option(
     '--taskargs',
     '-a',
@@ -71,7 +70,6 @@ def show(ctx, cluster_task_id):
     help="Cluster task arguments(json encoded): [{\"augerInfo\":{\"experiment_id\": null}}]",
     required=False
 )
-
 @click.option(
     '--taskfile',
     '-f',
@@ -79,7 +77,6 @@ def show(ctx, cluster_task_id):
     help='Python file with get_cluster_task_info method implemented.',
     required=False
 )
-
 @pass_client
 def create(ctx, project_id, taskname, taskargs, taskfile):
     from importlib import import_module
@@ -87,7 +84,8 @@ def create(ctx, project_id, taskname, taskargs, taskfile):
 
     with ctx.coreapi_action():
         if taskfile is not None:
-            task_info_func = getattr(import_module(taskfile), 'get_cluster_task_info')
+            task_info_func = getattr(import_module(
+                taskfile), 'get_cluster_task_info')
             res = task_info_func()
             taskname = res[0]
             taskargs = json.dumps([res[1]])
