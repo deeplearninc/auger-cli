@@ -18,10 +18,10 @@ jobs:
           key: auger-cli-{{ arch }}-{{ .Branch }}-{{ checksum "requirements.txt" }}-{{ checksum "test-requirements.txt" }}
           paths:
             - "venv"
-      - run:
-          command: |
-            . venv/bin/activate
-            python setup.py flake8
+      # - run:
+      #     command: |
+      #       . venv/bin/activate
+      #       python setup.py flake8
       - run:
           command: |
             . venv/bin/activate

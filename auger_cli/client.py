@@ -70,9 +70,14 @@ class Client(object):
     def setup_client(self):
         self.credentials = self.coreapi_cli.get_credentials()
         self.headers = self.coreapi_cli.get_headers()
+
+        def test_callback(res):
+            print(res.url)
+
         self.transports = coreapi.transports.HTTPTransport(
             credentials=self.credentials,
             headers=self.headers,
+            request_callback=test_callback
         )
         self.decoders = [OpenAPICodec(), JSONCodec(), TextCodec()]
         self.client = coreapi.Client(
