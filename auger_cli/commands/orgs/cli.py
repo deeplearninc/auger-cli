@@ -10,7 +10,8 @@ from .api import (
     create_org,
     delete_org,
     list_orgs,
-    update_org
+    update_org,
+    read_org
 )
 
 
@@ -24,7 +25,7 @@ def orgs_group(ctx):
     if ctx.invoked_subcommand is None:
         # request_list requires some limit and we use one big enough
         print_list(
-            list_data=list_orgs(ctx),
+            list_data=list_orgs(ctx.obj),
             attributes=org_attributes
         )
     else:
@@ -56,6 +57,19 @@ def update(ctx, organization_id, access_key, secret_key):
     update_org(ctx, access_key, secret_key, organization_id)
 
 
+@click.command(short_help='Display organization details.')
+@click.option(
+    '--organization',
+    '-o',
+    type=click.STRING,
+    required=True,
+    help='Name of the organization to display.'
+)
+@pass_client
+def show(ctx, org):
+    print_record(read_org(ctx, org), org_attributes)
+
 orgs_group.add_command(create)
 orgs_group.add_command(delete)
 orgs_group.add_command(update)
+orgs_group.add_command(show)

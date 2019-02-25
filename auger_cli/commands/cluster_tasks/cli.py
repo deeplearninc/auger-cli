@@ -91,9 +91,7 @@ def create(ctx, project_id, taskname, taskargs, taskfile):
             taskargs = json.dumps([res[1]])
 
         result = create_cluster_task(ctx, project_id, taskname, taskargs)
-        if result is not None and not result.ok:
-            raise click.ClickException('Failed to create cluster task.')
-
+        print(result)
 
 cluster_tasks_group.add_command(create)
 cluster_tasks_group.add_command(show)

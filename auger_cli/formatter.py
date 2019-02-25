@@ -32,6 +32,29 @@ def command_progress_bar(
     return status == desired_status
 
 
+def wait_for_task_result(
+        auger_client, endpoint, params, first_status,
+        progress_statuses, desired_status):
+    status = first_status
+    last_status = ''
+    while status in progress_statuses:
+        if status != last_status:
+            print_line('{}... '.format(camelize(status)))
+            last_status = status
+        with click_spinner.spinner():
+            while status == last_status:
+                time.sleep(API_POLL_INTERVAL)
+                result = auger_client.client.action(
+                    auger_client.document,
+                    endpoint,
+                    params=params
+                )['data']
+
+                status = result['status']
+    #print_line('{}.'.format(camelize(desired_status)))
+    print(status)
+    return result.get('result')
+
 def print_list(list_data, attributes):
     for object_data in iter(list_data):
         print_record(object_data, attributes)

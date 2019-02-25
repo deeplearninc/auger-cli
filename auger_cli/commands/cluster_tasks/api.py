@@ -1,4 +1,5 @@
 from ...utils import request_list
+from ...formatter import wait_for_task_result
 
 cluster_task_attributes = ['id', 'cluster_id', 'project_id',
                            'status', 'name', 'args', 'result', 'exception']
@@ -10,16 +11,8 @@ def list_cluster_tasks(auger_client, project_id):
                         params={'limit': 1000000000, 'project_id': project_id})
 
 
-class CreateResult(object):
-
-    def __init__(self, ok, cluster_task_id):
-        self.ok = ok
-        self.cluster_task_id = cluster_task_id
-
-
-def create_cluster_task(auger_client, project_id, name, args):
-    result = None
-    cluster_task = auger_client.client.action(
+def create_cluster_task(auger_client, project_id, name, args, wait=True):
+    result = auger_client.client.action(
         auger_client.document,
         ['cluster_tasks', 'create'],
         params={
@@ -28,20 +21,19 @@ def create_cluster_task(auger_client, project_id, name, args):
             'args_encoded': args,
         }
     )['data']
-    print(cluster_task)
+    print(result)
     # print_record(cluster_task, attributes)
-    # if wait:
-    #     ok = command_progress_bar(
-    #         auger_client=auger_client,
-    #         endpoint=['cluster_tasks', 'read'],
-    #         params={'id': cluster_task['id']},
-    #         first_status=cluster_task['status'],
-    #         progress_statuses=[
-    #             'pending', 'received', 'retry'
-    #         ],
-    #         desired_status='started'
-    #     )
-    #     result = CreateResult(ok, cluster_task['id'])
+    if wait and 'id' in result:
+        result = wait_for_task_result(
+            auger_client=auger_client,
+            endpoint=['cluster_tasks', 'read'],
+            params={'id': result['id']},
+            first_status=result['status'],
+            progress_statuses=[
+                'pending', 'received', 'retry'
+            ],
+            desired_status='completed'
+        )
 
-    result = CreateResult(True, cluster_task['id'])
+    print(result)
     return result

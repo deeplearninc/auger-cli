@@ -22,13 +22,41 @@ project_attributes = [
 
 
 def read_project(auger_client, name):
+    result = {}
     with auger_client.coreapi_action():
-        return auger_client.client.action(
+        res = auger_client.client.action(
+            auger_client.document,
+            ['projects', 'list'],
+            params={'name': name, 'limit': 10}
+        )['data']
+        if len(res) > 0:
+            result = res[0]
+        
+    return result
+
+def read_project_withorg(auger_client, name, organization_id):
+    result = {}
+    with auger_client.coreapi_action():
+        res = auger_client.client.action(
+            auger_client.document,
+            ['projects', 'list'],
+            params={'name': name, 'limit': 10, 'organization_id': organization_id}
+        )['data']
+        if len(res) > 0:
+            result = res[0]
+        
+    return result
+
+def read_project_byid(auger_client, project_id):
+    result = {}
+    with auger_client.coreapi_action():
+        result = auger_client.client.action(
             auger_client.document,
             ['projects', 'read'],
-            params={'name': name}
+            params={'id': project_id}
         )['data']
-
+        
+    return result
 
 def list_projects(auger_client):
     # request_list requires some limit and we use one big enough
@@ -48,6 +76,7 @@ def create_project(auger_client, project, organization_id):
         )
     print_record(result['data'], project_attributes)
 
+    return result['data']
 
 def delete_project(auger_client, project):
     with auger_client.coreapi_action():

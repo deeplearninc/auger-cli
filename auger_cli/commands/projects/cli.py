@@ -6,7 +6,8 @@ from ...client import pass_client
 from ...formatter import (
     print_line,
     print_list,
-    print_stream
+    print_stream,
+    print_record
 )
 from .api import (
     project_attributes,
@@ -14,7 +15,8 @@ from .api import (
     create_project,
     delete_project,
     deploy_project,
-    launch_project_url
+    launch_project_url,
+    read_project
 )
 
 
@@ -161,9 +163,22 @@ def undeploy(ctx, project):
     print_line('Undeployed {}.'.format(project))
 
 
+@click.command(short_help='Display project details.')
+@click.option(
+    '--project',
+    '-p',
+    type=click.STRING,
+    required=True,
+    help='Name of the project to display.'
+)
+@pass_client
+def show(ctx, project):
+    print_record(read_project(ctx, project), project_attributes)
+
 projects_group.add_command(create)
 projects_group.add_command(delete)
 projects_group.add_command(deploy)
 projects_group.add_command(logs)
 projects_group.add_command(open_project, name='open')
 projects_group.add_command(undeploy)
+projects_group.add_command(show)

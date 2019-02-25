@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-
+import uuid
 
 def camelize(snake_cased_string):
     parts = snake_cased_string.split('_')
@@ -40,3 +40,6 @@ def request_list(auger_client, what, params):
         limit -= received
         if offset >= response['meta']['pagination']['total']:
             break
+
+def get_uid():
+    return uuid.uuid4().hex[:15].upper()
