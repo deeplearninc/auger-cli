@@ -1,9 +1,9 @@
 {
-    "_organization": "auger",    
+    "organization": "auger",    
     "project_name": "evgeny-fast",
     "_project_id": 271,
 
-    "experiment_name": "test_experiment",
+    "_experiment_name": "test_experiment",
     "_experiment_id": "pipeline_channel_D2E57131120049F583BC2504AB8FA752",
 
     "evaluation_options":

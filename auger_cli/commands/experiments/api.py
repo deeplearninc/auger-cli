@@ -3,7 +3,7 @@ import os
 import json
 import click
 
-from ...formatter import print_line, print_record
+from ...formatter import print_line, print_record, wait_for_task_result
 from ...utils import request_list, get_uid
 from ...FSClient import FSClient
 from ..cluster_tasks.api import (
@@ -158,11 +158,11 @@ def run_experiment(ctx, name):
     exp_file = FSClient().readJSONFile(os.path.abspath(file_name))
     project = get_or_create_project(ctx, exp_file, name)
     project_id = project['id']
-    if project.get('cluster') is None:
+    if project.get('cluster_id') is None or project['status'] == 'undeployed':
         clusters_create_result = create_cluster(
             ctx,
-            name=project['name'],
             organization_id=project['organization_id'],
+            project_id=project_id,
             worker_count=2,
             instance_type='c5.large',
             kubernetes_stack='experimental',
@@ -172,6 +172,17 @@ def run_experiment(ctx, name):
         if not clusters_create_result.ok:
             raise click.ClickException('Failed to create cluster.')
 
+    wait_for_task_result(
+        auger_client=ctx,
+        endpoint=['projects', 'read'],
+        params={'id': project['id']},
+        first_status=project['status'],
+        progress_statuses=[
+            'undeployed', 'deployed', 'deploying'
+        ],
+        poll_interval=10
+    )
+
     experiment = get_or_create_experiment(ctx, exp_file, project_id, name)
     print(experiment)
     experiment_id = experiment['id']
@@ -179,11 +190,12 @@ def run_experiment(ctx, name):
     task_args = exp_file.get('evaluation_options', {})
     task_args['augerInfo'] = {'experiment_id': experiment_id}
 
-    # result = create_cluster_task(ctx, project_id, 
-    #     "auger_ml.tasks_queue.evaluate_api.run_cli_evaluate_task", 
-    #     json.dumps([task_args])
-    # )
+    result = create_cluster_task(ctx, project_id, 
+        "auger_ml.tasks_queue.evaluate_api.run_cli_evaluate_task", 
+        json.dumps([task_args])
+    )
 
+    FSClient().updateJSONFile(os.path.abspath(name+"_ids.json"), result)
     # result = create_cluster_task(ctx, project_id, 
     #     "auger_ml.tasks_queue.tasks.list_project_files_task", 
     #     json.dumps([{"augerInfo": {"experiment_id": None, "dataset_manifest_id": None}}])

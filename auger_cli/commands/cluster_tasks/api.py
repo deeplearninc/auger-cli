@@ -21,8 +21,6 @@ def create_cluster_task(auger_client, project_id, name, args, wait=True):
             'args_encoded': args,
         }
     )['data']
-    print(result)
-    # print_record(cluster_task, attributes)
     if wait and 'id' in result:
         result = wait_for_task_result(
             auger_client=auger_client,
@@ -30,10 +28,7 @@ def create_cluster_task(auger_client, project_id, name, args, wait=True):
             params={'id': result['id']},
             first_status=result['status'],
             progress_statuses=[
-                'pending', 'received', 'retry'
-            ],
-            desired_status='completed'
+                'pending', 'received', 'started', 'retry'
+            ]
         )
-
-    print(result)
     return result

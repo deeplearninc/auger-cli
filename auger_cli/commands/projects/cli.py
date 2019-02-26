@@ -14,7 +14,6 @@ from .api import (
     list_projects,
     create_project,
     delete_project,
-    deploy_project,
     launch_project_url,
     read_project
 )
@@ -67,37 +66,37 @@ def delete(ctx, project):
     delete_project(ctx, project)
 
 
-@click.command(short_help='Deploy project to a cluster.')
-@click.option(
-    '--project',
-    '-p',
-    type=click.STRING,
-    required=True,
-    help='Name of the project to deploy.'
-)
-@click.option(
-    '--cluster-id',
-    '-c',
-    type=click.INT,
-    required=True,
-    help='Cluster the project will be deployed to.'
-)
-@click.option(
-    '--push-images/--skip-push',
-    default=True,
-    help='Upload local docker images defined in `.auger/`.'
-)
-@click.option(
-    '--wait/--no-wait',
-    '-w/',
-    default=False,
-    help='Wait for project to be ready.'
-)
-@pass_client
-def deploy(ctx, project, cluster_id, push_images, wait):
-    ok = deploy_project(ctx, project, cluster_id, push_images, wait)
-    if ok is not None and not ok:
-        raise click.ClickException('Failed to deploy project.')
+# @click.command(short_help='Deploy project to a cluster.')
+# @click.option(
+#     '--project',
+#     '-p',
+#     type=click.STRING,
+#     required=True,
+#     help='Name of the project to deploy.'
+# )
+# @click.option(
+#     '--cluster-id',
+#     '-c',
+#     type=click.INT,
+#     required=True,
+#     help='Cluster the project will be deployed to.'
+# )
+# @click.option(
+#     '--push-images/--skip-push',
+#     default=True,
+#     help='Upload local docker images defined in `.auger/`.'
+# )
+# @click.option(
+#     '--wait/--no-wait',
+#     '-w/',
+#     default=False,
+#     help='Wait for project to be ready.'
+# )
+# @pass_client
+# def deploy(ctx, project, cluster_id, push_images, wait):
+#     ok = deploy_project(ctx, project, cluster_id, push_images, wait)
+#     if ok is not None and not ok:
+#         raise click.ClickException('Failed to deploy project.')
 
 
 @click.command(short_help='Display project logs.')
@@ -145,22 +144,22 @@ def open_project(ctx, project):
     launch_project_url(ctx, project)
 
 
-@click.command(short_help='Undeploy an project from the cluster.')
-@click.option(
-    '--project',
-    '-p',
-    type=click.STRING,
-    required=True,
-    help='Name of the project to undeploy.'
-)
-@pass_client
-def undeploy(ctx, project):
-    ctx.client.action(
-        ctx.document,
-        ['projects', 'undeploy'],
-        params={'name': project}
-    )
-    print_line('Undeployed {}.'.format(project))
+# @click.command(short_help='Undeploy an project from the cluster.')
+# @click.option(
+#     '--project',
+#     '-p',
+#     type=click.STRING,
+#     required=True,
+#     help='Name of the project to undeploy.'
+# )
+# @pass_client
+# def undeploy(ctx, project):
+#     ctx.client.action(
+#         ctx.document,
+#         ['projects', 'undeploy'],
+#         params={'name': project}
+#     )
+#     print_line('Undeployed {}.'.format(project))
 
 
 @click.command(short_help='Display project details.')
@@ -177,8 +176,6 @@ def show(ctx, project):
 
 projects_group.add_command(create)
 projects_group.add_command(delete)
-projects_group.add_command(deploy)
 projects_group.add_command(logs)
 projects_group.add_command(open_project, name='open')
-projects_group.add_command(undeploy)
 projects_group.add_command(show)

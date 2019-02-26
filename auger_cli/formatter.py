@@ -13,7 +13,7 @@ from .utils import camelize
 
 def command_progress_bar(
         auger_client, endpoint, params, first_status,
-        progress_statuses, desired_status):
+        progress_statuses, desired_status, poll_interval=API_POLL_INTERVAL):
     status = first_status
     last_status = ''
     while status in progress_statuses:
@@ -22,7 +22,7 @@ def command_progress_bar(
             last_status = status
         with click_spinner.spinner():
             while status == last_status:
-                time.sleep(API_POLL_INTERVAL)
+                time.sleep(poll_interval)
                 status = auger_client.client.action(
                     auger_client.document,
                     endpoint,
@@ -34,16 +34,17 @@ def command_progress_bar(
 
 def wait_for_task_result(
         auger_client, endpoint, params, first_status,
-        progress_statuses, desired_status):
+        progress_statuses, poll_interval=API_POLL_INTERVAL):
     status = first_status
     last_status = ''
+    result = {}
     while status in progress_statuses:
         if status != last_status:
             print_line('{}... '.format(camelize(status)))
             last_status = status
         with click_spinner.spinner():
             while status == last_status:
-                time.sleep(API_POLL_INTERVAL)
+                time.sleep(poll_interval)
                 result = auger_client.client.action(
                     auger_client.document,
                     endpoint,
@@ -51,8 +52,8 @@ def wait_for_task_result(
                 )['data']
 
                 status = result['status']
-    #print_line('{}.'.format(camelize(desired_status)))
-    print(status)
+    
+    print_line('{}... '.format(camelize(status)))
     return result.get('result')
 
 def print_list(list_data, attributes):

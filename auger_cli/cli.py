@@ -12,7 +12,6 @@ from auger_cli.commands.orgs.cli import orgs_group
 from auger_cli.commands.projects.cli import projects_group
 from auger_cli.commands.experiments.cli import experiments_group
 from auger_cli.commands.schema.cli import schema_group
-from auger_cli.commands.start.cli import start_group
 from auger_cli.commands.stop.cli import stop_group
 from auger_cli.commands.cluster_tasks.cli import cluster_tasks_group
 
@@ -27,7 +26,6 @@ COMMANDS = {
     'projects':  projects_group,
     'experiments':  experiments_group,
     'schema':    schema_group,
-    'start':     start_group,
     'stop':      stop_group
 }
 
