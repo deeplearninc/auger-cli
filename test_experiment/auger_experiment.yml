@@ -9,10 +9,10 @@ project: evgeny-fast
 # experiment_id: pipeline_channel_D2E57131120049F583BC2504AB8FA752
 
 cluster:
-  worker_count : 2
-  instance_type: c5.large
+  # worker_count : 2
+  # instance_type: c5.large
   kubernetes_stack: experimental
-  automatic_termination: "1 Hour"
+  # automatic_termination: "1 Hour"
 
 evaluation_options:
   data_path: files/iris_data_sample.csv

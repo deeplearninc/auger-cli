@@ -57,3 +57,10 @@ class AugerConfig(object):
     def get_experiment_session_id(self):
         return self.config_ids['experiment_session_id']
 
+    def get_cluster_settings(self):
+        return {
+            "worker_count" : self.config.get('worker_count', 2),
+            "instance_type": self.config.get('instance_type', 'c5.large'),
+            "kubernetes_stack": self.config.get('kubernetes_stack', 'stable'),
+            "automatic_termination": self.config.get('automatic_termination', "1 Hour")
+        }    

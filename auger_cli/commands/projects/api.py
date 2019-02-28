@@ -136,9 +136,9 @@ def start_project(ctx, create_if_not_exist=False, project_id=None):
             ctx,
             organization_id=project['organization_id'],
             project_id=project['id'],
-            worker_count=2,
-            instance_type='c5.large',
-            kubernetes_stack='experimental',
+            worker_count=ctx.config.get_cluster_settings()['worker_count'],
+            instance_type=ctx.config.get_cluster_settings()['instance_type'],
+            kubernetes_stack=ctx.config.get_cluster_settings()['kubernetes_stack'],
             wait=True
         )
 
@@ -159,6 +159,8 @@ def start_project(ctx, create_if_not_exist=False, project_id=None):
     return project['id']
 
 def download_project_file(ctx, project_id, remote_path, local_path):
+    ctx.config = AugerConfig()
+
     start_project(ctx, project_id=project_id)
 
     s3_model_path = create_cluster_task_ex(ctx, project_id, 
