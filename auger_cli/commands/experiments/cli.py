@@ -5,7 +5,8 @@ import click
 from ...client import pass_client
 from ...formatter import (
     print_list,
-    print_record
+    print_record,
+    print_table
 )
 
 from .api import (
@@ -15,7 +16,10 @@ from .api import (
     list_experiments,
     update_experiment,
     run_experiment,
-    read_experiment_byid
+    read_experiment_byid,
+    monitor_leaderboard_experiment,
+    read_leaderboard_experiment,
+    export_model_experiment,
 )
 
 
@@ -78,14 +82,42 @@ def delete(ctx, experiment_id):
 def update(ctx, experiment_id, name):
     update_experiment(ctx, experiment_id, name)
 
+
+@click.command()
+@pass_client
+def run(ctx):
+    run_experiment(ctx)
+
+
+@click.command()
+@pass_client
+def leaderboard(ctx):
+    print_table(read_leaderboard_experiment(ctx))
+
+
 @click.command()
 @click.argument('name', required=True)
 @pass_client
-def run(ctx, name):
-    run_experiment(ctx, name)
+def monitor_leaderboard(ctx, name):
+    monitor_leaderboard_experiment(ctx, name)
+
+
+@click.command()
+@click.option(
+    '--trial-id',
+    '-t',
+    default=None,
+    help='Trial ID to export model for the last experiment session, if missed best trial used.'
+)
+@pass_client
+def export_model(ctx, trial_id):
+    export_model_experiment(ctx, trial_id)
 
 experiments_group.add_command(create)
 experiments_group.add_command(show)
 experiments_group.add_command(delete)
 experiments_group.add_command(update)
 experiments_group.add_command(run)
+experiments_group.add_command(leaderboard)
+experiments_group.add_command(export_model)
+experiments_group.add_command(monitor_leaderboard)

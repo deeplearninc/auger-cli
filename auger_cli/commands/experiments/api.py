@@ -1,25 +1,26 @@
 # -*- coding: utf-8 -*-
 import os
-import json
 import click
 
 from ...formatter import print_line, print_record, wait_for_task_result
 from ...utils import request_list, get_uid
 from ...FSClient import FSClient
+from ...auger_config import AugerConfig
+
 from ..cluster_tasks.api import (
-    create_cluster_task,
+    create_cluster_task_ex,
 )
-from ..clusters.api import create_cluster
 
 from ..projects.api import (
     read_project_withorg,
     create_project,
-    read_project_byid
+    read_project_byid,
+    start_project,
+    download_project_file
 )
 
-from ..orgs.api import (
-    read_org,
-    list_orgs_full
+from ..trials.api import (
+    list_trials
 )
 
 experiment_attributes = ['id', 'name', 'project_id', 'project_file_id', 'status']
@@ -99,107 +100,92 @@ def read_experiment(auger_client, project_id, name):
         
     return result
 
-def get_or_create_project(ctx, exp_file, name):
-    if exp_file.get('project_id', None) is not None:
-        return read_project_byid(ctx, exp_file['project_id'])
+def get_or_create_experiment(ctx, project_id):
+    experiment_id, experiment_name = ctx.config.get_experiment()
 
-    project_name = exp_file.get('project_name', '')
-    if len(project_name) == 0:
-        project_name = os.path.basename(name)
-
-    org_name = exp_file.get('organization', '')
-    org_id = None
-    if len(org_name) == 0:
-        orgs = list_orgs_full(ctx)
-        if orgs is not None and len(orgs) > 0:
-            org_name = orgs[0].get('name', "")
-            org_id = orgs[0].get('id')
-
-    if len(org_name) == 0:    
-        raise click.ClickException('To create project: %s, you should have at least one organization.'%project_name)
-
-    if org_id is None:    
-        org = read_org(ctx, org_name)
-        if org.get('id') is None:
-            raise click.ClickException('To create project: %s, organization %s should exist.'%(project_name, org_name))
-        org_id = org['id']    
-            
-    project = read_project_withorg(ctx, project_name, org_id)
-    if project.get('id') is not None:
-        return project
-
-    project = create_project(ctx, project_name, org_id)
-    return project
-
-def get_or_create_experiment(ctx, exp_file, project_id, name):
-    if exp_file.get('experiment_id', None) is not None:
-        return read_experiment_byid(ctx, exp_file['experiment_id'])
-
-    experiment_name = exp_file.get('experiment_name', '')
-    if len(experiment_name) == 0:
-        experiment_name = os.path.basename(name)
+    if experiment_id is not None:
+        return read_experiment_byid(ctx, experiment_id)
 
     experiment = read_experiment(ctx, project_id, experiment_name)
     if experiment.get('id') is not None:
         return experiment
 
-    # search_space = create_cluster_task(ctx, project_id, 
+    print_line('Experiment {} does not exist. Creating ...'.format(experiment_name))
+
+    # search_space = create_cluster_task_ex(ctx, project_id, 
     #     "auger_ml.tasks_queue.tasks.get_experiment_configs_task", 
-    #     json.dumps([{'augerInfo':{'experiment_id': None}}])
+    #     {'augerInfo':{'experiment_id': None}}
     # )
-    experiment = create_experiment(ctx, experiment_name, project_id, exp_file['evaluation_options']['data_path'])
+    experiment = create_experiment(ctx, experiment_name, project_id, ctx.config.get_evaluation()['data_path'])
     return experiment
 
-def run_experiment(ctx, name):
-    file_name = name
-    if not file_name.endswith(".json"):
-        file_name += ".json"
 
-    exp_file = FSClient().readJSONFile(os.path.abspath(file_name))
-    project = get_or_create_project(ctx, exp_file, name)
-    project_id = project['id']
-    if project.get('cluster_id') is None or project['status'] == 'undeployed':
-        clusters_create_result = create_cluster(
-            ctx,
-            organization_id=project['organization_id'],
-            project_id=project_id,
-            worker_count=2,
-            instance_type='c5.large',
-            kubernetes_stack='experimental',
-            wait=True
-        )
+def run_experiment(ctx):
+    ctx.config = AugerConfig()
 
-        if not clusters_create_result.ok:
-            raise click.ClickException('Failed to create cluster.')
+    project_id = start_project(ctx, create_if_not_exist=True)
 
-    wait_for_task_result(
-        auger_client=ctx,
-        endpoint=['projects', 'read'],
-        params={'id': project['id']},
-        first_status=project['status'],
-        progress_statuses=[
-            'undeployed', 'deployed', 'deploying'
-        ],
-        poll_interval=10
+    experiment = get_or_create_experiment(ctx, project_id)
+
+    task_args = ctx.config.get_evaluation()
+    task_args['augerInfo'] = {'experiment_id': experiment['id']}
+
+    result = create_cluster_task_ex(ctx, project_id, 
+        "auger_ml.tasks_queue.evaluate_api.run_cli_evaluate_task", task_args
     )
 
-    experiment = get_or_create_experiment(ctx, exp_file, project_id, name)
-    print(experiment)
-    experiment_id = experiment['id']
+    result['project_id'] = project_id
+    ctx.config.update_ids_file(result)
 
-    task_args = exp_file.get('evaluation_options', {})
-    task_args['augerInfo'] = {'experiment_id': experiment_id}
 
-    result = create_cluster_task(ctx, project_id, 
-        "auger_ml.tasks_queue.evaluate_api.run_cli_evaluate_task", 
-        json.dumps([task_args])
+def read_leaderboard_experiment(ctx):
+    config = AugerConfig()
+    experiment_session_id = config.get_experiment_session_id()
+
+    trials = list_trials(ctx, experiment_session_id)
+
+    leaderboard = []
+    for trial in trials:
+        leaderboard.append({
+            'score_value': trial.get('score_value'), 
+            'eval_time(sec)': "{0:.2f}".format(trial.get('raw_data').get('evaluation_time')), 
+            'id': trial.get('id'), 
+            'score_name': trial.get('score_name'), 
+            'algorithm_name': trial.get('raw_data').get('algorithm_name')
+        })
+
+    leaderboard.sort(key=lambda t: t['score_value'], reverse=True)    
+
+    return leaderboard
+    
+
+def export_model_experiment(ctx, trial_id):
+    if trial_id is None:
+        res = read_leaderboard_experiment(ctx)
+        if len(res) == 0:
+            raise click.ClickException('There is no trials for the experiment: %s.'%(name))
+
+        print_line('Use best trial to export model: {}'.format(res[0]))
+
+        trial_id = res[0]['id']
+
+    config = AugerConfig()
+    project_id = config.get_project_id()
+    experiment_id, experiment_name = config.get_experiment()
+
+    task_args = {
+        'augerInfo': {'experiment_id': experiment_id, 'experiment_session_id': config.get_experiment_session_id()},
+        "export_model_uid": trial_id,
+        "language": 'python'
+    }
+        
+    model_path = create_cluster_task_ex(ctx, project_id, 
+        "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args
     )
+    print(model_path)
 
-    FSClient().updateJSONFile(os.path.abspath(name+"_ids.json"), result)
-    # result = create_cluster_task(ctx, project_id, 
-    #     "auger_ml.tasks_queue.tasks.list_project_files_task", 
-    #     json.dumps([{"augerInfo": {"experiment_id": None, "dataset_manifest_id": None}}])
-    # )
+    download_project_file(ctx, project_id, model_path, "models")
 
-
+def monitor_leaderboard_experiment(ctx, name):
+    pass
 

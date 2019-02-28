@@ -54,6 +54,9 @@ def wait_for_task_result(
                 status = result['status']
     
     print_line('{}... '.format(camelize(status)))
+    if status == "failure":
+        raise click.ClickException('API call {}({}) failed: {}'.format(result.get('name', ""), result.get('args', ""), result.get("exception", "")))
+
     return result.get('result')
 
 def print_list(list_data, attributes):
@@ -137,3 +140,23 @@ def string_for_attrib(attrib):
         return ' '.join(items)
     else:
         return attrib
+
+def print_table(myDict, colList=None):
+    if not colList: 
+        colList = list(myDict[0].keys() if myDict else [])
+    myList = [colList] # 1st row = header
+    for item in myDict: 
+        myList.append([str(item[col] or '') for col in colList])
+    #maximun size of the col for each element
+    colSize = [max(map(len,col)) for col in zip(*myList)]
+    #insert seperating line before every line, and extra one for ending. 
+    for i in  range(0, len(myList)+1)[::-1]:
+         myList.insert(i, ['-' * i for i in colSize])
+    #two format for each content line and each seperating line
+    formatStr = ' | '.join(["{{:<{}}}".format(i) for i in colSize])
+    formatSep = '-+-'.join(["{{:<{}}}".format(i) for i in colSize])
+    for item in myList: 
+        if item[0][0] == '-':
+            print(formatSep.format(*item))
+        else:
+            print(formatStr.format(*item))        

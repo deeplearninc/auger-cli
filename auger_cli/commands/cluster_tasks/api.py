@@ -1,3 +1,5 @@
+import json
+
 from ...utils import request_list
 from ...formatter import wait_for_task_result
 
@@ -10,6 +12,9 @@ def list_cluster_tasks(auger_client, project_id):
     return request_list(auger_client, 'cluster_tasks',
                         params={'limit': 1000000000, 'project_id': project_id})
 
+
+def create_cluster_task_ex(auger_client, project_id, name, args_python, wait=True):
+    return create_cluster_task(auger_client, project_id, name, json.dumps([args_python]), wait)
 
 def create_cluster_task(auger_client, project_id, name, args, wait=True):
     result = auger_client.client.action(

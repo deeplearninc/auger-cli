@@ -11,7 +11,8 @@ from ...client import pass_client
 from .api import (
     cluster_task_attributes,
     list_cluster_tasks,
-    create_cluster_task
+    create_cluster_task,
+    create_cluster_task_ex
 )
 
 
@@ -80,17 +81,16 @@ def show(ctx, cluster_task_id):
 @pass_client
 def create(ctx, project_id, taskname, taskargs, taskfile):
     from importlib import import_module
-    import json
 
     with ctx.coreapi_action():
         if taskfile is not None:
             task_info_func = getattr(import_module(
                 taskfile), 'get_cluster_task_info')
             res = task_info_func()
-            taskname = res[0]
-            taskargs = json.dumps([res[1]])
+            result = create_cluster_task_ex(ctx, project_id, res[0], res[1])
+        else:    
+            result = create_cluster_task(ctx, project_id, taskname, taskargs)
 
-        result = create_cluster_task(ctx, project_id, taskname, taskargs)
         print(result)
 
 cluster_tasks_group.add_command(create)
