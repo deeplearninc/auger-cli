@@ -20,16 +20,16 @@ class AugerConfig(object):
         else:
             print_line('Experiment name taken from auger_experiment.yml: {}'.format(self.experiment_name))
 
-        self.config_ids = {}    
-        if FSClient().isFileExists(".auger_experiment_ids.yml"):
-            with open(".auger_experiment_ids.yml", 'r') as stream:
-                self.config_ids = yaml.safe_load(stream)
+        self.config_session = {}    
+        if FSClient().isFileExists(".auger_experiment_session.yml"):
+            with open(".auger_experiment_session.yml", 'r') as stream:
+                self.config_session = yaml.safe_load(stream)
             
     def get_project_id(self):
         if self.config.get('project_id') is not None:
             return self.config['project_id']
 
-        return self.config_ids['project_id']
+        return self.config_session.get('project_id')
 
     def get_project_name(self):
         if len(self.config.get('project', '')) > 0:
@@ -43,24 +43,29 @@ class AugerConfig(object):
     def get_experiment(self):
         experiment_id = self.config.get('experiment_id')
         if experiment_id is None:
-            experiment_id = self.config_ids.get('experiment_id')
+            experiment_id = self.config_session.get('experiment_id')
                    
         return experiment_id, self.experiment_name
 
     def get_evaluation(self):
         return self.config.get('evaluation_options', {})            
 
-    def update_ids_file(self, result):
-        with io.open(".auger_experiment_ids.yml", 'w', encoding='utf8') as outfile:
+    def update_session_file(self, result):
+        with io.open(".auger_experiment_session.yml", 'w', encoding='utf8') as outfile:
             yaml.dump(result, outfile)
 
+    def delete_session_file(self):
+        FSClient().removeFile(".auger_experiment_session.yml")
+        self.config_session = {}
+
     def get_experiment_session_id(self):
-        return self.config_ids['experiment_session_id']
+        return self.config_session['experiment_session_id']
 
     def get_cluster_settings(self):
+        cluster = self.config.get("cluster", {})
         return {
-            "worker_count" : self.config.get('worker_count', 2),
-            "instance_type": self.config.get('instance_type', 'c5.large'),
-            "kubernetes_stack": self.config.get('kubernetes_stack', 'stable'),
-            "automatic_termination": self.config.get('automatic_termination', "1 Hour")
+            "worker_count" : cluster.get('worker_count', 2),
+            "instance_type": cluster.get('instance_type', 'c5.large'),
+            "kubernetes_stack": cluster.get('kubernetes_stack', 'stable'),
+            "automatic_termination": cluster.get('automatic_termination', "1 Hour")
         }    

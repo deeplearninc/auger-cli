@@ -9,8 +9,8 @@ project: evgeny-fast
 # experiment_id: pipeline_channel_D2E57131120049F583BC2504AB8FA752
 
 cluster:
-  # worker_count : 2
-  # instance_type: c5.large
+  worker_count : 2
+  instance_type: c5.large
   kubernetes_stack: experimental
   # automatic_termination: "1 Hour"
 
@@ -37,7 +37,7 @@ evaluation_options:
   crossValidationFolds: 5
   max_total_time_mins: 60
   max_eval_time_mins: 1
-  max_n_trials: 10
+  max_n_trials: 100
 
   # optimizers_names: []
   # splitOptions: {}

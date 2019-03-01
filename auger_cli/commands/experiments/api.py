@@ -22,8 +22,12 @@ from ..projects.api import (
 from ..trials.api import (
     list_trials
 )
+from ..experiment_sessions.api import (
+    read_experiment_session
+)
 
-experiment_attributes = ['id', 'name', 'project_id', 'project_file_id', 'status']
+experiment_attributes = ['id', 'name',
+                         'project_id', 'project_file_id', 'status']
 
 
 def list_experiments(ctx, project_id, name):
@@ -31,8 +35,10 @@ def list_experiments(ctx, project_id, name):
         return request_list(
             ctx,
             'experiments',
-            params={'limit': 1000000000, 'project_id': project_id, 'name': name}
+            params={'limit': 1000000000,
+                    'project_id': project_id, 'name': name}
         )
+
 
 def create_experiment(ctx, name, project_id, data_path):
     with ctx.coreapi_action():
@@ -40,15 +46,16 @@ def create_experiment(ctx, name, project_id, data_path):
             ctx.document,
             ['experiments', 'create'],
             params={
-                'id': "experiment_"+name+"_"+get_uid(),
-                'name': name, 
+                'id': "experiment_" + name + "_" + get_uid(),
+                'name': name,
                 'project_id': project_id,
                 'data_path': data_path
             }
         )
         return experiment['data']
 
-    return {}    
+    return {}
+
 
 def delete_experiment(ctx, experiment_id):
     with ctx.coreapi_action():
@@ -76,6 +83,7 @@ def update_experiment(ctx, experiment_id, name):
         )
         print_record(experiment['data'], experiment_attributes)
 
+
 def read_experiment_byid(auger_client, experiment_id):
     result = {}
     with auger_client.coreapi_action():
@@ -84,8 +92,9 @@ def read_experiment_byid(auger_client, experiment_id):
             ['experiments', 'read'],
             params={'id': experiment_id}
         )['data']
-        
+
     return result
+
 
 def read_experiment(auger_client, project_id, name):
     result = {}
@@ -97,8 +106,9 @@ def read_experiment(auger_client, project_id, name):
         )['data']
         if len(res) > 0:
             result = res[0]
-        
+
     return result
+
 
 def get_or_create_experiment(ctx, project_id):
     experiment_id, experiment_name = ctx.config.get_experiment()
@@ -110,18 +120,21 @@ def get_or_create_experiment(ctx, project_id):
     if experiment.get('id') is not None:
         return experiment
 
-    print_line('Experiment {} does not exist. Creating ...'.format(experiment_name))
+    print_line(
+        'Experiment {} does not exist. Creating ...'.format(experiment_name))
 
-    # search_space = create_cluster_task_ex(ctx, project_id, 
-    #     "auger_ml.tasks_queue.tasks.get_experiment_configs_task", 
+    # search_space = create_cluster_task_ex(ctx, project_id,
+    #     "auger_ml.tasks_queue.tasks.get_experiment_configs_task",
     #     {'augerInfo':{'experiment_id': None}}
     # )
-    experiment = create_experiment(ctx, experiment_name, project_id, ctx.config.get_evaluation()['data_path'])
+    experiment = create_experiment(
+        ctx, experiment_name, project_id, ctx.config.get_evaluation()['data_path'])
     return experiment
 
 
 def run_experiment(ctx):
     ctx.config = AugerConfig()
+    ctx.config.delete_session_file()
 
     project_id = start_project(ctx, create_if_not_exist=True)
 
@@ -130,15 +143,32 @@ def run_experiment(ctx):
     task_args = ctx.config.get_evaluation()
     task_args['augerInfo'] = {'experiment_id': experiment['id']}
 
-    result = create_cluster_task_ex(ctx, project_id, 
+    result = create_cluster_task_ex(
+        ctx, project_id,
         "auger_ml.tasks_queue.evaluate_api.run_cli_evaluate_task", task_args
     )
+    if result is None:
+        result = {}
 
     result['project_id'] = project_id
-    ctx.config.update_ids_file(result)
+    ctx.config.update_session_file(result)
+
+
+def stop_experiment(ctx):
+    config = AugerConfig()
+    experiment_id, experiment_name = config.get_experiment()
+
+    create_cluster_task_ex(
+        ctx, config.get_project_id(),
+        "auger_ml.tasks_queue.evaluate_api.stop_evaluate_task",
+        {'augerInfo': {'experiment_id': experiment_id,
+                       'experiment_session_id': config.get_experiment_session_id()}}
+    )
 
 
 def read_leaderboard_experiment(ctx):
+    from collections import OrderedDict
+
     config = AugerConfig()
     experiment_session_id = config.get_experiment_session_id()
 
@@ -147,23 +177,33 @@ def read_leaderboard_experiment(ctx):
     leaderboard = []
     for trial in trials:
         leaderboard.append({
-            'score_value': trial.get('score_value'), 
-            'eval_time(sec)': "{0:.2f}".format(trial.get('raw_data').get('evaluation_time')), 
-            'id': trial.get('id'), 
-            'score_name': trial.get('score_name'), 
+            'score_value': trial.get('score_value'),
+            'eval_time(sec)': "{0:.2f}".format(trial.get('raw_data').get('evaluation_time')),
+            'id': trial.get('id'),
+            'score_name': trial.get('score_name'),
             'algorithm_name': trial.get('raw_data').get('algorithm_name')
         })
 
-    leaderboard.sort(key=lambda t: t['score_value'], reverse=True)    
+    leaderboard.sort(key=lambda t: t['score_value'], reverse=True)
 
-    return leaderboard
-    
+    exp_session = read_experiment_session(ctx, experiment_session_id)
+    #print(exp_session.get('model_settings', {}).keys())
+    info = OrderedDict({
+        'Start': exp_session.get('model_settings', {}).get('start_time'), 
+        'Status': exp_session.get('status'), 
+        'Completed': exp_session.get('model_settings', {}).get('completed_evaluations'),
+        'Max count': exp_session.get('model_settings', {}).get('total_evaluations'),
+    })
+
+    return leaderboard, info
+
 
 def export_model_experiment(ctx, trial_id):
     if trial_id is None:
-        res = read_leaderboard_experiment(ctx)
+        res, info = read_leaderboard_experiment(ctx)
         if len(res) == 0:
-            raise click.ClickException('There is no trials for the experiment: %s.'%(name))
+            raise click.ClickException(
+                'There is no trials for the experiment: %s.' % (name))
 
         print_line('Use best trial to export model: {}'.format(res[0]))
 
@@ -178,14 +218,14 @@ def export_model_experiment(ctx, trial_id):
         "export_model_uid": trial_id,
         "language": 'python'
     }
-        
-    model_path = create_cluster_task_ex(ctx, project_id, 
-        "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args
-    )
+
+    model_path = create_cluster_task_ex(ctx, project_id,
+                                        "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args
+                                        )
     print(model_path)
 
     download_project_file(ctx, project_id, model_path, "models")
 
+
 def monitor_leaderboard_experiment(ctx, name):
     pass
-

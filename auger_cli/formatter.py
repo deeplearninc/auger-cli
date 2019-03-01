@@ -141,6 +141,13 @@ def string_for_attrib(attrib):
     else:
         return attrib
 
+def print_header(myDict):
+    header = ""
+    for key, value in myDict.items():
+        header += "{}:{}, ".format(key, value)
+
+    print_line(header)
+        
 def print_table(myDict, colList=None):
     if not colList: 
         colList = list(myDict[0].keys() if myDict else [])

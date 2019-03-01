@@ -5,7 +5,7 @@ import click
 from ...formatter import print_line, print_record
 from ...utils import request_list
 
-experiment_session_attributes = ['id', 'project_id', 'experiment_id', 'status']
+experiment_session_attributes = ['id', 'project_id', 'experiment_id', 'status', 'datasource_name', 'model_settings']
 
 
 def list_experiment_sessions(ctx, project_id, experiment_id):
@@ -25,5 +25,6 @@ def read_experiment_session(auger_client, experiment_session_id):
             ['experiment_sessions', 'read'],
             params={'id': experiment_session_id}
         )['data']
+        print(result.keys())
     return result
 

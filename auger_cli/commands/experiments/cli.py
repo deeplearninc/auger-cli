@@ -6,7 +6,9 @@ from ...client import pass_client
 from ...formatter import (
     print_list,
     print_record,
-    print_table
+    print_table,
+    print_line,
+    print_header
 )
 
 from .api import (
@@ -20,6 +22,7 @@ from .api import (
     monitor_leaderboard_experiment,
     read_leaderboard_experiment,
     export_model_experiment,
+    stop_experiment
 )
 
 
@@ -91,8 +94,17 @@ def run(ctx):
 
 @click.command()
 @pass_client
+def stop(ctx):
+    stop_experiment(ctx)
+
+
+@click.command()
+@pass_client
 def leaderboard(ctx):
-    print_table(read_leaderboard_experiment(ctx))
+    leaderboard, info = read_leaderboard_experiment(ctx)
+    print_line("=======================================")
+    print_header(info)
+    print_table(leaderboard)
 
 
 @click.command()
@@ -118,6 +130,7 @@ experiments_group.add_command(show)
 experiments_group.add_command(delete)
 experiments_group.add_command(update)
 experiments_group.add_command(run)
+experiments_group.add_command(stop)
 experiments_group.add_command(leaderboard)
 experiments_group.add_command(export_model)
 experiments_group.add_command(monitor_leaderboard)
