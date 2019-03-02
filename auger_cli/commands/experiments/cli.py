@@ -18,13 +18,13 @@ from .api import (
     list_experiments,
     update_experiment,
     run_experiment,
+    read_experiment_info,
     read_experiment_byid,
     monitor_leaderboard_experiment,
     read_leaderboard_experiment,
     export_model_experiment,
     stop_experiment
 )
-
 
 @click.group(
     'experiments',
@@ -65,10 +65,15 @@ def create(ctx, name, project_id):
 
 
 @click.command(short_help='Display experiment details.')
-@click.argument('experiment_id')
+@click.option(
+    '--experiment-id',
+    '-e',
+    default=None,
+    help='Experiment ID.'
+)
 @pass_client
 def show(ctx, experiment_id):
-    print_record(read_experiment_byid(ctx, experiment_id), experiment_attributes)
+    print_record(read_experiment_info(ctx, experiment_id), experiment_attributes)
 
 
 @click.command()

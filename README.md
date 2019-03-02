@@ -4,6 +4,8 @@
 
 A command line tool for the [Auger AI platform](https://auger.ai).
 
+Please create account and organization to start working with CLI.
+
 # Installation
 
 ```sh
@@ -33,15 +35,14 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  auth       Authentication with Auger.
-  clusters   Manage Auger Clusters.
+  auth        Authentication with Auger.
+  experiments Manage Auger Experiments.
+  orgs        Manage Auger Organizations.
   help
-  instances  Display available instance types for clusters.
-  orgs       Manage Auger Organizations.
-  projects   Manage Auger Projects.
-  schema     Display current Auger schema.
-  start      Start project.
-  stop       Stop project.
+  instances   Display available instance types for clusters.
+  clusters    Manage Auger Clusters.
+  projects    Manage Auger Projects.
+  schema      Display current Auger schema.
 
 ```
 
@@ -72,7 +73,6 @@ Note you can login to a different Auger hub instance by passing the `--url` argu
 auger auth login --url https://test-instance.auger.ai
 ```
 
-
 ## Organizations
 
 Organization allocates S3 bucket where all data can be stored between cluster runs.
@@ -82,108 +82,9 @@ To start using it you should be a member of any organization, check it with:
 auger orgs
 ```
 
-or create your own organization:
-```sh
-auger orgs create --access-key="<AWS acess key>" --secret-key="<AWS secret key>" <organization name>
-```
+To create your own organization go to https://auger.ai:
 
-AWS key pair should have the following statements:
-```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:ListAllMyBuckets",
-                "s3:ListBucketVersions"
-            ],
-            "Resource": "arn:aws:s3:::*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "ec2:AssociateDhcpOptions",
-                "ec2:AssociateRouteTable",
-                "ec2:AttachInternetGateway",
-                "ec2:AttachVolume",
-                "ec2:AuthorizeSecurityGroupIngress",
-                "ec2:CreateDhcpOptions",
-                "ec2:CreateInternetGateway",
-                "ec2:CreateKeyPair",
-                "ec2:CreateRoute",
-                "ec2:CreateSecurityGroup",
-                "ec2:CreateSubnet",
-                "ec2:CreateTags",
-                "ec2:CreateVolume",
-                "ec2:CreateVpc",
-                "ec2:DeleteInternetGateway",
-                "ec2:DeleteKeyPair",
-                "ec2:DeleteRoute",
-                "ec2:DeleteRouteTable",
-                "ec2:DeleteSecurityGroup",
-                "ec2:DeleteSubnet",
-                "ec2:DeleteVolume",
-                "ec2:DeleteVpc",
-                "ec2:DescribeAvailabilityZones",
-                "ec2:DescribeInstanceStatus",
-                "ec2:DescribeInstances",
-                "ec2:DescribeRouteTables",
-                "ec2:DescribeSecurityGroups",
-                "ec2:DescribeSubnets",
-                "ec2:DescribeVolumes",
-                "ec2:DescribeVpcs",
-                "ec2:DetachInternetGateway",
-                "ec2:ModifyVpcAttribute",
-                "ec2:RevokeSecurityGroupIngress",
-                "ec2:RunInstances",
-                "ec2:TerminateInstances"
-            ],
-            "Condition": {
-                "StringEquals": {
-                    "ec2:Region": [
-                        "us-west-1",
-                        "us-west-2"
-                    ]
-                }
-            },
-            "Resource": [
-                "*"
-            ]
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:*"
-            ],
-            "Resource": [
-                "arn:aws:s3:::auger-*"
-            ]
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "iam:AttachUserPolicy",
-                "iam:CreateAccessKey",
-                "iam:CreateUser",
-                "iam:DeleteAccessKey",
-                "iam:DeleteUser",
-                "iam:DeleteUserPolicy",
-                "iam:DetachUserPolicy",
-                "iam:ListAccessKeys",
-                "iam:ListAttachedUserPolicies",
-                "iam:ListGroupsForUser",
-                "iam:ListUserPolicies",
-                "iam:PutUserPolicy",
-                "iam:RemoveUserFromGroup"
-            ],
-            "Resource": [
-                "arn:aws:iam:::user/vault-*"
-            ]
-        }
-    ]
-}
-```
+## Experiments
 
 ## Clusters
 

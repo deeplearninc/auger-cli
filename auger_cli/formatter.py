@@ -132,11 +132,16 @@ def print_stream(ctx, params):
 def string_for_attrib(attrib):
     if type(attrib) in (int, str):
         return attrib
-    if isinstance(attrib, collections.OrderedDict):
+
+    if isinstance(attrib, collections.OrderedDict) or isinstance(attrib, dict):
         items = []
         for k, v in attrib.items():
             if type(k) == str and k != 'object':
-                items.append('\n  {}: {}'.format(camelize(k), v))
+                if isinstance(v, collections.OrderedDict) or isinstance(v, dict): 
+                    items.append('\n  {}: {}'.format(camelize(k), string_for_attrib(v)))
+                else:    
+                    items.append('\n  {}: {}'.format(camelize(k), v))
+
         return ' '.join(items)
     else:
         return attrib

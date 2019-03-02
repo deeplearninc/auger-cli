@@ -25,9 +25,10 @@ from ..trials.api import (
 from ..experiment_sessions.api import (
     read_experiment_session
 )
+from ..clusters.api import read_cluster, cluster_attributes
 
 experiment_attributes = ['id', 'name',
-                         'project_id', 'project_file_id', 'status']
+                         'project_id', 'project_file_id', 'cluster']
 
 
 def list_experiments(ctx, project_id, name):
@@ -84,6 +85,18 @@ def update_experiment(ctx, experiment_id, name):
         print_record(experiment['data'], experiment_attributes)
 
 
+def read_experiment_info(auger_client, experiment_id):
+    if experiment_id is None:
+        config = AugerConfig()
+        experiment_id, name = config.get_experiment()    
+
+    result = read_experiment_byid(auger_client, experiment_id)
+    project = read_project_byid(auger_client, result.get('project_id'))
+    if project.get('cluster_id'):
+        result['cluster'] = read_cluster(auger_client, project.get('cluster_id'), cluster_attributes)
+
+    return result
+            
 def read_experiment_byid(auger_client, experiment_id):
     result = {}
     with auger_client.coreapi_action():
@@ -92,7 +105,7 @@ def read_experiment_byid(auger_client, experiment_id):
             ['experiments', 'read'],
             params={'id': experiment_id}
         )['data']
-
+    print(result.keys())     
     return result
 
 

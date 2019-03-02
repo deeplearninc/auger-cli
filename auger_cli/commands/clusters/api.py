@@ -5,16 +5,19 @@ from ...utils import request_list
 
 
 cluster_attributes = [
-    'name',
     'id',
-    'organization_id',
     'status',
-    'seconds_since_created',
-    'uptime_seconds',
+    'project_name',
     'worker_nodes_count',
-    'ip_address',
     'instance_type',
+    'total_memory_mb',
     'kubernetes_stack'
+    'name',
+    'organization_id',
+    'error_message',
+    'seconds_since_created',
+    # 'uptime_seconds',
+    # 'ip_address',
 ]
 
 
@@ -26,7 +29,7 @@ def list_clusters(auger_client, organization_id=None):
         return request_list(auger_client, 'clusters', params={'limit': 1000000000})
 
 
-def read_cluster(auger_client, cluster_id):
+def read_cluster(auger_client, cluster_id, attributes=None):
     result = {}
     with auger_client.coreapi_action():
         result = auger_client.client.action(
@@ -34,7 +37,11 @@ def read_cluster(auger_client, cluster_id):
             ['clusters', 'read'],
             params={'id': cluster_id}
         )['data']
-        
+    
+    #print(result.keys()) 
+    if attributes:
+        result = {k: result[k] for k in attributes if k in result}
+
     return result
 
 class CreateResult(object):
