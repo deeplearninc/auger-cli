@@ -87,13 +87,7 @@ def download_file(ctx, remote_path, local_path):
 
 
 @click.command(short_help='Display project logs.')
-@click.option(
-    '--project',
-    '-p',
-    type=click.STRING,
-    required=True,
-    help='Name of the project.'
-)
+@click.argument('project_id')
 @click.option(
     '--tail',
     '-t',
@@ -102,10 +96,10 @@ def download_file(ctx, remote_path, local_path):
     help='Stream logs to console.'
 )
 @pass_client
-def logs(ctx, project, tail):
+def logs(ctx, project_id, tail):
     if tail:
         params = {
-            'name': project
+            'id': project_id
         }
         print_stream(ctx, params)
     else:
@@ -113,7 +107,7 @@ def logs(ctx, project, tail):
             ctx.document,
             ['projects', 'logs'],
             params={
-                'name': project
+                'id': project_id
             }
         )
         print_line(result)

@@ -59,7 +59,7 @@ class AugerConfig(object):
         self.config_session = {}
 
     def get_experiment_session_id(self):
-        return self.config_session['experiment_session_id']
+        return self.config_session.get('experiment_session_id')
 
     def get_cluster_settings(self):
         cluster = self.config.get("cluster", {})

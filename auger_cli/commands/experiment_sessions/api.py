@@ -5,7 +5,7 @@ import click
 from ...formatter import print_line, print_record
 from ...utils import request_list
 
-experiment_session_attributes = ['id', 'project_id', 'experiment_id', 'status', 'datasource_name', 'model_settings']
+experiment_session_attributes = ['id', 'project_id', 'experiment_id', 'status', 'datasource_name', 'model_type']
 
 
 def list_experiment_sessions(ctx, project_id, experiment_id):
@@ -17,7 +17,7 @@ def list_experiment_sessions(ctx, project_id, experiment_id):
         )
 
 
-def read_experiment_session(auger_client, experiment_session_id):
+def read_experiment_session(auger_client, experiment_session_id, attributes=None):
     result = {}
     with auger_client.coreapi_action():
         result = auger_client.client.action(
@@ -25,6 +25,11 @@ def read_experiment_session(auger_client, experiment_session_id):
             ['experiment_sessions', 'read'],
             params={'id': experiment_session_id}
         )['data']
-        print(result.keys())
+        #print(result.keys())
+
+    if attributes:
+        result = {k: result[k] for k in attributes if k in result}
+
+    #print(attributes)    
     return result
 

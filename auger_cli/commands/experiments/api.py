@@ -16,6 +16,7 @@ from ..projects.api import (
     create_project,
     read_project_byid,
     start_project,
+    get_or_create_project,
     download_project_file
 )
 
@@ -23,12 +24,13 @@ from ..trials.api import (
     list_trials
 )
 from ..experiment_sessions.api import (
-    read_experiment_session
+    read_experiment_session,
+    experiment_session_attributes
 )
 from ..clusters.api import read_cluster, cluster_attributes
 
 experiment_attributes = ['id', 'name',
-                         'project_id', 'project_file_id', 'cluster']
+                         'project_id', 'project_file_id', 'session', 'cluster' ]
 
 
 def list_experiments(ctx, project_id, name):
@@ -85,18 +87,6 @@ def update_experiment(ctx, experiment_id, name):
         print_record(experiment['data'], experiment_attributes)
 
 
-def read_experiment_info(auger_client, experiment_id):
-    if experiment_id is None:
-        config = AugerConfig()
-        experiment_id, name = config.get_experiment()    
-
-    result = read_experiment_byid(auger_client, experiment_id)
-    project = read_project_byid(auger_client, result.get('project_id'))
-    if project.get('cluster_id'):
-        result['cluster'] = read_cluster(auger_client, project.get('cluster_id'), cluster_attributes)
-
-    return result
-            
 def read_experiment_byid(auger_client, experiment_id):
     result = {}
     with auger_client.coreapi_action():
@@ -144,6 +134,25 @@ def get_or_create_experiment(ctx, project_id):
         ctx, experiment_name, project_id, ctx.config.get_evaluation()['data_path'])
     return experiment
 
+
+def read_experiment_info(auger_client, experiment_id):
+    auger_client.config = AugerConfig()
+
+    if experiment_id is not None:
+        experiment = read_experiment_byid(auger_client, experiment_id)
+        project = read_project_byid(auger_client, experiment.get('project_id'))
+    else:    
+        project = get_or_create_project(auger_client, create_if_not_exist=True)
+        experiment = get_or_create_experiment(auger_client, project['id'])
+
+    result = experiment    
+    if project.get('cluster_id'):
+        result['cluster'] = read_cluster(auger_client, project.get('cluster_id'), cluster_attributes)
+
+    if auger_client.config.get_experiment_session_id():    
+        result['session'] = read_experiment_session(auger_client, auger_client.config.get_experiment_session_id(), ['id', 'status', 'datasource_name', 'model_type'])
+
+    return result
 
 def run_experiment(ctx):
     ctx.config = AugerConfig()

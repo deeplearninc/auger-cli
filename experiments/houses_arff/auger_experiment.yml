@@ -5,8 +5,6 @@ organization: auger
 project: evgeny-fast
 # project_id: 271
 
-# experiment: test_experiment
-# experiment_id: pipeline_channel_D2E57131120049F583BC2504AB8FA752
 
 cluster:
   worker_count : 2
@@ -15,29 +13,33 @@ cluster:
   # automatic_termination: "1 Hour"
 
 evaluation_options:
-  data_path: files/iris_data_sample.csv
+  #data_path: files/iris_data_sample.csv
+  data_path: https://s3-us-west-2.amazonaws.com/auger-experiments/datasets/openml/data_raw/dataset_537.arff
   # data_extension: ".csv"
   # data_compression: gzip
   featureColumns:
-    - sepal_length
-    - sepal_width
-    - petal_length
-    - petal_width
-  targetFeature: class
-  categoricalFeatures:
-    - class
+    - median_income
+    - housing_median_age
+    - total_rooms
+    - total_bedrooms
+    - population
+    - households
+    - latitude
+    - longitude
+  targetFeature: median_house_value
+  #categoricalFeatures:
 
   labelEncodingFeatures: []
   datetimeFeatures: []
   timeSeriesFeatures: []
-  classification: true
+  classification: false
   binaryClassification: false
-  scoring: accuracy
+  scoring: neg_rmse
 
   crossValidationFolds: 5
   max_total_time_mins: 60
   max_eval_time_mins: 1
-  max_n_trials: 100
+  max_n_trials: 10
 
   # optimizers_names: []
   # splitOptions: {}

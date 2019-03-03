@@ -1,0 +1,9 @@
+!!omap [channel: experiment_test_experiment_2FA6C81546D5456, tmpPath: /mnt/tmp/evgeny-fast,
+filesPath: /mnt/workspace/projects/evgeny-fast/files, modelsPath: /mnt/workspace/projects/evgeny-fast/models,
+dataTmpPath: /mnt/tmp/evgeny-fast/data_temp, metricsPath: /mnt/workspace/projects/evgeny-fast/channels/experiment_test_experiment_2FA6C81546D5456/project_runs/6D83FDC52AB54FF/metrics,
+projectPath: /mnt/workspace/projects/evgeny-fast, datacachePath: /mnt/workspace/projects/evgeny-fast/channels/experiment_test_experiment_2FA6C81546D5456/datacache,
+experiment_id: experiment_test_experiment_2FA6C81546D5456, pipelinesPath: /mnt/tmp/evgeny-fast/channels/experiment_test_experiment_2FA6C81546D5456/project_runs/6D83FDC52AB54FF/pipelines,
+predictionsPath: /mnt/tmp/evgeny-fast/channels/experiment_test_experiment_2FA6C81546D5456/project_runs/6D83FDC52AB54FF/predictions,
+evaluationRunPath: /mnt/workspace/projects/evgeny-fast/channels/experiment_test_experiment_2FA6C81546D5456/project_runs/6D83FDC52AB54FF,
+projectChannelPath: /mnt/workspace/projects/evgeny-fast/channels/experiment_test_experiment_2FA6C81546D5456,
+dataset_manifest_id: 2009838B9D7C4CF, experiment_session_id: 6D83FDC52AB54FF, project_id: 271]

@@ -85,6 +85,58 @@ auger orgs
 To create your own organization go to https://auger.ai:
 
 ## Experiments
+### Experiment definition
+To start working with Auger experiment create folder with experiment name and place file 'auger_experiment.yml' there. This file contain definition of experiment.
+
+For more details see https://docs.auger.ai/docs/experiments/evaluation-options
+
+auger_experiment.yml mandatory fields:
+```yml
+evaluation_options:
+  # Path to file with data. May be URL or path in project files folder 
+  data_path: files/iris_data_sample.csv
+
+  # List of features from data file to be used to evaluate ML models
+  featureColumns:
+  - sepal_length
+  - sepal_width
+  - petal_length
+  - petal_width
+
+  # Target feature to build ML model for
+  targetFeature: class
+
+  # If some of your features are strings, add them to the categoricals, so they will be one-hot encoded
+  categoricalFeatures:
+  - class
+
+  # If you want some categoricals whould be hashed instead of one-hot encoded add them to label encoded list
+  labelEncodingFeatures: []
+
+  # List of features of datetime type
+  datetimeFeatures: []
+
+  # Define type of ML models. true for 'classification', false for 'regression'
+  classification: true
+
+  # If target has two unique values, set it to true 
+  binaryClassification: false
+
+  # Score used to optimize ML model.
+  # Supported scores for classification: accuracy, f1_macro, f1_micro, f1_weighted, neg_log_loss, precision_macro, precision_micro, precision_weighted, recall_macro, recall_micro, recall_weighted
+  # Supported scores for binary classification: accuracy, average_precision, f1, f1_macro, f1_micro, f1_weighted, neg_log_loss, precision, precision_macro, precision_micro, precision_weighted, recall, recall_macro, recall_micro, recall_weighted, roc_auc, cohen_kappa_score, matthews_corrcoef
+  # Supported scores for regression: explained_variance, neg_median_absolute_error, neg_mean_absolute_error, neg_mean_squared_error, neg_mean_squared_log_error, r2, neg_rmsle, neg_mase, mda, neg_rmse
+
+  scoring: accuracy
+
+  crossValidationFolds: 5
+  max_total_time_mins: 60
+  max_eval_time_mins: 1
+  max_n_trials: 10
+```
+
+auger_experiment.yml optional fields:
+
 
 ## Clusters
 

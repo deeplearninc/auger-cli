@@ -1,0 +1,9 @@
+!!omap [channel: experiment_houses_arff_4659D75F86AF4D2, tmpPath: /mnt/tmp/evgeny-fast,
+filesPath: /mnt/workspace/projects/evgeny-fast/files, modelsPath: /mnt/workspace/projects/evgeny-fast/models,
+dataTmpPath: /mnt/tmp/evgeny-fast/data_temp, metricsPath: /mnt/workspace/projects/evgeny-fast/channels/experiment_houses_arff_4659D75F86AF4D2/project_runs/0DD8B5477226427/metrics,
+projectPath: /mnt/workspace/projects/evgeny-fast, datacachePath: /mnt/workspace/projects/evgeny-fast/channels/experiment_houses_arff_4659D75F86AF4D2/datacache,
+experiment_id: experiment_houses_arff_4659D75F86AF4D2, pipelinesPath: /mnt/tmp/evgeny-fast/channels/experiment_houses_arff_4659D75F86AF4D2/project_runs/0DD8B5477226427/pipelines,
+predictionsPath: /mnt/tmp/evgeny-fast/channels/experiment_houses_arff_4659D75F86AF4D2/project_runs/0DD8B5477226427/predictions,
+evaluationRunPath: /mnt/workspace/projects/evgeny-fast/channels/experiment_houses_arff_4659D75F86AF4D2/project_runs/0DD8B5477226427,
+projectChannelPath: /mnt/workspace/projects/evgeny-fast/channels/experiment_houses_arff_4659D75F86AF4D2,
+dataset_manifest_id: 1696EC520AAA4D0, experiment_session_id: 0DD8B5477226427, project_id: 271]
