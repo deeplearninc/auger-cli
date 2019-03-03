@@ -129,14 +129,58 @@ evaluation_options:
 
   scoring: accuracy
 
+  # Number of K-folds: is a cross validation technique for splitting data into train/test
   crossValidationFolds: 5
+
+  # Max Total Time Minutes, the maximum time in minutes an entire training can run for before it is stopped.
   max_total_time_mins: 60
+
+  # Max Trial Time Minutes, this is the maximum time in minutes an individual trial can run before it is stopped.
   max_eval_time_mins: 1
+
+  # Max Trials, this is the maximum number of trials to be run before training stops.
   max_n_trials: 10
 ```
 
 auger_experiment.yml optional fields:
+```yml
+organization: auger
+project: evgeny-fast
 
+cluster:
+  worker_count : 2
+  instance_type: c5.large
+  kubernetes_stack: experimental
+  # workers_per_node_count: -1
+  # automatic_termination: "1 Hour"
+
+evaluation_options:
+  data_extension: ".csv"
+  data_compression: gzip
+
+  optimizers_names: []
+  splitOptions: {}
+  oversampling: {}
+  search_space: 
+  use_ensemble: true
+  preprocessors: {}
+
+```
+
+Run experiment:
+```sh
+auger experiments run
+```
+
+Display leaderboard from last run:
+```sh
+auger experiments leaderboard
+```
+
+Display information about experiment:
+```sh
+auger experiments show
+```
 
 ## Clusters
 
