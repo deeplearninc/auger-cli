@@ -2,7 +2,6 @@ import unittest
 import os
 
 from auger_cli.auger_config import AugerConfig
-from auger_cli.FSClient import FSClient
 
 class TestConfig(unittest.TestCase):
 
@@ -22,6 +21,6 @@ class TestConfig(unittest.TestCase):
         config = AugerConfig()
         config.update_ids_file({'test': 123})
 
-        self.assertTrue(FSClient().isFileExists(".auger_experiment_ids.yml"))
+        self.assertTrue(os.path.isfile(".auger_experiment_ids.yml"))
 
         os.chdir(cur_dir)
