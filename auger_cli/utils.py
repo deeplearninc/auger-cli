@@ -103,7 +103,7 @@ def download_remote_file(ctx, local_path, remote_path):
         with open(local_file_path, 'wb') as out_file:
             shutil.copyfileobj(response, out_file)
 
-def create_parent_folder(self, path):
+def create_parent_folder(path):
     parent = os.path.dirname(path)
 
     try:
