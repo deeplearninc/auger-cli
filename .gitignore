@@ -44,5 +44,5 @@ MANIFEST
 
 experiments/*/files
 experiments/*/models
-#experiments/*/.*
+experiments/*/.*
 tests/fixtures/test_experiment/.*
