@@ -1,9 +1,0 @@
-!!omap [channel: experiment_iris_train_87D6EC723C4C420, tmpPath: /mnt/tmp/iris-train,
-filesPath: /mnt/workspace/projects/iris-train/files, modelsPath: /mnt/workspace/projects/iris-train/models,
-dataTmpPath: /mnt/tmp/iris-train/data_temp, metricsPath: /mnt/workspace/projects/iris-train/channels/experiment_iris_train_87D6EC723C4C420/project_runs/F1FA223CEEC94B3/metrics,
-projectPath: /mnt/workspace/projects/iris-train, datacachePath: /mnt/workspace/projects/iris-train/channels/experiment_iris_train_87D6EC723C4C420/datacache,
-experiment_id: experiment_iris_train_87D6EC723C4C420, pipelinesPath: /mnt/tmp/iris-train/channels/experiment_iris_train_87D6EC723C4C420/project_runs/F1FA223CEEC94B3/pipelines,
-predictionsPath: /mnt/tmp/iris-train/channels/experiment_iris_train_87D6EC723C4C420/project_runs/F1FA223CEEC94B3/predictions,
-evaluationRunPath: /mnt/workspace/projects/iris-train/channels/experiment_iris_train_87D6EC723C4C420/project_runs/F1FA223CEEC94B3,
-projectChannelPath: /mnt/workspace/projects/iris-train/channels/experiment_iris_train_87D6EC723C4C420,
-dataset_manifest_id: 30476B556D1D4F2, experiment_session_id: F1FA223CEEC94B3, project_id: 539]
