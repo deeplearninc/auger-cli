@@ -37,7 +37,9 @@ evaluation_options:
   crossValidationFolds: 5
   max_total_time_mins: 60
   max_eval_time_mins: 1
-  max_n_trials: 100
+  max_n_trials: 10
+
+  use_ensemble: true
 
   # optimizers_names: []
   # splitOptions: {}

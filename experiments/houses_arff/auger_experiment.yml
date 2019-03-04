@@ -41,6 +41,8 @@ evaluation_options:
   max_eval_time_mins: 1
   max_n_trials: 10
 
+  use_ensemble: true
+
   # optimizers_names: []
   # splitOptions: {}
   # oversampling: {}

@@ -152,6 +152,9 @@ evaluation_options:
 
   # Max Trials, this is the maximum number of trials to be run before training stops.
   max_n_trials: 10
+
+  # Build ensembles models after plain models completed. See : https://docs.auger.ai/docs/machine-learning/ensembles 
+  use_ensemble: true  
 ```
 
 auger_experiment.yml optional fields:
