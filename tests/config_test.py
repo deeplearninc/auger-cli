@@ -14,13 +14,13 @@ class TestConfig(unittest.TestCase):
 
         os.chdir(cur_dir)
 
-    def test_update_ids_file(self):
+    def test_update_session_file(self):
         cur_dir = os.getcwd()
         os.chdir("./tests/fixtures/test_experiment")
 
         config = AugerConfig()
-        config.update_ids_file({'test': 123})
+        config.update_session_file({'test': 123})
 
-        self.assertTrue(os.path.isfile(".auger_experiment_ids.yml"))
+        self.assertTrue(os.path.isfile(".auger_experiment_session.yml"))
 
         os.chdir(cur_dir)
