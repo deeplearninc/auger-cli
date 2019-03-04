@@ -22,11 +22,10 @@ cluster_attributes = [
 
 
 def list_clusters(auger_client, organization_id=None):
-    # request_list requires some limit and we use one big enough
     if organization_id is not None:
-        return request_list(auger_client, 'clusters', params={'limit': 1000000000, 'organization_id': organization_id})
+        return request_list(auger_client, 'clusters', params={'organization_id': organization_id})
     else:    
-        return request_list(auger_client, 'clusters', params={'limit': 1000000000})
+        return request_list(auger_client, 'clusters', params={})
 
 
 def read_cluster(auger_client, cluster_id, attributes=None):

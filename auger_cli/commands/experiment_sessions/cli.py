@@ -35,7 +35,6 @@ from .api import (
 @click.pass_context
 def experiment_sessions_group(ctx, project_id, experiment_id):
     if ctx.invoked_subcommand is None:
-        # request_list requires some limit and we use one big enough
         print_list(
             list_data=list_experiment_sessions(ctx.obj, project_id, experiment_id),
             attributes=experiment_session_attributes

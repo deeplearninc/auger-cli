@@ -6,6 +6,7 @@ import os
 from ...formatter import command_progress_bar, print_record, print_line, wait_for_task_result
 from ...utils import request_list, download_remote_file
 from ...auger_config import AugerConfig
+from ...constants import REQUEST_LIMIT
 
 from ..clusters.api import create_cluster
 from ..orgs.api import (
@@ -34,7 +35,7 @@ def read_project(auger_client, name):
         res = auger_client.client.action(
             auger_client.document,
             ['projects', 'list'],
-            params={'name': name, 'limit': 10}
+            params={'name': name, 'limit': REQUEST_LIMIT}
         )['data']
         if len(res) > 0:
             result = res[0]
@@ -47,7 +48,7 @@ def read_project_withorg(auger_client, name, organization_id):
         res = auger_client.client.action(
             auger_client.document,
             ['projects', 'list'],
-            params={'name': name, 'limit': 10, 'organization_id': organization_id}
+            params={'name': name, 'limit': REQUEST_LIMIT, 'organization_id': organization_id}
         )['data']
         if len(res) > 0:
             result = res[0]
@@ -66,8 +67,7 @@ def read_project_byid(auger_client, project_id):
     return result
 
 def list_projects(auger_client):
-    # request_list requires some limit and we use one big enough
-    return request_list(auger_client, 'projects', params={'limit': 1000000000})
+    return request_list(auger_client, 'projects', params={})
 
 
 def create_project(auger_client, project, organization_id):

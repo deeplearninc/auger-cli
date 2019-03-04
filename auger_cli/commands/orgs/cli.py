@@ -23,7 +23,6 @@ from .api import (
 @click.pass_context
 def orgs_group(ctx):
     if ctx.invoked_subcommand is None:
-        # request_list requires some limit and we use one big enough
         print_list(
             list_data=list_orgs(ctx.obj),
             attributes=org_attributes

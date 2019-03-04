@@ -2,6 +2,7 @@
 
 from ...formatter import print_line, print_record
 from ...utils import request_list
+from ...constants import REQUEST_LIMIT
 
 
 org_attributes = ['id', 'name', 'main_bucket', 'status']
@@ -12,7 +13,7 @@ def list_orgs(ctx):
         return request_list(
             ctx,
             'organizations',
-            params={'limit': 1000000000}
+            params={}
         )
 
 def list_orgs_full(auger_client):
@@ -20,7 +21,7 @@ def list_orgs_full(auger_client):
         return auger_client.client.action(
             auger_client.document,
             ['organizations', 'list'],
-            params={'limit': 100}
+            params={'limit': REQUEST_LIMIT}
         )['data']
 
 
@@ -29,7 +30,7 @@ def read_org(auger_client, name):
         res = auger_client.client.action(
             auger_client.document,
             ['organizations', 'list'],
-            params={'name': name, 'limit': 10}
+            params={'name': name, 'limit': REQUEST_LIMIT}
         )['data']
         if len(res) > 0:
             return res[0]

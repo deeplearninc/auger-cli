@@ -13,7 +13,7 @@ def list_experiment_sessions(ctx, project_id, experiment_id):
         return request_list(
             ctx,
             'experiment_sessions',
-            params={'limit': 1000000000, 'project_id': project_id, 'experiment_id': experiment_id}
+            params={'project_id': project_id, 'experiment_id': experiment_id}
         )
 
 

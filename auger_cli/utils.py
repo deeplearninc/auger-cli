@@ -5,6 +5,8 @@ import uuid
 import os
 import subprocess
 
+from .constants import REQUEST_LIMIT
+
 
 def camelize(snake_cased_string):
     parts = snake_cased_string.split('_')
@@ -22,7 +24,7 @@ def urlparse(*args, **kwargs):
 
 def request_list(auger_client, what, params):
     offset = params.get('offset', 0)
-    limit = params['limit']  # limit is mandatory key in params
+    limit = params.get('limit', REQUEST_LIMIT)
     p = params.copy()
     while limit >= 0:
         p['offset'] = offset

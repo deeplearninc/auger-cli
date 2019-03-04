@@ -15,8 +15,7 @@ attributes = ['id', 'description']
 )
 @click.pass_context
 def instances_group(ctx):
-    # request_list requires some limit and we use one big enough
     print_list(
-        request_list(ctx.obj, 'instance_types', params={'limit': 1000000000}),
+        request_list(ctx.obj, 'instance_types', params={}),
         attributes
     )

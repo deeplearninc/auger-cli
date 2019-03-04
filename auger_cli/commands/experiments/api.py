@@ -5,6 +5,7 @@ import click
 from ...formatter import print_line, print_record, wait_for_task_result
 from ...utils import request_list, get_uid
 from ...auger_config import AugerConfig
+from ...constants import REQUEST_LIMIT
 
 from ..cluster_tasks.api import (
     create_cluster_task_ex,
@@ -37,8 +38,7 @@ def list_experiments(ctx, project_id, name):
         return request_list(
             ctx,
             'experiments',
-            params={'limit': 1000000000,
-                    'project_id': project_id, 'name': name}
+            params={'project_id': project_id, 'name': name}
         )
 
 
@@ -104,7 +104,7 @@ def read_experiment(auger_client, project_id, name):
         res = auger_client.client.action(
             auger_client.document,
             ['experiments', 'list'],
-            params={'name': name, 'project_id': project_id, 'limit': 10}
+            params={'name': name, 'project_id': project_id, 'limit': REQUEST_LIMIT}
         )['data']
         if len(res) > 0:
             result = res[0]
