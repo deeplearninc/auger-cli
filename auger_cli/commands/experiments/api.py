@@ -4,7 +4,6 @@ import click
 
 from ...formatter import print_line, print_record, wait_for_task_result
 from ...utils import request_list, get_uid
-from ...FSClient import FSClient
 from ...auger_config import AugerConfig
 
 from ..cluster_tasks.api import (

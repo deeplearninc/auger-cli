@@ -3,7 +3,6 @@ import os
 import io
 
 from .formatter import print_line
-from .FSClient import FSClient
 
 
 class AugerConfig(object):
@@ -21,7 +20,7 @@ class AugerConfig(object):
             print_line('Experiment name taken from auger_experiment.yml: {}'.format(self.experiment_name))
 
         self.config_session = {}    
-        if FSClient().isFileExists(".auger_experiment_session.yml"):
+        if os.path.isfile(".auger_experiment_session.yml"):
             with open(".auger_experiment_session.yml", 'r') as stream:
                 self.config_session = yaml.safe_load(stream)
             
@@ -55,7 +54,7 @@ class AugerConfig(object):
             yaml.dump(result, outfile)
 
     def delete_session_file(self):
-        FSClient().removeFile(".auger_experiment_session.yml")
+        os.remove(".auger_experiment_session.yml")
         self.config_session = {}
 
     def get_experiment_session_id(self):

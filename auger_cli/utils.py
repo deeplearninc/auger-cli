@@ -5,8 +5,6 @@ import uuid
 import os
 import subprocess
 
-from .FSClient import FSClient
-
 
 def camelize(snake_cased_string):
     parts = snake_cased_string.split('_')
@@ -98,10 +96,18 @@ def download_remote_file(ctx, local_path, remote_path):
         local_file_path = os.path.join(local_path, filename)
         print("Download file to: %s" % local_file_path)
 
-        FSClient().createParentFolder(local_file_path)
+        create_parent_folder(local_file_path)
         #urlretrieve(remote_path, local_file_path)
         with open(local_file_path, 'wb') as out_file:
             shutil.copyfileobj(response, out_file)
+
+def create_parent_folder(self, path):
+    parent = os.path.dirname(path)
+
+    try:
+        os.makedirs(parent)
+    except OSError:
+        pass
 
 def shell_call(args, input_string='', silent=False):
     input_bytes = (input_string.strip() + '\n').encode('utf-8')
