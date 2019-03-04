@@ -199,14 +199,13 @@ def read_leaderboard_experiment(ctx):
     leaderboard = []
     for trial in trials:
         leaderboard.append({
-            'score_value': trial.get('score_value'),
+            trial.get('score_name'): trial.get('score_value'),
             'eval_time(sec)': "{0:.2f}".format(trial.get('raw_data').get('evaluation_time')),
             'id': trial.get('id'),
-            'score_name': trial.get('score_name'),
             'algorithm_name': trial.get('raw_data').get('algorithm_name')
         })
 
-    leaderboard.sort(key=lambda t: t['score_value'], reverse=True)
+    leaderboard.sort(key=lambda t: t[trial.get('score_name')], reverse=True)
 
     exp_session = read_experiment_session(ctx, experiment_session_id)
     #print(exp_session.get('model_settings', {}).keys())

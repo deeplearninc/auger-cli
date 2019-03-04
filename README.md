@@ -73,6 +73,18 @@ Note you can login to a different Auger hub instance by passing the `--url` argu
 auger auth login --url https://test-instance.auger.ai
 ```
 
+To get current login information:
+
+```sh
+auger auth whoami
+```
+
+To logout:
+
+```sh
+auger auth logout
+```
+
 ## Organizations
 
 Organization allocates S3 bucket where all data can be stored between cluster runs.
@@ -149,6 +161,8 @@ project: evgeny-fast
 
 cluster:
   worker_count : 2
+
+  # Supported instances types you can get with `auger instances`
   instance_type: c5.large
   kubernetes_stack: experimental
   # workers_per_node_count: -1
@@ -177,6 +191,15 @@ Display leaderboard from last run:
 auger experiments leaderboard
 ```
 
+To export model locally:
+```sh
+auger experiments export_model -t <trial id>
+```
+
+Trial ID to export model for the last experiment session, if missed best trial used.
+
+Model zip file will be downloaded into models folder. Unzip it and see readme file inside how to use it.
+
 Display information about experiment:
 ```sh
 auger experiments show
@@ -184,20 +207,9 @@ auger experiments show
 
 ## Clusters
 
-Create cluster:
+To display cluster information.
 ```sh
-auger clusters create \
-  --organization-id <org id> \
-  --worker-count <count> \
-  --instance-type <instance-type>
-  <cluster name>
-```
-
-Supported instances types you can get with `auger instances`
-
-To open cluster system dashboard use:
-```sh
-auger clusters dashboard <cluster id>
+auger clusters show <cluster id>
 ```
 
 To terminate cluster. It will free all paid AWS resources related with this cluster.
@@ -207,16 +219,40 @@ auger clusters delete <cluster id>
 
 ## Projects
 
-Create project:
+To display project information.
+```sh
+auger projects show -p <project name>
+```
+
+To open project in web browser:
+```sh
+auger projects open_project -p <project name>
+```
+
+To download file from project cluster:
+```sh
+auger projects download_file <remote path> -l <local path> -p <project name>
+```
+
+Remote path may be full path or relative path on cluster. For examble: files/iris_data_sample.csv
+
+Local path is optional, by default file will be downloaded to 'files' folder in current directory
+
+Project name is optional, if missed project name will be retrieve from auger_experiment.yml
+
+To read project log:
+```sh
+auger project logs <project_id>
+```
+
+To Create project:
 ```sh
 auger project create --project <project name> --organization-id <organization id>
 ```
 
 The project name must be unique within the organization. This means that a project can be deployed to a cluster, the cluster can be terminated, and the project can be deployed to another one. **NOTE:** If you delete the project, another project with the same name can be used.
 
-Deploy project:
+To delete project:
 ```sh
-auger projects create --project <project name> --cluster-id <cluster-id>
+auger projects delete -p <project name>
 ```
-
-Deploy uses files from `.auger` folder. From `.auger/service.yml` it takes project definition.

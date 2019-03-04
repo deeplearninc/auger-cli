@@ -80,14 +80,34 @@ def delete(ctx, project):
     default="files",
     help='Name of the project to delete.'
 )
+@click.option(
+    '--project',
+    '-p',
+    type=click.STRING,
+    required=False,
+    default=None,
+    help='Name of the project to delete.'
+)
 @pass_client
-def download_file(ctx, remote_path, local_path):
-    config = AugerConfig()
-    download_project_file(ctx, config.get_project_id(), remote_path, local_path)
+def download_file(ctx, remote_path, local_path, project):
+    if project is None:
+        config = AugerConfig()
+        project_id = config.get_project_id()
+    else:
+        project_id = read_project(ctx, project).get('id')
+
+    download_project_file(ctx, project_id, remote_path, local_path)
 
 
 @click.command(short_help='Display project logs.')
-@click.argument('project_id')
+@click.option(
+    '--project',
+    '-p',
+    type=click.STRING,
+    required=False,
+    default=None,
+    help='Name of the project to delete.'
+)
 @click.option(
     '--tail',
     '-t',
@@ -96,7 +116,13 @@ def download_file(ctx, remote_path, local_path):
     help='Stream logs to console.'
 )
 @pass_client
-def logs(ctx, project_id, tail):
+def logs(ctx, project, tail):
+    if project is None:
+        config = AugerConfig()
+        project_id = config.get_project_id()
+    else:
+        project_id = read_project(ctx, project).get('id')
+    
     if tail:
         params = {
             'id': project_id
