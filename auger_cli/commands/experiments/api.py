@@ -229,12 +229,12 @@ def export_model_experiment(ctx, trial_id):
 
         trial_id = res[0]['id']
 
-    config = AugerConfig()
-    project_id = config.get_project_id()
-    experiment_id, experiment_name = config.get_experiment()
+    ctx.config = AugerConfig()
+    project_id = start_project(ctx, create_if_not_exist= False)
+    experiment_id, experiment_name = ctx.config.get_experiment()
 
     task_args = {
-        'augerInfo': {'experiment_id': experiment_id, 'experiment_session_id': config.get_experiment_session_id()},
+        'augerInfo': {'experiment_id': experiment_id, 'experiment_session_id': ctx.config.get_experiment_session_id()},
         "export_model_uid": trial_id,
         "language": 'python'
     }
