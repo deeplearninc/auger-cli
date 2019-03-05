@@ -140,6 +140,7 @@ def start_project(ctx, create_if_not_exist=False, project_id=None):
             worker_count=ctx.config.get_cluster_settings()['worker_count'],
             instance_type=ctx.config.get_cluster_settings()['instance_type'],
             kubernetes_stack=ctx.config.get_cluster_settings()['kubernetes_stack'],
+            autoterminate_minutes=ctx.config.get_cluster_settings()['autoterminate_minutes'],
             wait=True
         )
 

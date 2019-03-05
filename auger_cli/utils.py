@@ -35,6 +35,8 @@ def request_list(auger_client, what, params):
                 [what, 'list'],
                 params=p
             )
+        #print(response['data'][0].keys())
+
         for item in response['data']:
             yield item
         assert offset == int(response['meta']['pagination']['offset'])
@@ -108,6 +110,17 @@ def create_parent_folder(path):
 
     try:
         os.makedirs(parent)
+    except OSError:
+        pass
+
+def remove_file(path, wild=False):
+    try:
+
+        if wild:
+            for fl in glob.glob(path):
+                os.remove(fl)
+        else:
+            os.remove(path)
     except OSError:
         pass
 

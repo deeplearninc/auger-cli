@@ -129,6 +129,17 @@ def monitor_leaderboard(ctx, name):
 def export_model(ctx, trial_id):
     export_model_experiment(ctx, trial_id)
 
+@click.command()
+@click.option(
+    '--trial-id',
+    '-t',
+    default=None,
+    help='Trial ID to deploy model for the last experiment session, if missed best trial used.'
+)
+@pass_client
+def deploy_model(ctx, trial_id):
+    export_model_experiment(ctx, trial_id, deploy=True)
+
 experiments_group.add_command(create)
 experiments_group.add_command(show)
 experiments_group.add_command(delete)
@@ -137,4 +148,5 @@ experiments_group.add_command(run)
 experiments_group.add_command(stop)
 experiments_group.add_command(leaderboard)
 experiments_group.add_command(export_model)
-experiments_group.add_command(monitor_leaderboard)
+experiments_group.add_command(deploy_model)
+#experiments_group.add_command(monitor_leaderboard)

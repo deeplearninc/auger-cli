@@ -2,16 +2,16 @@
 #organization: auger
 # organization_id: 42
 
-#project: evgeny-fast
+project: evgeny-fast-new
 # project_id: 271
 
 # experiment: iris
 
-# cluster:
-#   worker_count : 2
-#   instance_type: c5.large
-#   kubernetes_stack: experimental
-#   # automatic_termination: "1 Hour"
+cluster:
+  worker_count : 2
+  instance_type: c5.large
+  kubernetes_stack: experimental
+  autoterminate_minutes: 30
 
 evaluation_options:
   data_path: files/iris_data_sample.csv

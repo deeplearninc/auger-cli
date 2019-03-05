@@ -3,7 +3,7 @@ import os
 import io
 
 from .formatter import print_line
-
+from .utils import remove_file
 
 class AugerConfig(object):
     def __init__(self):
@@ -54,7 +54,7 @@ class AugerConfig(object):
             yaml.dump(result, outfile)
 
     def delete_session_file(self):
-        os.remove(".auger_experiment_session.yml")
+        remove_file(".auger_experiment_session.yml")
         self.config_session = {}
 
     def get_experiment_session_id(self):
@@ -66,5 +66,5 @@ class AugerConfig(object):
             "worker_count" : cluster.get('worker_count', 2),
             "instance_type": cluster.get('instance_type', 'c5.large'),
             "kubernetes_stack": cluster.get('kubernetes_stack', 'stable'),
-            "automatic_termination": cluster.get('automatic_termination', "1 Hour")
+            "autoterminate_minutes": cluster.get('autoterminate_minutes', 30)
         }    

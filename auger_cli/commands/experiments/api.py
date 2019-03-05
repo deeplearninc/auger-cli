@@ -218,7 +218,7 @@ def read_leaderboard_experiment(ctx):
     return leaderboard, info
 
 
-def export_model_experiment(ctx, trial_id):
+def export_model_experiment(ctx, trial_id, deploy=False):
     if trial_id is None:
         res, info = read_leaderboard_experiment(ctx)
         if len(res) == 0:
@@ -235,16 +235,30 @@ def export_model_experiment(ctx, trial_id):
 
     task_args = {
         'augerInfo': {'experiment_id': experiment_id, 'experiment_session_id': ctx.config.get_experiment_session_id()},
-        "export_model_uid": trial_id,
-        "language": 'python'
+        "export_model_uid": trial_id
     }
 
-    model_path = create_cluster_task_ex(ctx, project_id,
-                                        "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args
-                                        )
-    print(model_path)
-
-    download_project_file(ctx, project_id, model_path, "models")
+    if deploy:
+        create_cluster_task_ex(ctx, project_id,
+                                            "auger_ml.tasks_queue.tasks.promote_pipeline_task", task_args
+                                            )
+        print("Waiting for deploy of pipeline: %s"%trial_id)
+        wait_for_task_result(
+            auger_client=ctx,
+            endpoint=['pipelines', 'read'],
+            params={'id': trial_id, 'experiment_session_id': ctx.config.get_experiment_session_id()},
+            first_status='creating_files',
+            progress_statuses=[
+                'creating_files', 'packaging', 'deploying'
+            ],
+            poll_interval=10
+        )
+    else:    
+        model_path = create_cluster_task_ex(ctx, project_id,
+                                            "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args
+                                            )
+        print(model_path)
+        download_project_file(ctx, project_id, model_path, "models")
 
 
 def monitor_leaderboard_experiment(ctx, name):

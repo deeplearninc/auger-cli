@@ -51,14 +51,15 @@ class CreateResult(object):
 
 def create_cluster(
         auger_client, organization_id, project_id,
-        worker_count, instance_type, kubernetes_stack, wait):
+        worker_count, instance_type, kubernetes_stack, autoterminate_minutes, wait):
     with auger_client.coreapi_action():
         params={
             'organization_id': organization_id,
             'project_id': project_id,
             'worker_nodes_count': worker_count,
             'instance_type': instance_type,
-            'kubernetes_stack': kubernetes_stack
+            'kubernetes_stack': kubernetes_stack,
+            'autoterminate_minutes': autoterminate_minutes
         }
         cluster = auger_client.client.action(
             auger_client.document,

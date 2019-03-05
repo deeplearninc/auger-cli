@@ -10,6 +10,7 @@ from auger_cli.commands.help.cli import help_group
 from auger_cli.commands.instances.cli import instances_group
 from auger_cli.commands.orgs.cli import orgs_group
 from auger_cli.commands.projects.cli import projects_group
+from auger_cli.commands.pipelines.cli import pipelines_group
 from auger_cli.commands.experiments.cli import experiments_group
 from auger_cli.commands.experiment_sessions.cli import experiment_sessions_group
 from auger_cli.commands.trials.cli import trials_group
@@ -27,6 +28,7 @@ COMMANDS = {
     'projects':  projects_group,
     'experiments':  experiments_group,
     'experiment_sessions':  experiment_sessions_group,
+    'pipelines':  pipelines_group,
     'trials':    trials_group,
     'schema':    schema_group,
 }
