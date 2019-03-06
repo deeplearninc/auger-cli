@@ -143,3 +143,73 @@ def shell_call(args, input_string='', silent=False):
             shell=True,
             stderr=subprocess.STDOUT
         )
+
+def save_dict_to_csv(data, predict_path):
+    import pandas as pd
+    
+    df_predict = pd.DataFrame.from_dict(data)
+    df_predict.to_csv(predict_path, index=False, encoding='utf-8')
+
+def load_dataframe_from_file(path, features=None, nrows=None):
+    import pandas as pd
+
+    extension = path
+    data_compression = 'infer' #self.options.get('data_compression', 'infer')
+    # if len(self.options.get('data_extension', '')) > 0:
+    #     extension = self.options['data_extension']
+
+    # if extension.endswith('.arff') or extension.endswith('.arff.gz'):
+    #     #TODO: support nrows  in arff
+    #     try:
+    #         with FSClient().open(path, 'r') as f:
+    #             arff_data = arff.load(f, return_type=arff.COO)
+
+    #         convert_arff = DataSourceAPIPandas._convert_arff_coo
+    #     except arff.BadLayout:
+    #         with FSClient().open(path, 'r') as f:
+    #             arff_data = arff.load(f, return_type=arff.DENSE)
+
+    #         convert_arff = DataSourceAPIPandas._convert_arff_dense
+
+    #     columns = [a[0] for a in arff_data['attributes']]
+    #     series = convert_arff(features, columns, arff_data['data'])
+
+    #     return pd.DataFrame.from_dict(collections.OrderedDict(
+    #         (c, s) for c, s in itertools.izip(columns, series) if s is not None
+    #     ))
+    # elif extension.endswith('.pkl') or extension.endswith('.pkl.gz'):
+    #     #TODO: support nrows  in pkl file
+    #     return self.loadFromBinFile(path, features)
+
+    csv_with_header = True #self.options.get('csv_with_header', True)
+    header = 0 if csv_with_header else None
+    prefix = None if csv_with_header else 'c'
+
+    try:
+        return pd.read_csv(
+            path,
+            encoding='utf-8',
+            escapechar="\\",
+            usecols=features,
+            na_values=['?'],
+            header=header,
+            prefix=prefix,
+            sep = ',',
+            nrows=nrows,
+            low_memory=False,
+            compression=data_compression
+        )
+    except Exception as e:
+        return pd.read_csv(
+            path,
+            encoding='utf-8',
+            escapechar="\\",
+            usecols=features,
+            na_values=['?'],
+            header=header,
+            prefix=prefix,
+            sep = '|',
+            nrows=nrows,
+            low_memory=False,
+            compression=data_compression
+        )

@@ -3,7 +3,7 @@ import os
 import click
 
 from ...formatter import print_line, print_record, wait_for_task_result
-from ...utils import request_list, get_uid
+from ...utils import request_list, get_uid, load_dataframe_from_file, save_dict_to_csv
 from ...auger_config import AugerConfig
 from ...constants import REQUEST_LIMIT
 
@@ -275,21 +275,15 @@ def predict_experiment(ctx, pipeline_id, trial_id, file):
     if pipeline_id is None:
         pipeline_id = export_model_experiment(ctx, trial_id, deploy=True)
 
-    import csv
-    header = None
-    data = []
-    with open(file, newline='') as csvfile:
-        reader = csv.reader(csvfile)
-        for row in reader:
-            if header is None:
-                header = row
-            else:
-                data.append(row)
+    df = load_dataframe_from_file(file)
 
-
-    prediction_id = create_prediction(ctx, pipeline_id, data, header)
+    prediction_id = create_prediction(ctx, pipeline_id, df.values.tolist(), df.columns.get_values().tolist())
     result = read_prediction(ctx, prediction_id)
-    print(result)
 
+    predict_path = os.path.splitext(file)[0] + "_predicted.csv"
+    save_dict_to_csv(result.get('result', {}), predict_path)
+
+    print("Predcition result saved to file: %s"%predict_path)
+    
 def monitor_leaderboard_experiment(ctx, name):
     pass
