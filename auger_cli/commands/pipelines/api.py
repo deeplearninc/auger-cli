@@ -25,13 +25,13 @@ def list_pipelines(ctx, organization_id, experiment_id, active):
         )
 
 
-def read_pipeline(auger_client, pipeline_id, experiment_session_id, attributes=None):
+def read_pipeline(auger_client, pipeline_id, attributes=None):
     result = {}
     with auger_client.coreapi_action():
         result = auger_client.client.action(
             auger_client.document,
             ['pipelines', 'read'],
-            params={'id': pipeline_id, 'experiment_session_id': experiment_session_id}
+            params={'id': pipeline_id}
         )['data']
         #print(result.keys())
 

@@ -51,9 +51,8 @@ def pipelines_group(ctx, organization_id, experiment_id, active):
 
 @click.command(short_help='Display pipeline details.')
 @click.argument('pipeline_id')
-@click.argument('experiment_session_id')
 @pass_client
-def show(ctx, pipeline_id, experiment_session_id):
-    print_record(read_pipeline(ctx, pipeline_id, experiment_session_id), pipeline_attributes)
+def show(ctx, pipeline_id):
+    print_record(read_pipeline(ctx, pipeline_id), pipeline_attributes)
 
 pipelines_group.add_command(show)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ...formatter import command_progress_bar, print_record, print_line
+from ...formatter import command_progress_bar, print_record, print_line, wait_for_task_result
 from ...utils import request_list
 
 prediction_attributes = [

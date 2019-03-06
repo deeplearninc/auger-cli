@@ -251,7 +251,7 @@ def export_model_experiment(ctx, trial_id, deploy=False):
         wait_for_task_result(
             auger_client=ctx,
             endpoint=['pipelines', 'read'],
-            params={'id': trial_id, 'experiment_session_id': ctx.config.get_experiment_session_id()},
+            params={'id': trial_id},
             first_status='creating_files',
             progress_statuses=[
                 'creating_files', 'packaging', 'deploying'
@@ -288,7 +288,7 @@ def predict_experiment(ctx, pipeline_id, trial_id, file):
 
 
     prediction_id = create_prediction(ctx, pipeline_id, data, header)
-    result = read_prediction(prediction_id)
+    result = read_prediction(ctx, prediction_id)
     print(result)
 
 def monitor_leaderboard_experiment(ctx, name):
