@@ -3,7 +3,6 @@
 from ...formatter import command_progress_bar, print_record, print_line
 from ...utils import request_list
 
-
 prediction_attributes = [
     'id', 'status'
 ]
@@ -34,7 +33,7 @@ def create_prediction(auger_client, pipeline_id, records, features, wait=True):
         prediction = auger_client.client.action(
             auger_client.document,
             ['predictions', 'create'],
-            params= params
+            params= {'payload': params}, encoding='application/json', validate=False
         )['data']
         print(prediction)
 

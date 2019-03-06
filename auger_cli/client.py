@@ -72,8 +72,8 @@ class Client(object):
         self.headers = self.coreapi_cli.get_headers()
 
         def test_callback(res):
-            pass
-            #print(res.url)
+            #pass
+            print(res.url)
 
         self.transports = coreapi.transports.HTTPTransport(
             credentials=self.credentials,
