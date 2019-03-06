@@ -48,6 +48,7 @@ setup(
         'coreapi==2.1.1',
         'coreapi-cli==1.0.6',
         'openapi-codec==1.2.1',
+        'pandas==0.24.1',
         'ruamel.yaml'
     ],
     setup_requires=[
