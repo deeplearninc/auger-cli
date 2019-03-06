@@ -28,6 +28,10 @@ from ..experiment_sessions.api import (
     experiment_session_attributes
 )
 from ..clusters.api import read_cluster, cluster_attributes
+from ..predictions.api import (
+    read_prediction,
+    create_prediction
+)
 
 experiment_attributes = ['id', 'name',
                          'project_id', 'project_file_id', 'session', 'cluster' ]
@@ -253,6 +257,8 @@ def export_model_experiment(ctx, trial_id, deploy=False):
             ],
             poll_interval=10
         )
+
+        return trial_id
     else:    
         model_path = create_cluster_task_ex(ctx, project_id,
                                             "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args
@@ -260,6 +266,29 @@ def export_model_experiment(ctx, trial_id, deploy=False):
         print(model_path)
         download_project_file(ctx, project_id, model_path, "models")
 
+
+    return None
+
+
+def predict_experiment(ctx, pipeline_id, trial_id, file):
+    if pipeline_id is None:
+        pipeline_id = export_model_experiment(ctx, trial_id, deploy=True)
+
+    import csv
+    header = None
+    data = []
+    with open(file, newline='') as csvfile:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            if header is None:
+                header = row
+            else:
+                data.append(row)
+
+
+    prediction_id = create_prediction(ctx, pipeline_id, data, header)
+    result = read_prediction(prediction_id)
+    print(result)
 
 def monitor_leaderboard_experiment(ctx, name):
     pass

@@ -203,6 +203,22 @@ Trial ID to export model for the last experiment session, if missed best trial u
 
 Model zip file will be downloaded into models folder. Unzip it and see readme file inside how to use it.
 
+To deploy model to Auger HUB:
+```sh
+auger experiments deploy_model -t <trial id>
+```
+
+Trial ID to export model for the last experiment session, if missed best trial used.
+
+To call predict using deployed model:
+```sh
+auger experiments predict -p <pipeline id> -t <trial id> -f <csv file path>
+```
+
+Pipeline ID is optional, if missed model with trial id will be automatically deployed
+Trial ID to export model for the last experiment session, if missed best trial used.
+CSV file path should point to local file with data for predcition
+
 Display information about experiment:
 ```sh
 auger experiments show
