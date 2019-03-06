@@ -36,7 +36,7 @@ def request_list(auger_client, what, params):
                 params=p
             )
         #print(response['meta'])    
-        print(response['data'][0].keys())
+        #print(response['data'][0].keys())
 
         for item in response['data']:
             yield item
