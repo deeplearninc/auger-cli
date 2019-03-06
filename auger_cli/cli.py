@@ -10,9 +10,11 @@ from auger_cli.commands.help.cli import help_group
 from auger_cli.commands.instances.cli import instances_group
 from auger_cli.commands.orgs.cli import orgs_group
 from auger_cli.commands.projects.cli import projects_group
+from auger_cli.commands.pipelines.cli import pipelines_group
+from auger_cli.commands.experiments.cli import experiments_group
+from auger_cli.commands.experiment_sessions.cli import experiment_sessions_group
+from auger_cli.commands.trials.cli import trials_group
 from auger_cli.commands.schema.cli import schema_group
-from auger_cli.commands.start.cli import start_group
-from auger_cli.commands.stop.cli import stop_group
 from auger_cli.commands.cluster_tasks.cli import cluster_tasks_group
 
 CONTEXT_SETTINGS = dict(auto_envvar_prefix='AUGER')
@@ -24,9 +26,11 @@ COMMANDS = {
     'instances': instances_group,
     'orgs':      orgs_group,
     'projects':  projects_group,
+    'experiments':  experiments_group,
+    'experiment_sessions':  experiment_sessions_group,
+    'pipelines':  pipelines_group,
+    'trials':    trials_group,
     'schema':    schema_group,
-    'start':     start_group,
-    'stop':      stop_group
 }
 
 

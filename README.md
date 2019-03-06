@@ -4,6 +4,8 @@
 
 A command line tool for the [Auger AI platform](https://auger.ai).
 
+Please create account and organization to start working with CLI.
+
 # Installation
 
 ```sh
@@ -33,15 +35,14 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  auth       Authentication with Auger.
-  clusters   Manage Auger Clusters.
+  auth        Authentication with Auger.
+  experiments Manage Auger Experiments.
+  orgs        Manage Auger Organizations.
   help
-  instances  Display available instance types for clusters.
-  orgs       Manage Auger Organizations.
-  projects   Manage Auger Projects.
-  schema     Display current Auger schema.
-  start      Start project.
-  stop       Stop project.
+  instances   Display available instance types for clusters.
+  clusters    Manage Auger Clusters.
+  projects    Manage Auger Projects.
+  schema      Display current Auger schema.
 
 ```
 
@@ -72,6 +73,17 @@ Note you can login to a different Auger hub instance by passing the `--url` argu
 auger auth login --url https://test-instance.auger.ai
 ```
 
+To get current login information:
+
+```sh
+auger auth whoami
+```
+
+To logout:
+
+```sh
+auger auth logout
+```
 
 ## Organizations
 
@@ -82,125 +94,144 @@ To start using it you should be a member of any organization, check it with:
 auger orgs
 ```
 
-or create your own organization:
-```sh
-auger orgs create --access-key="<AWS acess key>" --secret-key="<AWS secret key>" <organization name>
+To create your own organization go to https://auger.ai:
+
+## Experiments
+### Experiment definition
+To start working with Auger experiment create folder with experiment name and place file 'auger_experiment.yml' there. This file contain definition of experiment.
+
+For more details see https://docs.auger.ai/docs/experiments/evaluation-options
+
+auger_experiment.yml mandatory fields:
+```yml
+evaluation_options:
+  # Path to file with data. May be URL or path in project files folder 
+  data_path: files/iris_data_sample.csv
+
+  # List of features from data file to be used to evaluate ML models
+  featureColumns:
+  - sepal_length
+  - sepal_width
+  - petal_length
+  - petal_width
+
+  # Target feature to build ML model for
+  targetFeature: class
+
+  # If some of your features are strings, add them to the categoricals, so they will be one-hot encoded
+  categoricalFeatures:
+  - class
+
+  # If you want some categoricals whould be hashed instead of one-hot encoded add them to label encoded list
+  labelEncodingFeatures: []
+
+  # List of features of datetime type
+  datetimeFeatures: []
+
+  # Define type of ML models. true for 'classification', false for 'regression'
+  classification: true
+
+  # If target has two unique values, set it to true 
+  binaryClassification: false
+
+  # Score used to optimize ML model.
+  # Supported scores for classification: accuracy, f1_macro, f1_micro, f1_weighted, neg_log_loss, precision_macro, precision_micro, precision_weighted, recall_macro, recall_micro, recall_weighted
+  # Supported scores for binary classification: accuracy, average_precision, f1, f1_macro, f1_micro, f1_weighted, neg_log_loss, precision, precision_macro, precision_micro, precision_weighted, recall, recall_macro, recall_micro, recall_weighted, roc_auc, cohen_kappa_score, matthews_corrcoef
+  # Supported scores for regression: explained_variance, neg_median_absolute_error, neg_mean_absolute_error, neg_mean_squared_error, neg_mean_squared_log_error, r2, neg_rmsle, neg_mase, mda, neg_rmse
+
+  scoring: accuracy
+
+  # Number of K-folds: is a cross validation technique for splitting data into train/test
+  crossValidationFolds: 5
+
+  # Max Total Time Minutes, the maximum time in minutes an entire training can run for before it is stopped.
+  max_total_time_mins: 60
+
+  # Max Trial Time Minutes, this is the maximum time in minutes an individual trial can run before it is stopped.
+  max_eval_time_mins: 1
+
+  # Max Trials, this is the maximum number of trials to be run before training stops.
+  max_n_trials: 10
+
+  # Build ensembles models after plain models completed. See : https://docs.auger.ai/docs/machine-learning/ensembles 
+  use_ensemble: true  
 ```
 
-AWS key pair should have the following statements:
-```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:ListAllMyBuckets",
-                "s3:ListBucketVersions"
-            ],
-            "Resource": "arn:aws:s3:::*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "ec2:AssociateDhcpOptions",
-                "ec2:AssociateRouteTable",
-                "ec2:AttachInternetGateway",
-                "ec2:AttachVolume",
-                "ec2:AuthorizeSecurityGroupIngress",
-                "ec2:CreateDhcpOptions",
-                "ec2:CreateInternetGateway",
-                "ec2:CreateKeyPair",
-                "ec2:CreateRoute",
-                "ec2:CreateSecurityGroup",
-                "ec2:CreateSubnet",
-                "ec2:CreateTags",
-                "ec2:CreateVolume",
-                "ec2:CreateVpc",
-                "ec2:DeleteInternetGateway",
-                "ec2:DeleteKeyPair",
-                "ec2:DeleteRoute",
-                "ec2:DeleteRouteTable",
-                "ec2:DeleteSecurityGroup",
-                "ec2:DeleteSubnet",
-                "ec2:DeleteVolume",
-                "ec2:DeleteVpc",
-                "ec2:DescribeAvailabilityZones",
-                "ec2:DescribeInstanceStatus",
-                "ec2:DescribeInstances",
-                "ec2:DescribeRouteTables",
-                "ec2:DescribeSecurityGroups",
-                "ec2:DescribeSubnets",
-                "ec2:DescribeVolumes",
-                "ec2:DescribeVpcs",
-                "ec2:DetachInternetGateway",
-                "ec2:ModifyVpcAttribute",
-                "ec2:RevokeSecurityGroupIngress",
-                "ec2:RunInstances",
-                "ec2:TerminateInstances"
-            ],
-            "Condition": {
-                "StringEquals": {
-                    "ec2:Region": [
-                        "us-west-1",
-                        "us-west-2"
-                    ]
-                }
-            },
-            "Resource": [
-                "*"
-            ]
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:*"
-            ],
-            "Resource": [
-                "arn:aws:s3:::auger-*"
-            ]
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "iam:AttachUserPolicy",
-                "iam:CreateAccessKey",
-                "iam:CreateUser",
-                "iam:DeleteAccessKey",
-                "iam:DeleteUser",
-                "iam:DeleteUserPolicy",
-                "iam:DetachUserPolicy",
-                "iam:ListAccessKeys",
-                "iam:ListAttachedUserPolicies",
-                "iam:ListGroupsForUser",
-                "iam:ListUserPolicies",
-                "iam:PutUserPolicy",
-                "iam:RemoveUserFromGroup"
-            ],
-            "Resource": [
-                "arn:aws:iam:::user/vault-*"
-            ]
-        }
-    ]
-}
+auger_experiment.yml optional fields:
+```yml
+organization: auger
+project: evgeny-fast
+
+cluster:
+  worker_count : 2
+
+  # Supported instances types you can get with `auger instances`
+  instance_type: c5.large
+
+  # Number of workers per computer node. Setting it lower then CPU count, increase amoutn of memory available for worker
+  workers_per_node_count: -1
+
+  # Cluster will be terminated after period of inactivity
+  autoterminate_minutes: 30
+
+evaluation_options:
+  data_extension: ".csv"
+  data_compression: gzip
+
+  optimizers_names: []
+  splitOptions: {}
+  oversampling: {}
+  search_space: 
+  use_ensemble: true
+  preprocessors: {}
+
+```
+
+Run experiment:
+```sh
+auger experiments run
+```
+
+Display leaderboard from last run:
+```sh
+auger experiments leaderboard
+```
+
+To export model locally:
+```sh
+auger experiments export_model -t <trial id>
+```
+
+Trial ID to export model for the last experiment session, if missed best trial used.
+
+Model zip file will be downloaded into models folder. Unzip it and see readme file inside how to use it.
+
+To deploy model to Auger HUB:
+```sh
+auger experiments deploy_model -t <trial id>
+```
+
+Trial ID to export model for the last experiment session, if missed best trial used.
+
+To call predict using deployed model:
+```sh
+auger experiments predict -p <pipeline id> -t <trial id> -f <csv file path>
+```
+
+Pipeline ID is optional, if missed model with trial id will be automatically deployed
+Trial ID to export model for the last experiment session, if missed best trial used.
+CSV file path should point to local file with data for predcition
+
+Display information about experiment:
+```sh
+auger experiments show
 ```
 
 ## Clusters
 
-Create cluster:
+To display cluster information.
 ```sh
-auger clusters create \
-  --organization-id <org id> \
-  --worker-count <count> \
-  --instance-type <instance-type>
-  <cluster name>
-```
-
-Supported instances types you can get with `auger instances`
-
-To open cluster system dashboard use:
-```sh
-auger clusters dashboard <cluster id>
+auger clusters show <cluster id>
 ```
 
 To terminate cluster. It will free all paid AWS resources related with this cluster.
@@ -210,16 +241,40 @@ auger clusters delete <cluster id>
 
 ## Projects
 
-Create project:
+To display project information.
+```sh
+auger projects show -p <project name>
+```
+
+To open project in web browser:
+```sh
+auger projects open_project -p <project name>
+```
+
+To download file from project cluster:
+```sh
+auger projects download_file <remote path> -l <local path> -p <project name>
+```
+
+Remote path may be full path or relative path on cluster. For examble: files/iris_data_sample.csv
+
+Local path is optional, by default file will be downloaded to 'files' folder in current directory
+
+Project name is optional, if missed project name will be retrieve from auger_experiment.yml
+
+To read project log:
+```sh
+auger project logs <project_id>
+```
+
+To Create project:
 ```sh
 auger project create --project <project name> --organization-id <organization id>
 ```
 
 The project name must be unique within the organization. This means that a project can be deployed to a cluster, the cluster can be terminated, and the project can be deployed to another one. **NOTE:** If you delete the project, another project with the same name can be used.
 
-Deploy project:
+To delete project:
 ```sh
-auger projects create --project <project name> --cluster-id <cluster-id>
+auger projects delete -p <project name>
 ```
-
-Deploy uses files from `.auger` folder. From `.auger/service.yml` it takes project definition.

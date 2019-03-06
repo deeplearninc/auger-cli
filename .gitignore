@@ -41,3 +41,8 @@ docs/api/*
 docs/_build/*
 cover/*
 MANIFEST
+
+experiments/*/files
+experiments/*/models
+experiments/*/.*
+tests/fixtures/test_experiment/.*

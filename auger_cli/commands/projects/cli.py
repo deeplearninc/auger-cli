@@ -2,19 +2,22 @@
 
 import click
 
+from ...auger_config import AugerConfig
 from ...client import pass_client
 from ...formatter import (
     print_line,
     print_list,
-    print_stream
+    print_stream,
+    print_record
 )
 from .api import (
     project_attributes,
     list_projects,
     create_project,
     delete_project,
-    deploy_project,
-    launch_project_url
+    launch_project_url,
+    read_project,
+    download_project_file
 )
 
 
@@ -65,37 +68,35 @@ def delete(ctx, project):
     delete_project(ctx, project)
 
 
-@click.command(short_help='Deploy project to a cluster.')
+@click.command(
+    short_help='Download file from project. Path should be relative project path. For example: files/iris_data_sample.csv'
+)
+@click.argument('remote_path', required=True)
+@click.option(
+    '--local-path',
+    '-l',
+    type=click.STRING,
+    required=False,
+    default="files",
+    help='Name of the project to delete.'
+)
 @click.option(
     '--project',
     '-p',
     type=click.STRING,
-    required=True,
-    help='Name of the project to deploy.'
-)
-@click.option(
-    '--cluster-id',
-    '-c',
-    type=click.INT,
-    required=True,
-    help='Cluster the project will be deployed to.'
-)
-@click.option(
-    '--push-images/--skip-push',
-    default=True,
-    help='Upload local docker images defined in `.auger/`.'
-)
-@click.option(
-    '--wait/--no-wait',
-    '-w/',
-    default=False,
-    help='Wait for project to be ready.'
+    required=False,
+    default=None,
+    help='Name of the project to delete.'
 )
 @pass_client
-def deploy(ctx, project, cluster_id, push_images, wait):
-    ok = deploy_project(ctx, project, cluster_id, push_images, wait)
-    if ok is not None and not ok:
-        raise click.ClickException('Failed to deploy project.')
+def download_file(ctx, remote_path, local_path, project):
+    if project is None:
+        config = AugerConfig()
+        project_id = config.get_project_id()
+    else:
+        project_id = read_project(ctx, project).get('id')
+
+    download_project_file(ctx, project_id, remote_path, local_path)
 
 
 @click.command(short_help='Display project logs.')
@@ -103,8 +104,9 @@ def deploy(ctx, project, cluster_id, push_images, wait):
     '--project',
     '-p',
     type=click.STRING,
-    required=True,
-    help='Name of the project.'
+    required=False,
+    default=None,
+    help='Name of the project to delete.'
 )
 @click.option(
     '--tail',
@@ -115,9 +117,15 @@ def deploy(ctx, project, cluster_id, push_images, wait):
 )
 @pass_client
 def logs(ctx, project, tail):
+    if project is None:
+        config = AugerConfig()
+        project_id = config.get_project_id()
+    else:
+        project_id = read_project(ctx, project).get('id')
+    
     if tail:
         params = {
-            'name': project
+            'id': project_id
         }
         print_stream(ctx, params)
     else:
@@ -125,7 +133,7 @@ def logs(ctx, project, tail):
             ctx.document,
             ['projects', 'logs'],
             params={
-                'name': project
+                'id': project_id
             }
         )
         print_line(result)
@@ -143,27 +151,22 @@ def open_project(ctx, project):
     launch_project_url(ctx, project)
 
 
-@click.command(short_help='Undeploy an project from the cluster.')
+@click.command(short_help='Display project details.')
 @click.option(
     '--project',
     '-p',
     type=click.STRING,
     required=True,
-    help='Name of the project to undeploy.'
+    help='Name of the project to display.'
 )
 @pass_client
-def undeploy(ctx, project):
-    ctx.client.action(
-        ctx.document,
-        ['projects', 'undeploy'],
-        params={'name': project}
-    )
-    print_line('Undeployed {}.'.format(project))
-
+def show(ctx, project):
+    print_record(read_project(ctx, project), project_attributes)
 
 projects_group.add_command(create)
 projects_group.add_command(delete)
-projects_group.add_command(deploy)
 projects_group.add_command(logs)
 projects_group.add_command(open_project, name='open')
-projects_group.add_command(undeploy)
+projects_group.add_command(show)
+projects_group.add_command(download_file)
+

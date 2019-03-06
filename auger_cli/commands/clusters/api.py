@@ -1,28 +1,47 @@
 # -*- coding: utf-8 -*-
 
-from ...cluster_config import ClusterConfig
 from ...formatter import command_progress_bar, print_record, print_line
 from ...utils import request_list
 
 
 cluster_attributes = [
-    'name',
     'id',
-    'organization_id',
     'status',
-    'seconds_since_created',
-    'uptime_seconds',
+    'project_name',
     'worker_nodes_count',
-    'ip_address',
     'instance_type',
+    'total_memory_mb',
     'kubernetes_stack'
+    'name',
+    'organization_id',
+    'error_message',
+    'seconds_since_created',
+    # 'uptime_seconds',
+    # 'ip_address',
 ]
 
 
-def list_clusters(auger_client):
-    # request_list requires some limit and we use one big enough
-    return request_list(auger_client, 'clusters', params={'limit': 1000000000})
+def list_clusters(auger_client, organization_id=None):
+    if organization_id is not None:
+        return request_list(auger_client, 'clusters', params={'organization_id': organization_id})
+    else:    
+        return request_list(auger_client, 'clusters', params={})
 
+
+def read_cluster(auger_client, cluster_id, attributes=None):
+    result = {}
+    with auger_client.coreapi_action():
+        result = auger_client.client.action(
+            auger_client.document,
+            ['clusters', 'read'],
+            params={'id': cluster_id}
+        )['data']
+    
+    #print(result.keys()) 
+    if attributes:
+        result = {k: result[k] for k in attributes if k in result}
+
+    return result
 
 class CreateResult(object):
     def __init__(self, ok, cluster_id):
@@ -31,26 +50,24 @@ class CreateResult(object):
 
 
 def create_cluster(
-        auger_client, name, organization_id,
-        worker_count, instance_type, kubernetes_stack, wait):
+        auger_client, organization_id, project_id,
+        worker_count, instance_type, kubernetes_stack, autoterminate_minutes, wait):
     with auger_client.coreapi_action():
+        params={
+            'organization_id': organization_id,
+            'project_id': project_id,
+            'worker_nodes_count': worker_count,
+            'instance_type': instance_type,
+            'kubernetes_stack': kubernetes_stack,
+            'autoterminate_minutes': autoterminate_minutes
+        }
         cluster = auger_client.client.action(
             auger_client.document,
             ['clusters', 'create'],
-            params={
-                'name': name,
-                'organization_id': organization_id,
-                'worker_nodes_count': worker_count,
-                'instance_type': instance_type,
-                'kubernetes_stack': kubernetes_stack
-            }
+            params= params
         )['data']
-        ClusterConfig(
-            auger_client,
-            cluster_dict=cluster,
-            cluster_id=cluster['id']
-        )
         print_record(cluster, cluster_attributes)
+
         if wait:
             ok = command_progress_bar(
                 auger_client=auger_client,
@@ -60,7 +77,8 @@ def create_cluster(
                 progress_statuses=[
                     'waiting', 'provisioning', 'bootstrapping'
                 ],
-                desired_status='running'
+                desired_status='running',
+                poll_interval=10
             )
             return CreateResult(ok, cluster['id'])
 
@@ -85,5 +103,6 @@ def delete_cluster(auger_client, cluster_id, wait):
                     progress_statuses=[
                         'running', 'terminating'
                     ],
-                    desired_status='terminated'
+                    desired_status='terminated',
+                    poll_interval=10
                 )

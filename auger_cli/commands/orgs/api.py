@@ -2,19 +2,40 @@
 
 from ...formatter import print_line, print_record
 from ...utils import request_list
+from ...constants import REQUEST_LIMIT
 
 
 org_attributes = ['id', 'name', 'main_bucket', 'status']
 
 
 def list_orgs(ctx):
-    with ctx.obj.coreapi_action():
+    with ctx.coreapi_action():
         return request_list(
-            ctx.obj,
+            ctx,
             'organizations',
-            params={'limit': 1000000000}
+            params={}
         )
 
+def list_orgs_full(auger_client):
+    with auger_client.coreapi_action():
+        return auger_client.client.action(
+            auger_client.document,
+            ['organizations', 'list'],
+            params={'limit': REQUEST_LIMIT}
+        )['data']
+
+
+def read_org(auger_client, name):
+    with auger_client.coreapi_action():
+        res = auger_client.client.action(
+            auger_client.document,
+            ['organizations', 'list'],
+            params={'name': name, 'limit': REQUEST_LIMIT}
+        )['data']
+        if len(res) > 0:
+            return res[0]
+        
+        return {}
 
 def create_org(ctx, name, access_key, secret_key):
     params = {'name': name}
