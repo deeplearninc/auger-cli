@@ -102,7 +102,8 @@ To start working with Auger experiment create folder with experiment name and pl
 
 For more details see https://docs.auger.ai/docs/experiments/evaluation-options
 
-auger_experiment.yml mandatory fields:
+auger_experiment.yml fields:
+
 ```yml
 evaluation_options:
   # Path to file with data. May be URL or path in project files folder 
@@ -154,36 +155,40 @@ evaluation_options:
   max_n_trials: 10
 
   # Build ensembles models after plain models completed. See : https://docs.auger.ai/docs/machine-learning/ensembles 
-  use_ensemble: true  
-```
+  use_ensemble: true
 
-auger_experiment.yml optional fields:
-```yml
-organization: auger
-project: evgeny-fast
+  # OPTIONAL evaluation parameters  
+  #data_extension: ".csv"
+  #data_compression: gzip
 
+  #optimizers_names: []
+  #splitOptions: {}
+  #oversampling: {}
+  #search_space: 
+  #use_ensemble: true
+  #preprocessors: {}
+
+# OPTIONAL parameters  
+
+#Specify organization name, if you have more then one organization
+#organization: <organization name>
+
+#You may use one project/cluster for different experiments
+#project: <project name>
+
+# Cluster settings
 cluster:
-  worker_count : 2
+  # Number of nodes to run on cluster
+  #worker_count : 2
 
-  # Supported instances types you can get with `auger instances`
-  instance_type: c5.large
+  # To list available types call: `auger instances`
+#  instance_type: c5.large
 
   # Number of workers per computer node. Setting it lower then CPU count, increase amoutn of memory available for worker
-  workers_per_node_count: -1
+  # workers_per_node_count: 2
 
   # Cluster will be terminated after period of inactivity
-  autoterminate_minutes: 30
-
-evaluation_options:
-  data_extension: ".csv"
-  data_compression: gzip
-
-  optimizers_names: []
-  splitOptions: {}
-  oversampling: {}
-  search_space: 
-  use_ensemble: true
-  preprocessors: {}
+#  autoterminate_minutes: 30
 
 ```
 
