@@ -5,11 +5,13 @@ import click
 from ...client import pass_client
 from ...formatter import (
     print_list,
-    print_record
+    print_record,
+    print_table
 )
 
 from .api import (
     experiment_session_attributes,
+    experiment_session_list_attributes,
     list_experiment_sessions,
     read_experiment_session
 )
@@ -35,9 +37,9 @@ from .api import (
 @click.pass_context
 def experiment_sessions_group(ctx, project_id, experiment_id):
     if ctx.invoked_subcommand is None:
-        print_list(
-            list_data=list_experiment_sessions(ctx.obj, project_id, experiment_id),
-            attributes=experiment_session_attributes
+        print_table(
+            list_experiment_sessions(ctx.obj, project_id, experiment_id),
+            attributes=experiment_session_list_attributes
         )
     else:
         pass

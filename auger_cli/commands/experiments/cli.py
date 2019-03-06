@@ -104,9 +104,15 @@ def stop(ctx):
 
 
 @click.command()
+@click.option(
+    '--experiment-session-id',
+    '-e',
+    default=None,
+    help='Experiment session ID.'
+)
 @pass_client
-def leaderboard(ctx):
-    leaderboard, info = read_leaderboard_experiment(ctx)
+def leaderboard(ctx, experiment_session_id):
+    leaderboard, info = read_leaderboard_experiment(ctx, experiment_session_id)
     print_line("=======================================")
     print_header(info)
     print_table(leaderboard)

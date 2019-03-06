@@ -163,7 +163,7 @@ def start_project(ctx, create_if_not_exist=False, project_id=None):
 def download_project_file(ctx, project_id, remote_path, local_path):
     ctx.config = AugerConfig()
 
-    start_project(ctx, project_id=project_id)
+    project_id = start_project(ctx, project_id=project_id)
 
     s3_model_path = create_cluster_task_ex(ctx, project_id, 
         "pipeline_functions.packager.tasks.upload_file", remote_path

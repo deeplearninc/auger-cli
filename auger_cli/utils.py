@@ -26,7 +26,7 @@ def request_list(auger_client, what, params):
     offset = params.get('offset', 0)
     limit = params.get('limit', REQUEST_LIMIT)
     p = params.copy()
-    while limit >= 0:
+    while limit > 0:
         p['offset'] = offset
         p['limit'] = limit
         with auger_client.coreapi_action():
@@ -35,7 +35,8 @@ def request_list(auger_client, what, params):
                 [what, 'list'],
                 params=p
             )
-        #print(response['data'][0].keys())
+        #print(response['meta'])    
+        print(response['data'][0].keys())
 
         for item in response['data']:
             yield item

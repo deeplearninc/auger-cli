@@ -2,6 +2,7 @@ import json
 
 from ...utils import request_list
 from ...formatter import wait_for_task_result
+from ...auger_config import AugerConfig
 
 cluster_task_attributes = ['id', 'cluster_id', 'project_id',
                            'status', 'name', 'args', 'result', 'exception']
@@ -36,3 +37,13 @@ def create_cluster_task(auger_client, project_id, name, args, wait=True):
             ]
         )
     return result
+
+def run_cluster_task(ctx, wait):
+    from ..projects.api import start_project
+
+    ctx.config = AugerConfig()
+
+    project_id = start_project(ctx, create_if_not_exist=True)
+    cluster_task = ctx.config.get_cluster_task()
+
+    create_cluster_task_ex(ctx, project_id, cluster_task.get('name'), cluster_task.get('params'), wait)

@@ -6,6 +6,7 @@ from ...formatter import print_line, print_record
 from ...utils import request_list
 
 experiment_session_attributes = ['id', 'project_id', 'experiment_id', 'status', 'datasource_name', 'model_type']
+experiment_session_list_attributes = ['id', 'status', 'datasource_name', 'created_at', 'model_type']
 
 
 def list_experiment_sessions(ctx, project_id, experiment_id):
@@ -13,7 +14,7 @@ def list_experiment_sessions(ctx, project_id, experiment_id):
         return request_list(
             ctx,
             'experiment_sessions',
-            params={'project_id': project_id, 'experiment_id': experiment_id}
+            params={'project_id': project_id, 'experiment_id': experiment_id, 'limit': 10}
         )
 
 

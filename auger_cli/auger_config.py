@@ -51,7 +51,7 @@ class AugerConfig(object):
 
     def update_session_file(self, result):
         with io.open(".auger_experiment_session.yml", 'w', encoding='utf8') as outfile:
-            yaml.dump(result, outfile)
+            yaml.safe_dump(result, outfile, allow_unicode=False)
 
     def delete_session_file(self):
         remove_file(".auger_experiment_session.yml")
@@ -68,3 +68,6 @@ class AugerConfig(object):
             "kubernetes_stack": cluster.get('kubernetes_stack', 'stable'),
             "autoterminate_minutes": cluster.get('autoterminate_minutes', 30)
         }    
+
+    def get_cluster_task(self):
+        return self.config.get("cluster_task", {})

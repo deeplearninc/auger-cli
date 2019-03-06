@@ -153,7 +153,8 @@ def print_header(myDict):
 
     print_line(header)
         
-def print_table(myDict, colList=None):
+def print_table(myDict, attributes=None):
+    colList = attributes
     if not colList: 
         colList = list(myDict[0].keys() if myDict else [])
     myList = [colList] # 1st row = header

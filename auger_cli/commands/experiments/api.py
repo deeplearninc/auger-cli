@@ -191,11 +191,12 @@ def stop_experiment(ctx):
     )
 
 
-def read_leaderboard_experiment(ctx):
+def read_leaderboard_experiment(ctx, experiment_session_id):
     from collections import OrderedDict
 
     config = AugerConfig()
-    experiment_session_id = config.get_experiment_session_id()
+    if experiment_session_id is None:
+        experiment_session_id = config.get_experiment_session_id()
 
     trials = list_trials(ctx, experiment_session_id)
 

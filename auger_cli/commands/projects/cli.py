@@ -90,10 +90,8 @@ def delete(ctx, project):
 )
 @pass_client
 def download_file(ctx, remote_path, local_path, project):
-    if project is None:
-        config = AugerConfig()
-        project_id = config.get_project_id()
-    else:
+    project_id = None
+    if project:
         project_id = read_project(ctx, project).get('id')
 
     download_project_file(ctx, project_id, remote_path, local_path)

@@ -12,7 +12,8 @@ from .api import (
     cluster_task_attributes,
     list_cluster_tasks,
     create_cluster_task,
-    create_cluster_task_ex
+    create_cluster_task_ex,
+    run_cluster_task
 )
 
 
@@ -93,5 +94,18 @@ def create(ctx, project_id, taskname, taskargs, taskfile):
 
         print(result)
 
+@click.command(short_help='Run cluster task from auger_experiment.yml.')
+@click.option(
+    '--wait',
+    '-w',
+    type=click.BOOL,
+    is_flag=True,
+    help='Wait till task will be completed.'
+)
+@pass_client
+def run(ctx, wait):
+    run_cluster_task(ctx, wait)
+
 cluster_tasks_group.add_command(create)
 cluster_tasks_group.add_command(show)
+cluster_tasks_group.add_command(run)
