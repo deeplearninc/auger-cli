@@ -167,9 +167,12 @@ cluster:
 
   # Supported instances types you can get with `auger instances`
   instance_type: c5.large
-  kubernetes_stack: experimental
-  # workers_per_node_count: -1
-  # automatic_termination: "1 Hour"
+
+  # Number of workers per computer node. Setting it lower then CPU count, increase amoutn of memory available for worker
+  workers_per_node_count: -1
+
+  # Cluster will be terminated after period of inactivity
+  autoterminate_minutes: 30
 
 evaluation_options:
   data_extension: ".csv"
