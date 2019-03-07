@@ -29,28 +29,21 @@ def b64encode(input_string):
 def b64decode(input_string):
     return base64.b64decode(input_string).decode('ascii')
 
-def request_list(auger_client, what, params):
+def request_list(client, what, params):
     offset = params.get('offset', 0)
     limit = params.get('limit', REQUEST_LIMIT)
     p = params.copy()
     while limit > 0:
         p['offset'] = offset
         p['limit'] = limit
-        with auger_client.coreapi_action():
-            response = auger_client.client.action(
-                auger_client.document,
-                [what, 'list'],
-                params=p
-            )
+        response = client.call_hub_api( [what, 'list'], params=p)
         # print(response['meta'])
         # print(response['data'][0].keys())
 
         for item in response['data']:
             yield item
-        assert offset == int(response['meta']['pagination']['offset'])
+
         received = len(response['data'])
-        assert received == response['meta']['pagination']['count']
-        assert received <= limit
         offset += received
         limit -= received
         if offset >= response['meta']['pagination']['total']:

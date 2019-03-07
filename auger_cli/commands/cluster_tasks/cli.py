@@ -13,7 +13,8 @@ from .api import (
     list_cluster_tasks,
     create_cluster_task,
     create_cluster_task_ex,
-    run_cluster_task
+    run_cluster_task,
+    read_cluster_task
 )
 
 
@@ -32,7 +33,7 @@ from .api import (
 @click.pass_context
 def cluster_tasks_group(ctx, project_id):
     if ctx.invoked_subcommand is None:
-        with ctx.obj.coreapi_action():
+        with ctx.obj.cli_error_handler():
             print_list(
                 list_cluster_tasks(ctx.obj, project_id),
                 cluster_task_attributes
@@ -42,18 +43,10 @@ def cluster_tasks_group(ctx, project_id):
 @click.command(short_help='Display cluster task details.')
 @click.argument('cluster_task_id')
 @pass_client
-def show(ctx, cluster_task_id):
-    with ctx.coreapi_action():
-        cluster_data = ctx.client.action(
-            ctx.document,
-            ['cluster_tasks', 'read'],
-            params={
-                'id': cluster_task_id
-            }
-        )
-        print(cluster_data['data'])
-
-        print_record(cluster_data['data'], cluster_task_attributes)
+def show(client, cluster_task_id):
+    with client.cli_error_handler():
+        print_record(read_cluster_task(client, cluster_task_id),
+                     cluster_task_attributes)
 
 
 @click.command(short_help='Create a new cluster task.')
@@ -80,19 +73,21 @@ def show(ctx, cluster_task_id):
     required=False
 )
 @pass_client
-def create(ctx, project_id, taskname, taskargs, taskfile):
+def create(client, project_id, taskname, taskargs, taskfile):
     from importlib import import_module
 
-    with ctx.coreapi_action():
+    with client.cli_error_handler():
         if taskfile is not None:
             task_info_func = getattr(import_module(
                 taskfile), 'get_cluster_task_info')
             res = task_info_func()
-            result = create_cluster_task_ex(ctx, project_id, res[0], res[1])
-        else:    
-            result = create_cluster_task(ctx, project_id, taskname, taskargs)
+            result = create_cluster_task_ex(client, project_id, res[0], res[1])
+        else:
+            result = create_cluster_task(
+                client, project_id, taskname, taskargs)
 
-        print(result)
+        client.print_line(result)
+
 
 @click.command(short_help='Run cluster task from auger_experiment.yml.')
 @click.option(
@@ -103,8 +98,9 @@ def create(ctx, project_id, taskname, taskargs, taskfile):
     help='Wait till task will be completed.'
 )
 @pass_client
-def run(ctx, wait):
-    run_cluster_task(ctx, wait)
+def run(client, wait):
+    with client.cli_error_handler():
+        run_cluster_task(client, wait)
 
 cluster_tasks_group.add_command(create)
 cluster_tasks_group.add_command(show)

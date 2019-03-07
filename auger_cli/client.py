@@ -11,6 +11,7 @@ import json
 import os
 import shutil
 
+from .config import AugerConfig
 
 class AugerClient(object):
     def __init__(self, url=DEFAULT_COREAPI_URL):
@@ -79,6 +80,8 @@ class AugerClient(object):
 
         self.credentials = self.coreapi_cli.get_credentials()
         self.headers = self.coreapi_cli.get_headers()
+
+        self.config = AugerConfig()
 
         def test_callback(res):
             #pass

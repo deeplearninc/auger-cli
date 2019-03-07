@@ -7,22 +7,26 @@ from .utils import remove_file
 
 class AugerConfig(object):
     def __init__(self):
-        print_line('Loading {} from current directory ...'.format("auger_experiment.yml"))
-
-        with open("auger_experiment.yml", 'r') as stream:
-            self.config = yaml.safe_load(stream)
-
-        self.experiment_name = self.config.get("experiment")
-        if self.experiment_name is None:
-            self.experiment_name = os.path.basename(os.getcwd())
-            print_line('Experiment name taken from current directory name: {}'.format(self.experiment_name))
-        else:
-            print_line('Experiment name taken from auger_experiment.yml: {}'.format(self.experiment_name))
-
+        self.config = {}
         self.config_session = {}    
+        self.experiment_name = None
+
         if os.path.isfile(".auger_experiment_session.yml"):
-            with open(".auger_experiment_session.yml", 'r') as stream:
-                self.config_session = yaml.safe_load(stream)
+            print_line('Loading {} from current directory ...'.format("auger_experiment.yml"))
+
+            with open("auger_experiment.yml", 'r') as stream:
+                self.config = yaml.safe_load(stream)
+
+            self.experiment_name = self.config.get("experiment")
+            if self.experiment_name is None:
+                self.experiment_name = os.path.basename(os.getcwd())
+                print_line('Experiment name taken from current directory name: {}'.format(self.experiment_name))
+            else:
+                print_line('Experiment name taken from auger_experiment.yml: {}'.format(self.experiment_name))
+
+            if os.path.isfile(".auger_experiment_session.yml"):
+                with open(".auger_experiment_session.yml", 'r') as stream:
+                    self.config_session = yaml.safe_load(stream)
             
     def get_project_id(self):
         if self.config.get('project_id') is not None:

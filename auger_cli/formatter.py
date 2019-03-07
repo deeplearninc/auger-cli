@@ -23,11 +23,10 @@ def command_progress_bar(
         with click_spinner.spinner():
             while status == last_status:
                 time.sleep(poll_interval)
-                status = auger_client.client.action(
-                    auger_client.document,
-                    endpoint,
-                    params=params
-                )['data']['status']
+
+                result = auger_client.call_hub_api( endpoint, params=params ).get('data', {})
+                status = result.get('status', 'failure')
+
     print_line('{}.'.format(camelize(desired_status)))
     return status == desired_status
 
@@ -40,22 +39,19 @@ def wait_for_task_result(
     result = {}
     while status in progress_statuses:
         if status != last_status:
-            print_line('{}... '.format(camelize(status)))
+            auger_client.print_line('{}... '.format(camelize(status)))
             last_status = status
+
         with click_spinner.spinner():
             while status == last_status:
                 time.sleep(poll_interval)
-                result = auger_client.client.action(
-                    auger_client.document,
-                    endpoint,
-                    params=params
-                )['data']
 
-                status = result['status']
+                result = auger_client.call_hub_api( endpoint, params=params ).get('data', {})
+                status = result.get('status', 'failure')
     
-    print_line('{}... '.format(camelize(status)))
+    auger_client.print_line('{}... '.format(camelize(status)))
     if status == "failure":
-        raise click.ClickException('API call {}({}) failed: {}'.format(result.get('name', ""), result.get('args', ""), result.get("exception", "")))
+        raise Exception('API call {}({}) failed: {}'.format(result.get('name', ""), result.get('args', ""), result.get("exception", "")))
 
     return result.get('result')
 
