@@ -11,29 +11,8 @@ from .constants import API_POLL_INTERVAL
 from .utils import camelize
 
 
-def command_progress_bar(
-        auger_client, endpoint, params, first_status,
-        progress_statuses, desired_status, poll_interval=API_POLL_INTERVAL):
-    status = first_status
-    last_status = ''
-    while status in progress_statuses:
-        if status != last_status:
-            print_line('{}... '.format(camelize(status)))
-            last_status = status
-        with click_spinner.spinner():
-            while status == last_status:
-                time.sleep(poll_interval)
-
-                result = auger_client.call_hub_api( endpoint, params=params ).get('data', {})
-                status = result.get('status', 'failure')
-
-    print_line('{}.'.format(camelize(desired_status)))
-    return status == desired_status
-
-
-def wait_for_task_result(
-        auger_client, endpoint, params, first_status,
-        progress_statuses, poll_interval=API_POLL_INTERVAL):
+def wait_for_task(client, endpoint, params, first_status,
+                  progress_statuses, poll_interval=API_POLL_INTERVAL):
     status = first_status
     last_status = ''
     result = {}
@@ -46,14 +25,23 @@ def wait_for_task_result(
             while status == last_status:
                 time.sleep(poll_interval)
 
-                result = auger_client.call_hub_api( endpoint, params=params ).get('data', {})
+                result = auger_client.call_hub_api(endpoint, params=params)
                 status = result.get('status', 'failure')
-    
+
     auger_client.print_line('{}... '.format(camelize(status)))
     if status == "failure":
-        raise Exception('API call {}({}) failed: {}'.format(result.get('name', ""), result.get('args', ""), result.get("exception", "")))
+        raise Exception('API call {}({}) failed: {}'.format(result.get(
+            'name', ""), result.get('args', ""), result.get("exception", "")))
 
+    return result
+
+
+def wait_for_task_result(client, endpoint, params, first_status,
+                         progress_statuses, poll_interval=API_POLL_INTERVAL):
+    result = wait_for_task(client, endpoint, params,
+                           first_status, progress_statuses, poll_interval)
     return result.get('result')
+
 
 def print_list(list_data, attributes):
     for object_data in iter(list_data):
@@ -133,14 +121,16 @@ def string_for_attrib(attrib):
         items = []
         for k, v in attrib.items():
             if type(k) == str and k != 'object':
-                if isinstance(v, collections.OrderedDict) or isinstance(v, dict): 
-                    items.append('\n  {}: {}'.format(camelize(k), string_for_attrib(v)))
-                else:    
+                if isinstance(v, collections.OrderedDict) or isinstance(v, dict):
+                    items.append('\n  {}: {}'.format(
+                        camelize(k), string_for_attrib(v)))
+                else:
                     items.append('\n  {}: {}'.format(camelize(k), v))
 
         return ' '.join(items)
     else:
         return attrib
+
 
 def print_header(myDict):
     header = ""
@@ -148,24 +138,25 @@ def print_header(myDict):
         header += "{}:{}, ".format(key, value)
 
     print_line(header)
-        
+
+
 def print_table(myDict, attributes=None):
     colList = attributes
-    if not colList: 
+    if not colList:
         colList = list(myDict[0].keys() if myDict else [])
-    myList = [colList] # 1st row = header
-    for item in myDict: 
+    myList = [colList]  # 1st row = header
+    for item in myDict:
         myList.append([str(item[col] or '') for col in colList])
-    #maximun size of the col for each element
-    colSize = [max(map(len,col)) for col in zip(*myList)]
-    #insert seperating line before every line, and extra one for ending. 
-    for i in  range(0, len(myList)+1)[::-1]:
-         myList.insert(i, ['-' * i for i in colSize])
-    #two format for each content line and each seperating line
+    # maximun size of the col for each element
+    colSize = [max(map(len, col)) for col in zip(*myList)]
+    # insert seperating line before every line, and extra one for ending.
+    for i in range(0, len(myList) + 1)[::-1]:
+        myList.insert(i, ['-' * i for i in colSize])
+    # two format for each content line and each seperating line
     formatStr = ' | '.join(["{{:<{}}}".format(i) for i in colSize])
     formatSep = '-+-'.join(["{{:<{}}}".format(i) for i in colSize])
-    for item in myList: 
+    for item in myList:
         if item[0][0] == '-':
             print(formatSep.format(*item))
         else:
-            print(formatStr.format(*item))        
+            print(formatStr.format(*item))

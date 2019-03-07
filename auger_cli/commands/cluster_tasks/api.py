@@ -13,7 +13,7 @@ def list_cluster_tasks(client, project_id):
 
 
 def read_cluster_task(client, cluster_task_id):
-    return client.call_hub_api(['cluster_tasks', 'read'], params={'id': cluster_task_id}).get('data')
+    return client.call_hub_api(['cluster_tasks', 'read'], params={'id': cluster_task_id})
 
 
 def create_cluster_task_ex(client, project_id, name, args_python, wait=True):
@@ -28,7 +28,7 @@ def create_cluster_task(client, project_id, name, args, wait=True):
             'name': name,
             'args_encoded': args,
         }
-    ).get('data')
+    )
 
     if wait and 'id' in result:
         result = wait_for_task_result(

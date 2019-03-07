@@ -49,11 +49,20 @@ class AugerClient(object):
             self.print_line('Error connecting to {0}'.format(self.coreapi_url))
             sys.exit(1)
 
-    def call_hub_api(self, keys, params=None, validate=True, overrides=None,
+    def call_hub_api_ex(self, keys, params=None, validate=True, overrides=None,
                action=None, encoding=None, transform=None):
         return self.client.action( self.document, keys, params, validate, overrides,
                action, encoding, transform)
 
+    def call_hub_api(self, keys, params=None, validate=True, overrides=None,
+               action=None, encoding=None, transform=None):
+        result = self.call_hub_api_ex(keys, params, validate, overrides,
+               action, encoding, transform)
+        if 'data' in result:
+            return result['data']
+
+        raise Exception("Call of HUB API method %s failed."%keys)
+            
     def print_exception(self, exc):
         # TODO: support dev mode and print stacktrace 
         self.print_line(str(exc), err=True)

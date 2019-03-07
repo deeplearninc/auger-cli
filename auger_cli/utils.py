@@ -36,7 +36,10 @@ def request_list(client, what, params):
     while limit > 0:
         p['offset'] = offset
         p['limit'] = limit
-        response = client.call_hub_api( [what, 'list'], params=p)
+        response = client.call_hub_api_ex([what, 'list'], params=p)
+        if not 'data' in response or not 'meta' in response:
+            raise Exception("Read list of %s failed."%what)
+
         # print(response['meta'])
         # print(response['data'][0].keys())
 

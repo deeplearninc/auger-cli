@@ -3,12 +3,12 @@
 import click
 import os
 
-from ...formatter import command_progress_bar, print_record, print_line, wait_for_task_result
+from ...formatter import print_record, print_line, wait_for_task_result
 from ...utils import request_list, download_remote_file, urlparse
 from ...config import AugerConfig
 from ...constants import REQUEST_LIMIT
 
-from ..clusters.api import create_cluster
+from ..clusters.api import create_cluster, cluster_is_running
 from ..orgs.api import (
     read_org,
     list_orgs_full
@@ -134,22 +134,19 @@ def start_project(ctx, create_if_not_exist=False, project_id=None):
     project = get_or_create_project(ctx, create_if_not_exist=create_if_not_exist, project_id=project_id)
 
     if project.get('cluster_id') is None or project['status'] == 'undeployed':
-        clusters_create_result = create_cluster(
-            ctx,
+        cluster = create_cluster( ctx,
             organization_id=project['organization_id'],
             project_id=project['id'],
             worker_count=ctx.config.get_cluster_settings()['worker_count'],
             instance_type=ctx.config.get_cluster_settings()['instance_type'],
             kubernetes_stack=ctx.config.get_cluster_settings()['kubernetes_stack'],
-            autoterminate_minutes=ctx.config.get_cluster_settings()['autoterminate_minutes'],
-            wait=True
+            autoterminate_minutes=ctx.config.get_cluster_settings()['autoterminate_minutes']
         )
 
-        if not clusters_create_result.ok:
-            raise click.ClickException('Failed to create cluster.')
+        if not cluster_is_running(ctx, cluster):
+            raise Exception('Failed to create cluster.')
 
-    wait_for_task_result(
-        auger_client=ctx,
+    wait_for_task_result(ctx,
         endpoint=['projects', 'read'],
         params={'id': project['id']},
         first_status=project['status'],
