@@ -1,4 +1,8 @@
 [![CircleCI](https://circleci.com/gh/deeplearninc/auger-cli.svg?style=shield&circle-token=4f5b3d5d345f38b5bce6b267251a03c1ed52708b)](https://circleci.com/gh/deeplearninc/auger-cli)
+[![image](https://img.shields.io/pypi/v/auger-cli.svg)](https://pypi.org/project/auger-cli/)
+[![image](https://img.shields.io/pypi/l/auger-cli.svg)](https://pypi.org/project/auger-cli/)
+[![image](https://img.shields.io/pypi/pyversions/auger-cli.svg)](https://pypi.org/project/auger-cli/)
+[![image](https://img.shields.io/github/contributors/deeplearninc/auger-cli.svg)](https://github.com/deeplearninc/auger-cli/graphs/contributors)
 
 # Auger CLI
 

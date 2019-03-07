@@ -4,17 +4,32 @@
 """
 
 import codecs
-from os import path
+import os
+import sys
 from setuptools import setup, find_packages
+from setuptools.command.install import install
 
 
-VERSION = '0.1.0'
+VERSION = '0.1.2'
 
-here = path.abspath(path.dirname(__file__))
+here = os.path.abspath(os.path.dirname(__file__))
 
 # Get the long description from the README file
-with codecs.open(path.join(here, 'README.md'), encoding='utf-8') as f:
+with codecs.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
+
+class VerifyVersionCommand(install):
+    """Verify that the git tag matches our version"""
+    description = 'verify that the git tag matches our version'
+
+    def run(self):
+        tag = os.getenv('CIRCLE_TAG', '')
+
+        if not tag.endswith(VERSION, 1):
+            info = "Git tag: {0} does not match the version of auger-cli: {1}".format(
+                tag, VERSION
+            )
+            sys.exit(info)
 
 setup(
     name='auger-cli',
@@ -58,6 +73,9 @@ setup(
         'coverage==4.4.1',
         'vcrpy==1.11.1'
     ],
+    cmdclass={
+        'verify': VerifyVersionCommand
+    },
     entry_points={
         'console_scripts': [
             'auger=auger_cli.cli:cli',
