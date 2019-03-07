@@ -283,7 +283,26 @@ auger project create --project <project name> --organization-id <organization id
 
 The project name must be unique within the organization. This means that a project can be deployed to a cluster, the cluster can be terminated, and the project can be deployed to another one. **NOTE:** If you delete the project, another project with the same name can be used.
 
+To open project in the browser:
+```sh
+auger projects open -p <project name>
+```
+
 To delete project:
 ```sh
 auger projects delete -p <project name>
 ```
+
+#How to update Python package:
+1. update version in setup.py
+
+2. commit setup.py
+
+3. create tag with convention 'vX.X.X' (like v0.1.2)
+
+4. git push --tags
+
+circleci will build it and upload the tagged build to pypi.org
+
+5. Review new package here:
+https://pypi.org/project/auger-cli/#history

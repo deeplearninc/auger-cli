@@ -4,7 +4,7 @@ import click
 import os
 
 from ...formatter import command_progress_bar, print_record, print_line, wait_for_task_result
-from ...utils import request_list, download_remote_file
+from ...utils import request_list, download_remote_file, urlparse
 from ...auger_config import AugerConfig
 from ...constants import REQUEST_LIMIT
 
@@ -39,7 +39,8 @@ def read_project(auger_client, name):
         )['data']
         if len(res) > 0:
             result = res[0]
-        
+    
+    #print(result.keys())    
     return result
 
 def read_project_withorg(auger_client, name, organization_id):
@@ -179,4 +180,14 @@ def download_project_file(ctx, project_id, remote_path, local_path):
 
 
 def launch_project_url(auger_client, project):
-    return click.launch(read_project(auger_client, project)['url'])
+    project_name = project
+    if project is None:
+        auger_client.config = AugerConfig()
+        project = get_or_create_project(auger_client, create_if_not_exist=True)
+        project_name = project.get('name')
+
+    parsed_url = urlparse(auger_client.document.url)
+    url = "{}://{}/auger/projects/{}".format(parsed_url.scheme, parsed_url.netloc, project_name)    
+    print("Open url in default browser: %s"%url)
+    
+    click.launch(url)

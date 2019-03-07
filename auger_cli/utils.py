@@ -35,8 +35,8 @@ def request_list(auger_client, what, params):
                 [what, 'list'],
                 params=p
             )
-        #print(response['meta'])    
-        #print(response['data'][0].keys())
+        # print(response['meta'])
+        # print(response['data'][0].keys())
 
         for item in response['data']:
             yield item
@@ -106,6 +106,7 @@ def download_remote_file(ctx, local_path, remote_path):
         with open(local_file_path, 'wb') as out_file:
             shutil.copyfileobj(response, out_file)
 
+
 def create_parent_folder(path):
     parent = os.path.dirname(path)
 
@@ -113,6 +114,7 @@ def create_parent_folder(path):
         os.makedirs(parent)
     except OSError:
         pass
+
 
 def remove_file(path, wild=False):
     try:
@@ -124,6 +126,7 @@ def remove_file(path, wild=False):
             os.remove(path)
     except OSError:
         pass
+
 
 def shell_call(args, input_string='', silent=False):
     input_bytes = (input_string.strip() + '\n').encode('utf-8')
@@ -142,4 +145,51 @@ def shell_call(args, input_string='', silent=False):
             env=os.environ.copy(),
             shell=True,
             stderr=subprocess.STDOUT
+        )
+
+
+def save_dict_to_csv(data, predict_path):
+    import pandas as pd
+
+    df_predict = pd.DataFrame.from_dict(data)
+    df_predict.to_csv(predict_path, index=False, encoding='utf-8')
+
+
+def load_dataframe_from_file(path, features=None, nrows=None):
+    import pandas as pd
+
+    extension = path
+    data_compression = 'infer'
+
+    csv_with_header = True
+    header = 0 if csv_with_header else None
+    prefix = None if csv_with_header else 'c'
+
+    try:
+        return pd.read_csv(
+            path,
+            encoding='utf-8',
+            escapechar="\\",
+            usecols=features,
+            na_values=['?'],
+            header=header,
+            prefix=prefix,
+            sep=',',
+            nrows=nrows,
+            low_memory=False,
+            compression=data_compression
+        )
+    except Exception as e:
+        return pd.read_csv(
+            path,
+            encoding='utf-8',
+            escapechar="\\",
+            usecols=features,
+            na_values=['?'],
+            header=header,
+            prefix=prefix,
+            sep='|',
+            nrows=nrows,
+            low_memory=False,
+            compression=data_compression
         )

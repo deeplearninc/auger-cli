@@ -142,6 +142,7 @@ def logs(ctx, project, tail):
     '--project',
     '-p',
     type=click.STRING,
+    default=None,
     help='Name of project to open.'
 )
 @pass_client
