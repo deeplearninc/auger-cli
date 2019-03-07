@@ -29,7 +29,7 @@ class TestLogin(unittest.TestCase):
         print(result.exception)
         self.assertEqual(0, result.exit_code)
         self.assertTrue(
-            result.output.endswith('You are now logged in on localhost as valid@auger.ai.\n')
+            result.output.endswith('You are now logged in on http://localhost:5000 as valid@auger.ai.\n')
         )
 
 

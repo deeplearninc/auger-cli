@@ -3,7 +3,7 @@
 import click
 
 from ... import constants
-from ...cli import pass_client
+from ...cli_client import pass_client
 from .api import auth_login, auth_whoami, auth_logout
 
 @click.group('auth', short_help='Authentication with Auger.')
