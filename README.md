@@ -292,3 +292,17 @@ To delete project:
 ```sh
 auger projects delete -p <project name>
 ```
+
+#How to update Python package:
+1. update version in setup.py
+
+2. commit setup.py
+
+3. create tag with convention 'vX.X.X' (like v0.1.2)
+
+4. git push --tags
+
+circleci will build it and upload the tagged build to pypi.org
+
+5. Review new package here:
+https://pypi.org/project/auger-cli/#history
