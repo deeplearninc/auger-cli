@@ -283,6 +283,11 @@ auger project create --project <project name> --organization-id <organization id
 
 The project name must be unique within the organization. This means that a project can be deployed to a cluster, the cluster can be terminated, and the project can be deployed to another one. **NOTE:** If you delete the project, another project with the same name can be used.
 
+To open project in the browser:
+```sh
+auger projects open -p <project name>
+```
+
 To delete project:
 ```sh
 auger projects delete -p <project name>

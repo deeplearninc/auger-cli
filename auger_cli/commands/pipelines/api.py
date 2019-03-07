@@ -5,7 +5,7 @@ from ...utils import request_list
 from ...constants import REQUEST_LIMIT
 
 
-pipeline_attributes = ['id', 'status', 'lambda_package_s3_path', 'datasource_manifest_name', 'error_message' 'project_id', 'organization_id', 'trial']
+pipeline_attributes = ['id', 'status', 'lambda_package_s3_path', 'datasource_manifest_name', 'error_message', 'project_id', 'organization_id'] #, 'trial']
 
 
 def list_pipelines(ctx, organization_id, experiment_id, active):
