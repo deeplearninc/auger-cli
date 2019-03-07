@@ -6,7 +6,7 @@ from ...formatter import (
     print_list,
     print_record
 )
-from ...client import pass_client
+from ...cli import pass_client
 
 from .api import (
     cluster_task_attributes,

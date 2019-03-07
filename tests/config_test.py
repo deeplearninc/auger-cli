@@ -1,7 +1,7 @@
 import unittest
 import os
 
-from auger_cli.auger_config import AugerConfig
+from auger_cli.config import AugerConfig
 
 class TestConfig(unittest.TestCase):
 

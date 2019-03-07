@@ -2,7 +2,7 @@
 
 import click
 
-from ...client import pass_client
+from ...cli import pass_client
 from ...formatter import (
     print_list,
     print_record,

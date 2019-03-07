@@ -6,30 +6,18 @@ import coreapi
 import coreapi_cli.main as coreapi_cli
 from coreapi.codecs import JSONCodec, TextCodec
 from coreapi.compat import force_bytes
-from .formatter import print_line
 from openapi_codec import OpenAPICodec
 import json
 import os
 import shutil
-import sys
-import click
 
 
-def init_coreapi_cli():
-    coreapi_cli.setup_paths()
-    return coreapi_cli
-
-
-class Client(object):
-    _cached_document = None
-
+class AugerClient(object):
     def __init__(self, url=DEFAULT_COREAPI_URL):
-        self.coreapi_url = url
-        self.coreapi_schema_url = self.coreapi_url + COREAPI_SCHEMA_PATH
-        self.coreapi_cli = init_coreapi_cli()
-        self.setup_client()
+        self._cached_document = None
+        self.setup_client(url)
 
-    def clear(self):
+    def clear_credentials(self):
         shutil.rmtree(self.coreapi_cli.config_path)
         os.makedirs(self.coreapi_cli.config_path)
 
@@ -37,8 +25,7 @@ class Client(object):
     def document(self):
         """Load the schema from cache if available."""
         if not self.credentials:
-            print_line('Please login to Auger and try again.')
-            sys.exit(1)
+            raise Exception('Please login to Auger and try again.')
 
         if not self._cached_document:
             self._cached_document = self.coreapi_cli.get_document()
@@ -46,19 +33,35 @@ class Client(object):
                 self.fetch_document(url=self.coreapi_schema_url)
         return self._cached_document
 
+    # TODO: remove it    
     @contextmanager
     def coreapi_action(self):
         try:
             yield
         except coreapi.exceptions.ErrorMessage as exc:
-            print_line(exc)
+            self.print_line(exc)
             sys.exit(1)
         except coreapi.exceptions.LinkLookupError as exc:
-            print_line(exc)
+            self.print_line(exc)
             sys.exit(1)
         except coreapi.exceptions.ParseError as exc:
-            print_line('Error connecting to {0}'.format(self.coreapi_url))
+            self.print_line('Error connecting to {0}'.format(self.coreapi_url))
             sys.exit(1)
+
+    def call_hub_api(self, keys, params=None, validate=True, overrides=None,
+               action=None, encoding=None, transform=None):
+        return self.client.action( self.document, keys, params, validate, overrides,
+               action, encoding, transform)
+
+    def print_exception(self, exc):
+        # TODO: support dev mode and print stacktrace 
+        self.print_line(str(exc), err=True)
+
+    def print_line(self, line='', nl=True, err=False):
+        from .formatter import print_line as formatter_print_line
+
+        # TODO: add some filtration
+        formatter_print_line(line, nl, err)
 
     def get_credentials(self):
         return self.coreapi_cli.get_credentials()
@@ -67,13 +70,19 @@ class Client(object):
         self._cached_document = self.client.get(url, format='openapi')
         self.coreapi_cli.set_document(self._cached_document)
 
-    def setup_client(self):
+    def setup_client(self, url):
+        self.coreapi_url = url
+        self.coreapi_schema_url = self.coreapi_url + COREAPI_SCHEMA_PATH
+
+        coreapi_cli.setup_paths()
+        self.coreapi_cli = coreapi_cli
+
         self.credentials = self.coreapi_cli.get_credentials()
         self.headers = self.coreapi_cli.get_headers()
 
         def test_callback(res):
-            pass
-            #print(res.url)
+            #pass
+            print(res.url)
 
         self.transports = coreapi.transports.HTTPTransport(
             credentials=self.credentials,
@@ -90,5 +99,3 @@ class Client(object):
         with open(self.coreapi_cli.credentials_path, 'wb') as store:
             store.write(force_bytes(json.dumps(credentials)))
 
-
-pass_client = click.make_pass_decorator(Client, ensure=True)

@@ -4,7 +4,7 @@ import click
 
 from ...formatter import print_line, print_record, wait_for_task_result
 from ...utils import request_list, get_uid, load_dataframe_from_file, save_dict_to_csv
-from ...auger_config import AugerConfig
+from ...config import AugerConfig
 from ...constants import REQUEST_LIMIT
 
 from ..cluster_tasks.api import (
@@ -99,7 +99,7 @@ def read_experiment_byid(auger_client, experiment_id):
             ['experiments', 'read'],
             params={'id': experiment_id}
         )['data']
-    print(result.keys())     
+    #print(result.keys())     
     return result
 
 

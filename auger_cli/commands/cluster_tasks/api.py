@@ -2,7 +2,7 @@ import json
 
 from ...utils import request_list
 from ...formatter import wait_for_task_result
-from ...auger_config import AugerConfig
+from ...config import AugerConfig
 
 cluster_task_attributes = ['id', 'cluster_id', 'project_id',
                            'status', 'name', 'args', 'result', 'exception']

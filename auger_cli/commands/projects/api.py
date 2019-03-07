@@ -5,7 +5,7 @@ import os
 
 from ...formatter import command_progress_bar, print_record, print_line, wait_for_task_result
 from ...utils import request_list, download_remote_file, urlparse
-from ...auger_config import AugerConfig
+from ...config import AugerConfig
 from ...constants import REQUEST_LIMIT
 
 from ..clusters.api import create_cluster

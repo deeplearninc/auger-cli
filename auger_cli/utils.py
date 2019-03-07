@@ -4,6 +4,7 @@ import sys
 import uuid
 import os
 import subprocess
+import base64
 
 from .constants import REQUEST_LIMIT
 
@@ -21,6 +22,12 @@ def urlparse(*args, **kwargs):
         from urllib.parse import urlparse
     return urlparse(*args, **kwargs)
 
+
+def b64encode(input_string):
+    return base64.b64encode(input_string.encode('ascii')).decode('ascii')
+
+def b64decode(input_string):
+    return base64.b64decode(input_string).decode('ascii')
 
 def request_list(auger_client, what, params):
     offset = params.get('offset', 0)

@@ -1,8 +1,32 @@
 # -*- coding: utf-8 -*-
 
 import click
+import sys
+from contextlib import contextmanager
 
-from . import client
+from .client import AugerClient
+
+class AugerCLIClient(AugerClient):
+    @contextmanager
+    def cli_error_handler(self):
+        from coreapi.exceptions import ErrorMessage, LinkLookupError, ParseError        
+        try:
+            yield
+        except ErrorMessage as exc:
+            self.print_exception(exc)
+            sys.exit(1)
+        except LinkLookupError as exc:
+            self.print_exception(exc)
+            sys.exit(1)
+        except ParseError as exc:
+            self.print_line('Error connecting to {0}'.format(self.coreapi_url), err=True)
+            sys.exit(1)
+        except Exception as exc:
+            self.print_exception(exc)
+            sys.exit(1)
+
+pass_client = click.make_pass_decorator(AugerCLIClient, ensure=True)
+
 
 from auger_cli.commands.auth.cli import auth_group
 from auger_cli.commands.clusters.cli import clusters_group
@@ -50,6 +74,7 @@ class AugerCLI(click.MultiCommand):
 
 
 @click.command('auger', cls=AugerCLI, context_settings=CONTEXT_SETTINGS)
-@client.pass_client
+@pass_client
 def cli(ctx):
     """Auger command line interface."""
+
