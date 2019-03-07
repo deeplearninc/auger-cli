@@ -1,10 +1,9 @@
 version: 2.1
 
 jobs:
-  build:
+  build-test:
     parameters:
       python_version:
-        description: "Version of python to use"
         default: "3.7"
         type: string
     working_directory: ~/auger-cli
@@ -30,13 +29,10 @@ jobs:
       # - run:
       #     command: |
       #       pipenv run python setup.py flake8
-      - run:
-          command: |
-            pipenv run python setup.py test
-      - store_artifacts:
-          path: test-reports
-          destination: tr1
+      - run: pipenv run python setup.py test
+
   deploy:
+    working_directory: ~/auger-cli
     docker:
       - image: circleci/python:3.7
     steps:
@@ -49,45 +45,53 @@ jobs:
           command: |
             sudo pip install pipenv
             pipenv install
-      - save_cache:
-          key: auger-cli-{{ arch }}-3.7-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-          paths:
-            - ".venv"
-            - "/usr/local/bin"
-            - "/usr/local/lib/python3.7/site-packages"
-      - run:
-          command: |
-            pipenv run python setup.py verify
+      - run: pipenv run python setup.py verify
       - run:
           command: |
             echo -e "[pypi]" >> ~/.pypirc
             echo -e "username = $PYPI_USERNAME" >> ~/.pypirc
             echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
-      - run:
-          command: |
-            pipenv run python setup.py bdist_wheel
+      - run: pipenv run python setup.py bdist_wheel
       - run:
           command: |
             sudo pip install twine
-            echo "Test deploy..."
-          #  twine upload dist/*
+            echo "Deploying new package to pypi.org..."
+            twine upload dist/*
 
 workflows:
   version: 2.1
-  build_and_deploy:
+  commit:
     jobs:
-      - build:
+      - build-test:
           name: build3.6
           python_version: "3.6"
-      - build:
+      - build-test:
+          name: build3.7
+          python_version: "3.7"  
+  build_and_deploy:
+    jobs:
+      - build-test:
+          name: build3.6
+          python_version: "3.7"
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - build-test:
           name: build3.7
           python_version: "3.7"
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
       - deploy:
           requires:
             - build3.6
             - build3.7
           filters:
             tags:
-              only: /[0-9]+(\.[0-9]+)*/
+              only: /^v.*/
             branches:
               ignore: /.*/

@@ -1,6 +1,9 @@
 Release History
 ===============
 
+# v0.1.2
+- Automated release process
+
 # v0.1.1
 - Added pandas dependency
 
