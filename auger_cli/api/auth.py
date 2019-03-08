@@ -1,6 +1,6 @@
-from ...utils import urlparse, b64encode, b64decode
+from ..utils import urlparse, b64encode, b64decode
 
-def auth_login(client, url, username, password):
+def login(client, url, username, password):
     client.clear_credentials()
 
     # extract host name from server URL
@@ -18,10 +18,10 @@ def auth_login(client, url, username, password):
     # make test call
     client.call_hub_api(['organizations', 'list'])
 
-def auth_logout(client):
+def logout(client):
     client.clear_credentials()
 
-def auth_whoami(client):
+def whoami(client):
     username = None
     host = None
     creds = client.get_credentials()

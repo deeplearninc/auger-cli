@@ -7,7 +7,7 @@ class TestConfig(unittest.TestCase):
 
     def test_config_create(self):
         cur_dir = os.getcwd()
-        os.chdir("./tests/fixtures/test_experiment")
+        os.chdir("tests/fixtures/test_experiment")
         config = AugerConfig()
 
         self.assertEqual(config.experiment_name, "test_experiment")
@@ -16,7 +16,7 @@ class TestConfig(unittest.TestCase):
 
     def test_update_session_file(self):
         cur_dir = os.getcwd()
-        os.chdir("./tests/fixtures/test_experiment")
+        os.chdir("tests/fixtures/test_experiment")
 
         config = AugerConfig()
         config.update_session_file({'test': 123})

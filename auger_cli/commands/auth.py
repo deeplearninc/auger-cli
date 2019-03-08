@@ -2,9 +2,9 @@
 
 import click
 
-from ... import constants
-from ...cli_client import pass_client
-from .api import auth_login, auth_whoami, auth_logout
+from auger_cli import constants
+from auger_cli.cli_client import pass_client
+from auger_cli.api import auth
 
 @click.group('auth', short_help='Authentication with Auger.')
 @click.pass_context
@@ -35,7 +35,7 @@ def auth_group(ctx):
 @pass_client
 def login(client, url, username, password):
     with client.cli_error_handler():
-        auth_login(client, url, username, password)
+        auth.login(client, url, username, password)
 
         client.print_line(
             "You are now logged in on {0} as {1}.".format(
@@ -48,7 +48,7 @@ def login(client, url, username, password):
 @pass_client
 def logout(client):
     with client.cli_error_handler():
-        auth_logout(client)
+        auth.logout(client)
         client.print_line('You are now logged out.')
 
 
@@ -56,7 +56,7 @@ def logout(client):
 @pass_client
 def whoami(client):
     with client.cli_error_handler():
-        username, host = auth_whoami(client)
+        username, host = auth.whoami(client)
         if username and host:
             client.print_line('{} on {}'.format(username, host))
         else:

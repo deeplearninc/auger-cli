@@ -2,7 +2,7 @@
 
 import click
 
-from auger_cli.commands.auth.cli import auth_group
+from auger_cli.commands.auth import auth_group
 from auger_cli.commands.clusters.cli import clusters_group
 from auger_cli.commands.help.cli import help_group
 from auger_cli.commands.instances.cli import instances_group
