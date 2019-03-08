@@ -2,16 +2,16 @@
 import os
 import click
 
-from ...formatter import print_line, print_record, wait_for_task_result
-from ...utils import request_list, get_uid, load_dataframe_from_file, save_dict_to_csv
-from ...config import AugerConfig
-from ...constants import REQUEST_LIMIT
+from auger_cli.formatter import print_line, print_record, wait_for_task_result
+from auger_cli.utils import request_list, get_uid, load_dataframe_from_file, save_dict_to_csv
+from auger_cli.config import AugerConfig
+from auger_cli.constants import REQUEST_LIMIT
 
-from ..cluster_tasks.api import (
+from auger_cli.api.cluster_tasks import (
     create_cluster_task_ex,
 )
 
-from ..projects.api import (
+from auger_cli.api.projects import (
     read_project_withorg,
     create_project,
     read_project_byid,
@@ -20,16 +20,16 @@ from ..projects.api import (
     download_project_file
 )
 
-from ..trials.api import (
+from auger_cli.api.trials import (
     list_trials
 )
-from ..experiment_sessions.api import (
+from auger_cli.api.experiment_sessions import (
     read_experiment_session,
     experiment_session_attributes
 )
-from ..clusters.api import read_cluster, cluster_attributes
-from ..pipelines.api import read_pipeline, pipeline_attributes
-from ..predictions.api import (
+from auger_cli.api.clusters import read_cluster, cluster_attributes
+from auger_cli.api.pipelines import read_pipeline, pipeline_attributes
+from auger_cli.api.predictions import (
     read_prediction,
     create_prediction
 )

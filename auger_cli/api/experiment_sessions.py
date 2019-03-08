@@ -2,8 +2,8 @@
 import os
 import click
 
-from ...formatter import print_line, print_record
-from ...utils import request_list
+from auger_cli.formatter import print_line, print_record
+from auger_cli.utils import request_list
 
 experiment_session_attributes = ['id', 'project_id', 'experiment_id', 'status', 'datasource_name', 'model_type']
 experiment_session_list_attributes = ['id', 'status', 'datasource_name', 'created_at', 'model_type']

@@ -3,17 +3,17 @@
 import click
 import os
 
-from ...formatter import print_record, print_line, wait_for_task_result
-from ...utils import request_list, download_remote_file, urlparse
-from ...config import AugerConfig
-from ...constants import REQUEST_LIMIT
+from auger_cli.formatter import print_record, print_line, wait_for_task_result
+from auger_cli.utils import request_list, download_remote_file, urlparse
+from auger_cli.config import AugerConfig
+from auger_cli.constants import REQUEST_LIMIT
 
-from ..clusters.api import create_cluster, cluster_is_running
-from ..orgs.api import (
+from auger_cli.api.clusters import create_cluster, cluster_is_running
+from auger_cli.api.orgs import (
     read_org,
     list_orgs_full
 )
-from ..cluster_tasks.api import (
+from auger_cli.api.cluster_tasks import (
     create_cluster_task_ex,
 )
 

@@ -2,13 +2,13 @@
 
 import click
 
-from ...cli_client import pass_client
-from ...formatter import (
+from auger_cli.cli_client import pass_client
+from auger_cli.formatter import (
     print_list,
     print_record
 )
 
-from .api import (
+from auger_cli.api.trials import (
     trial_attributes,
     list_trials,
     read_trial

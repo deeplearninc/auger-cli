@@ -1,4 +1,4 @@
-from ..utils import urlparse, b64encode, b64decode
+from auger_cli.utils import urlparse, b64encode, b64decode
 
 def login(client, url, username, password):
     client.clear_credentials()

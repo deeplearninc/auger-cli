@@ -1,7 +1,7 @@
 import json
 
-from ...utils import request_list
-from ...formatter import wait_for_task_result
+from auger_cli.utils import request_list
+from auger_cli.formatter import wait_for_task_result
 
 cluster_task_attributes = ['id', 'cluster_id', 'project_id',
                            'status', 'name', 'args', 'result', 'exception']

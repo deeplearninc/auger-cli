@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from ...formatter import print_record, print_line, wait_for_task_result
-from ...utils import request_list
+from auger_cli.formatter import print_record, print_line, wait_for_task_result
+from auger_cli.utils import request_list
 
 prediction_attributes = [
     'id', 'status'

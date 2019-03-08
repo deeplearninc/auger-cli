@@ -2,8 +2,8 @@
 
 import click
 
-from ...cli_client import pass_client
-from ...formatter import (
+from auger_cli.cli_client import pass_client
+from auger_cli.formatter import (
     print_list,
     print_record,
     print_table,
@@ -11,7 +11,7 @@ from ...formatter import (
     print_header
 )
 
-from .api import (
+from auger_cli.api.experiments import (
     experiment_attributes,
     create_experiment,
     delete_experiment,

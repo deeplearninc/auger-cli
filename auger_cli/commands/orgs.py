@@ -2,10 +2,10 @@
 
 import click
 
-from ...cli_client import pass_client
-from ...formatter import print_list
+from auger_cli.cli_client import pass_client
+from auger_cli.formatter import print_list
 
-from .api import (
+from auger_cli.api.orgs import (
     org_attributes,
     create_org,
     delete_org,

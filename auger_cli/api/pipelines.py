@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from ...formatter import print_line, print_record
-from ...utils import request_list
-from ...constants import REQUEST_LIMIT
+from auger_cli.formatter import print_line, print_record
+from auger_cli.utils import request_list
+from auger_cli.constants import REQUEST_LIMIT
 
 
 pipeline_attributes = ['id', 'status', 'lambda_package_s3_path', 'datasource_manifest_name', 'error_message', 'project_id', 'organization_id'] #, 'trial']

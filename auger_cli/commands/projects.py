@@ -2,15 +2,15 @@
 
 import click
 
-from ...config import AugerConfig
-from ...cli_client import pass_client
-from ...formatter import (
+from auger_cli.config import AugerConfig
+from auger_cli.cli_client import pass_client
+from auger_cli.formatter import (
     print_line,
     print_list,
     print_stream,
     print_record
 )
-from .api import (
+from auger_cli.api.projects import (
     project_attributes,
     list_projects,
     create_project,

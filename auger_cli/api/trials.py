@@ -2,8 +2,8 @@
 import os
 import click
 
-from ...formatter import print_line, print_record
-from ...utils import request_list
+from auger_cli.formatter import print_line, print_record
+from auger_cli.utils import request_list
 
 
 trial_attributes = ['id', 'score_name', 'score_value', 'task_type', 'hyperparameter']

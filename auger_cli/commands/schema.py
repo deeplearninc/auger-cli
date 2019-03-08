@@ -2,8 +2,8 @@
 
 import click
 
-from ...cli_client import pass_client
-from ...formatter import print_line
+from auger_cli.cli_client import pass_client
+from auger_cli.formatter import print_line
 
 
 @click.command('schema', short_help='Display current Auger schema.')

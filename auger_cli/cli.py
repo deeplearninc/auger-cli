@@ -3,17 +3,17 @@
 import click
 
 from auger_cli.commands.auth import auth_group
-from auger_cli.commands.clusters.cli import clusters_group
-from auger_cli.commands.help.cli import help_group
-from auger_cli.commands.instances.cli import instances_group
-from auger_cli.commands.orgs.cli import orgs_group
-from auger_cli.commands.projects.cli import projects_group
-from auger_cli.commands.pipelines.cli import pipelines_group
-from auger_cli.commands.experiments.cli import experiments_group
-from auger_cli.commands.experiment_sessions.cli import experiment_sessions_group
-from auger_cli.commands.trials.cli import trials_group
-from auger_cli.commands.schema.cli import schema_group
-from auger_cli.commands.cluster_tasks.cli import cluster_tasks_group
+from auger_cli.commands.clusters import clusters_group
+from auger_cli.commands.help import help_group
+from auger_cli.commands.instances import instances_group
+from auger_cli.commands.orgs import orgs_group
+from auger_cli.commands.projects import projects_group
+from auger_cli.commands.pipelines import pipelines_group
+from auger_cli.commands.experiments import experiments_group
+from auger_cli.commands.experiment_sessions import experiment_sessions_group
+from auger_cli.commands.trials import trials_group
+from auger_cli.commands.schema import schema_group
+from auger_cli.commands.cluster_tasks import cluster_tasks_group
 
 CONTEXT_SETTINGS = dict(auto_envvar_prefix='AUGER')
 COMMANDS = {

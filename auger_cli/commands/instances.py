@@ -2,8 +2,8 @@
 
 import click
 
-from ...formatter import print_list
-from ...utils import request_list
+from auger_cli.formatter import print_list
+from auger_cli.utils import request_list
 
 
 attributes = ['id', 'description']
