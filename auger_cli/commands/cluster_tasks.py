@@ -7,15 +7,7 @@ from auger_cli.formatter import (
     print_record
 )
 from auger_cli.cli_client import pass_client
-
-from auger_cli.api.cluster_tasks import (
-    cluster_task_attributes,
-    list_cluster_tasks,
-    create_cluster_task,
-    create_cluster_task_ex,
-    run_cluster_task,
-    read_cluster_task
-)
+from auger_cli.api import cluster_tasks
 
 
 @click.group(
@@ -35,8 +27,8 @@ def cluster_tasks_group(ctx, project_id):
     if ctx.invoked_subcommand is None:
         with ctx.obj.cli_error_handler():
             print_list(
-                list_cluster_tasks(ctx.obj, project_id),
-                cluster_task_attributes
+                cluster_tasks.list(ctx.obj, project_id),
+                cluster_tasks.display_attributes
             )
 
 
@@ -45,8 +37,8 @@ def cluster_tasks_group(ctx, project_id):
 @pass_client
 def show(client, cluster_task_id):
     with client.cli_error_handler():
-        print_record(read_cluster_task(client, cluster_task_id),
-                     cluster_task_attributes)
+        print_record(cluster_tasks.read(client, cluster_task_id),
+                     cluster_tasks.display_attributes)
 
 
 @click.command(short_help='Create a new cluster task.')
@@ -81,9 +73,9 @@ def create(client, project_id, taskname, taskargs, taskfile):
             task_info_func = getattr(import_module(
                 taskfile), 'get_cluster_task_info')
             res = task_info_func()
-            result = create_cluster_task_ex(client, project_id, res[0], res[1])
+            result = cluster_tasks.create_ex(client, project_id, res[0], res[1])
         else:
-            result = create_cluster_task(
+            result = cluster_tasks.create(
                 client, project_id, taskname, taskargs)
 
         client.print_line(result)
@@ -100,7 +92,7 @@ def create(client, project_id, taskname, taskargs, taskfile):
 @pass_client
 def run(client, wait):
     with client.cli_error_handler():
-        run_cluster_task(client, wait)
+        cluster_tasks.run(client, wait)
 
 cluster_tasks_group.add_command(create)
 cluster_tasks_group.add_command(show)

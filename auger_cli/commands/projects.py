@@ -2,7 +2,6 @@
 
 import click
 
-from auger_cli.config import AugerConfig
 from auger_cli.cli_client import pass_client
 from auger_cli.formatter import (
     print_line,
@@ -10,15 +9,7 @@ from auger_cli.formatter import (
     print_stream,
     print_record
 )
-from auger_cli.api.projects import (
-    project_attributes,
-    list_projects,
-    create_project,
-    delete_project,
-    launch_project_url,
-    read_project,
-    download_project_file
-)
+from auger_cli.api import projects
 
 
 @click.group(
@@ -29,8 +20,8 @@ from auger_cli.api.projects import (
 @click.pass_context
 def projects_group(ctx):
     if ctx.invoked_subcommand is None:
-        with ctx.obj.coreapi_action():
-            print_list(list_projects(ctx.obj), project_attributes)
+        with ctx.obj.cli_error_handler():
+            print_list(projects.list(ctx.obj), projects.display_attributes)
 
 
 @click.command(short_help='Create a new Auger project.')
@@ -49,9 +40,10 @@ def projects_group(ctx):
     help='Organization for the project.'
 )
 @pass_client
-def create(ctx, project, organization_id):
-    create_project(ctx, project, organization_id)
-
+def create(client, project, organization_id):
+    with client.cli_error_handler():
+        project = projects.create(client, project, organization_id)
+        print_record(project, projects.display_attributes)
 
 @click.command(
     short_help='Delete an project from Auger Hub. This cannot be undone.'
@@ -64,9 +56,10 @@ def create(ctx, project, organization_id):
     help='Name of the project to delete.'
 )
 @pass_client
-def delete(ctx, project):
-    delete_project(ctx, project)
-
+def delete(client, project):
+    with client.cli_error_handler():
+        projects.delete(client, project)
+        print_line('Deleted {}.'.format(project))
 
 @click.command(
     short_help='Download file from project. Path should be relative project path. For example: files/iris_data_sample.csv'
@@ -89,12 +82,13 @@ def delete(ctx, project):
     help='Name of the project to delete.'
 )
 @pass_client
-def download_file(ctx, remote_path, local_path, project):
-    project_id = None
-    if project:
-        project_id = read_project(ctx, project).get('id')
+def download_file(client, remote_path, local_path, project):
+    with client.cli_error_handler():
+        project_id = None
+        if project:
+            project_id = read_project(client, project).get('id')
 
-    download_project_file(ctx, project_id, remote_path, local_path)
+        projects.download_file(client, project_id, remote_path, local_path)
 
 
 @click.command(short_help='Display project logs.')
@@ -114,27 +108,18 @@ def download_file(ctx, remote_path, local_path, project):
     help='Stream logs to console.'
 )
 @pass_client
-def logs(ctx, project, tail):
-    if project is None:
-        config = AugerConfig()
-        project_id = config.get_project_id()
-    else:
-        project_id = read_project(ctx, project).get('id')
-    
-    if tail:
-        params = {
-            'id': project_id
-        }
-        print_stream(ctx, params)
-    else:
-        result = ctx.client.action(
-            ctx.document,
-            ['projects', 'logs'],
-            params={
-                'id': project_id
-            }
-        )
-        print_line(result)
+def logs(client, project, tail):
+    with client.cli_error_handler():    
+        if project is None:
+            project_id = client.config.get_project_id()
+        else:
+            project_id = projects.read(client, project).get('id')
+        
+        if tail:
+            print_stream(client, {'id': project_id})
+        else:
+            result = client.call_hub_api(['projects', 'logs'], params={'id': project_id})
+            print_line(result)
 
 
 @click.command(short_help='Open project in a browser.')
@@ -146,8 +131,19 @@ def logs(ctx, project, tail):
     help='Name of project to open.'
 )
 @pass_client
-def open_project(ctx, project):
-    launch_project_url(ctx, project)
+def open_project(client, project):
+    from auger_cli.utils import urlparse    
+    with client.cli_error_handler():
+        project_name = project
+        if project is None:
+            project = projects.get_or_create(client, create_if_not_exist=True)
+            project_name = project.get('name')
+
+        parsed_url = urlparse(client.document.url)
+        url = "{}://{}/auger/projects/{}".format(parsed_url.scheme, parsed_url.netloc, project_name)    
+        print("Open url in default browser: %s"%url)
+        
+        click.launch(url)
 
 
 @click.command(short_help='Display project details.')
@@ -159,8 +155,9 @@ def open_project(ctx, project):
     help='Name of the project to display.'
 )
 @pass_client
-def show(ctx, project):
-    print_record(read_project(ctx, project), project_attributes)
+def show(client, project):
+    with client.cli_error_handler():    
+        print_record(projects.read(client, project), projects.display_attributes)
 
 projects_group.add_command(create)
 projects_group.add_command(delete)

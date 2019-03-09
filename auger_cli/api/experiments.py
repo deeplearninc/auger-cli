@@ -1,215 +1,156 @@
 # -*- coding: utf-8 -*-
 import os
-import click
 
-from auger_cli.formatter import print_line, print_record, wait_for_task_result
-from auger_cli.utils import request_list, get_uid, load_dataframe_from_file, save_dict_to_csv
-from auger_cli.config import AugerConfig
+from auger_cli.utils import request_list, get_uid, load_dataframe_from_file, save_dict_to_csv, wait_for_object_state
 from auger_cli.constants import REQUEST_LIMIT
 
-from auger_cli.api.cluster_tasks import (
-    create_cluster_task_ex,
-)
+from auger_cli.api import cluster_tasks
+from auger_cli.api import projects
+from auger_cli.api import trials
+from auger_cli.api import experiment_sessions
+from auger_cli.api import clusters
+from auger_cli.api import pipelines
+from auger_cli.api import predictions
 
-from auger_cli.api.projects import (
-    read_project_withorg,
-    create_project,
-    read_project_byid,
-    start_project,
-    get_or_create_project,
-    download_project_file
-)
-
-from auger_cli.api.trials import (
-    list_trials
-)
-from auger_cli.api.experiment_sessions import (
-    read_experiment_session,
-    experiment_session_attributes
-)
-from auger_cli.api.clusters import read_cluster, cluster_attributes
-from auger_cli.api.pipelines import read_pipeline, pipeline_attributes
-from auger_cli.api.predictions import (
-    read_prediction,
-    create_prediction
-)
-
-experiment_attributes = ['id', 'name',
+display_attributes = ['id', 'name',
                          'project_id', 'project_file_id', 'session', 'cluster' ]
 
 
-def list_experiments(ctx, project_id, name):
-    with ctx.coreapi_action():
-        return request_list(
-            ctx,
-            'experiments',
-            params={'project_id': project_id, 'name': name}
-        )
+def list(client, project_id, name):
+    return request_list(client,
+        'experiments',
+        params={'project_id': project_id, 'name': name}
+    )
 
 
-def create_experiment(ctx, name, project_id, data_path):
-    with ctx.coreapi_action():
-        experiment = ctx.client.action(
-            ctx.document,
-            ['experiments', 'create'],
-            params={
-                'id': "experiment_" + name + "_" + get_uid(),
-                'name': name,
-                'project_id': project_id,
-                'data_path': data_path
-            }
-        )
-        return experiment['data']
-
-    return {}
-
-
-def delete_experiment(ctx, experiment_id):
-    with ctx.coreapi_action():
-        experiments = ctx.client.action(
-            ctx.document,
-            ['experiments', 'delete'],
-            params={
-                'id': experiment_id
-            }
-        )
-        experiment = experiments['data']
-        if experiment['id'] == int(experiment_id):
-            print_line("Deleting {0}.".format(experiment['name']))
-
-
-def update_experiment(ctx, experiment_id, name):
-    with ctx.coreapi_action():
-        experiment = ctx.client.action(
-            ctx.document,
-            ['experiments', 'update'],
-            params={
-                'id': experiment_id,
-                'name': name
-            }
-        )
-        print_record(experiment['data'], experiment_attributes)
-
-
-def read_experiment_byid(auger_client, experiment_id):
+def read(client, project_id = None, experiment_name = None, experiment_id = None):
     result = {}
-    with auger_client.coreapi_action():
-        result = auger_client.client.action(
-            auger_client.document,
-            ['experiments', 'read'],
+    if experiment_id:
+        result = client.call_hub_api(['experiments', 'read'],
             params={'id': experiment_id}
-        )['data']
-    #print(result.keys())     
-    return result
-
-
-def read_experiment(auger_client, project_id, name):
-    result = {}
-    with auger_client.coreapi_action():
-        res = auger_client.client.action(
-            auger_client.document,
-            ['experiments', 'list'],
-            params={'name': name, 'project_id': project_id, 'limit': REQUEST_LIMIT}
-        )['data']
-        if len(res) > 0:
-            result = res[0]
+        )
+    elif project_id and experiment_name:    
+        experiments_list = client.call_hub_api(['experiments', 'list'],
+            params={'name': experiment_name, 'project_id': project_id, 'limit': REQUEST_LIMIT}
+        )
+        if len(experiments_list) > 0:
+            result = experiments_list[0]
 
     return result
 
 
-def get_or_create_experiment(ctx, project_id):
-    experiment_id, experiment_name = ctx.config.get_experiment()
+def create(client, name, project_id, data_path):
+    return client.call_hub_api(['experiments', 'create'],
+        params={
+            'id': "experiment_" + name + "_" + get_uid(),
+            'name': name,
+            'project_id': project_id,
+            'data_path': data_path
+        }
+    )
+
+
+def delete(client, experiment_id):
+    experiment = client.call_hub_api(['experiments', 'delete'],
+        params={'id': experiment_id}
+    )
+
+def update(client, experiment_id, name):
+    return client.call_hub_api(['experiments', 'update'],
+        params={
+            'id': experiment_id,
+            'name': name
+        }
+    )
+
+
+def get_or_create(client, project_id):
+    experiment_id, experiment_name = client.config.get_experiment()
 
     if experiment_id is not None:
-        return read_experiment_byid(ctx, experiment_id)
+        return read(client, experiment_id=experiment_id)
 
-    experiment = read_experiment(ctx, project_id, experiment_name)
+    experiment = read(client, project_id, experiment_name)
     if experiment.get('id') is not None:
         return experiment
 
-    if len(ctx.config.get_evaluation()) == 0:
+    if len(client.config.get_evaluation()) == 0:
         return {}
 
-    if len(ctx.config.get_evaluation().get('data_path', ''))==0:
-        print_line("To create experiment {}, evaluation_options should contain data_path.".format(experiment_name))
+    if len(client.config.get_evaluation().get('data_path', ''))==0:
+        client.print_line("To create experiment {}, evaluation_options should contain data_path.".format(experiment_name))
         return {}
 
-    print_line(
+    client.print_line(
         'Experiment {} does not exist. Creating ...'.format(experiment_name))
 
-    # search_space = create_cluster_task_ex(ctx, project_id,
+    # search_space = create_cluster_task_ex(client, project_id,
     #     "auger_ml.tasks_queue.tasks.get_experiment_configs_task",
     #     {'augerInfo':{'experiment_id': None}}
     # )
-    experiment = create_experiment(
-        ctx, experiment_name, project_id, ctx.config.get_evaluation()['data_path'])
-    return experiment
+    return create(
+        client, experiment_name, project_id, client.config.get_evaluation()['data_path'])
 
 
-def read_experiment_info(auger_client, experiment_id):
-    auger_client.config = AugerConfig()
-
+def read_ex(client, experiment_id):
     if experiment_id is not None:
-        experiment = read_experiment_byid(auger_client, experiment_id)
-        project = read_project_byid(auger_client, experiment.get('project_id'))
+        experiment = read(client, experiment_id=experiment_id)
+        project = projects.read(client, project_id=experiment.get('project_id'))
     else:    
-        project = get_or_create_project(auger_client, create_if_not_exist=True)
-        experiment = get_or_create_experiment(auger_client, project['id'])
+        project = projects.get_or_create(client, create_if_not_exist=True)
+        experiment = get_or_create(client, project['id'])
 
     result = experiment    
     if project.get('cluster_id'):
-        result['cluster'] = read_cluster(auger_client, project.get('cluster_id'), cluster_attributes)
+        result['cluster'] = clusters.read(client, project.get('cluster_id'), clusters.display_attributes)
 
-    if auger_client.config.get_experiment_session_id():    
-        result['session'] = read_experiment_session(auger_client, auger_client.config.get_experiment_session_id(), ['id', 'status', 'datasource_name', 'model_type'])
+    if client.config.get_experiment_session_id():    
+        result['session'] = experiment_sessions.read(client, client.config.get_experiment_session_id(), ['id', 'status', 'datasource_name', 'model_type'])
 
     return result
 
-def run_experiment(ctx):
-    ctx.config = AugerConfig()
-    ctx.config.delete_session_file()
+def run(client):
+    client.config.delete_session_file()
 
-    project_id = start_project(ctx, create_if_not_exist=True)
+    project_id = projects.start(client, create_if_not_exist=True)
 
-    experiment = get_or_create_experiment(ctx, project_id)
+    experiment = get_or_create(client, project_id)
 
-    task_args = ctx.config.get_evaluation()
+    task_args = client.config.get_evaluation()
     task_args['augerInfo'] = {'experiment_id': experiment['id']}
 
-    result = create_cluster_task_ex(
-        ctx, project_id,
+    result = cluster_tasks.create_ex(
+        client, project_id,
         "auger_ml.tasks_queue.evaluate_api.run_cli_evaluate_task", task_args
     )
     if result is None:
         result = {}
 
     result['project_id'] = project_id
-    ctx.config.update_session_file(result)
+    client.config.update_session_file(result)
 
 
-def stop_experiment(ctx):
-    config = AugerConfig()
-    experiment_id, experiment_name = config.get_experiment()
+def stop(client):
+    experiment_id, experiment_name = client.config.get_experiment()
 
-    create_cluster_task_ex(
-        ctx, config.get_project_id(),
+    cluster_tasks.create_ex(
+        client, client.config.get_project_id(),
         "auger_ml.tasks_queue.evaluate_api.stop_evaluate_task",
         {'augerInfo': {'experiment_id': experiment_id,
-                       'experiment_session_id': config.get_experiment_session_id()}}
+                       'experiment_session_id': client.config.get_experiment_session_id()}}
     )
 
 
-def read_leaderboard_experiment(ctx, experiment_session_id):
+def read_leaderboard(client, experiment_session_id):
     from collections import OrderedDict
 
-    config = AugerConfig()
     if experiment_session_id is None:
-        experiment_session_id = config.get_experiment_session_id()
+        experiment_session_id = client.config.get_experiment_session_id()
 
-    trials = list_trials(ctx, experiment_session_id)
+    trials_list = trials.list(client, experiment_session_id)
 
     leaderboard = []
-    for trial in trials:
+    for trial in trials_list:
         leaderboard.append({
             trial.get('score_name'): trial.get('score_value'),
             'eval_time(sec)': "{0:.2f}".format(trial.get('raw_data').get('evaluation_time')),
@@ -219,7 +160,7 @@ def read_leaderboard_experiment(ctx, experiment_session_id):
 
     leaderboard.sort(key=lambda t: t[trial.get('score_name')], reverse=True)
 
-    exp_session = read_experiment_session(ctx, experiment_session_id)
+    exp_session = experiment_sessions.read(client, experiment_session_id)
     #print(exp_session.get('model_settings', {}).keys())
     info = OrderedDict({
         'Start': exp_session.get('model_settings', {}).get('start_time'), 
@@ -231,33 +172,31 @@ def read_leaderboard_experiment(ctx, experiment_session_id):
     return leaderboard, info
 
 
-def export_model_experiment(ctx, trial_id, deploy=False):
+def export_model(client, trial_id, deploy=False):
     if trial_id is None:
-        res, info = read_leaderboard_experiment(ctx)
+        res, info = experiments.read_leaderboard(client)
         if len(res) == 0:
-            raise click.ClickException(
+            raise Exception(
                 'There is no trials for the experiment: %s.' % (name))
 
-        print_line('Use best trial to export model: {}'.format(res[0]))
+        client.print_line('Use best trial to export model: {}'.format(res[0]))
 
         trial_id = res[0]['id']
 
-    ctx.config = AugerConfig()
-    project_id = start_project(ctx, create_if_not_exist= False)
-    experiment_id, experiment_name = ctx.config.get_experiment()
+    project_id = start_project(client, create_if_not_exist= False)
+    experiment_id, experiment_name = client.config.get_experiment()
 
     task_args = {
-        'augerInfo': {'experiment_id': experiment_id, 'experiment_session_id': ctx.config.get_experiment_session_id()},
+        'augerInfo': {'experiment_id': experiment_id, 'experiment_session_id': client.config.get_experiment_session_id()},
         "export_model_uid": trial_id
     }
 
     if deploy:
-        create_cluster_task_ex(ctx, project_id,
+        cluster_tasks.create_ex(client, project_id,
                                             "auger_ml.tasks_queue.tasks.promote_pipeline_task", task_args
                                             )
-        print("Waiting for deploy of pipeline: %s"%trial_id)
-        wait_for_task_result(
-            auger_client=ctx,
+        client.print_line("Waiting for deploy of pipeline: %s"%trial_id)
+        wait_for_object_state(client,
             endpoint=['pipelines', 'read'],
             params={'id': trial_id},
             first_status='creating_files',
@@ -267,39 +206,36 @@ def export_model_experiment(ctx, trial_id, deploy=False):
             poll_interval=10
         )
         
-        pipeline = read_pipeline(ctx, trial_id)        
-        print("Pipeline {} status: {}; error: {}".format(pipeline.get('id'), pipeline.get('status'), pipeline.get('error_message')))
+        pipeline = pipelines.read(client, trial_id)        
+        client.print_line("Pipeline {} status: {}; error: {}".format(pipeline.get('id'), pipeline.get('status'), pipeline.get('error_message')))
         return trial_id
     else:    
-        model_path = create_cluster_task_ex(ctx, project_id,
+        model_path = create_cluster_task_ex(client, project_id,
                                             "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args
                                             )
-        print(model_path)
-        download_project_file(ctx, project_id, model_path, "models")
-
+        client.print_line("Model exported to remote file: %s"%model_path)
+        projects.download_file(client, project_id, model_path, "models")
 
     return None
 
 
-def predict_experiment(ctx, pipeline_id, trial_id, file):
+def predict(client, pipeline_id, trial_id, file):
     if pipeline_id is None:
-        pipeline_id = export_model_experiment(ctx, trial_id, deploy=True)
+        pipeline_id = export_model(client, trial_id, deploy=True)
 
-    pipeline = read_pipeline(ctx, pipeline_id)
+    pipeline = pipelines.read(client, pipeline_id)
     if pipeline.get('status') != 'ready':
-        print_line("Pipeline is not ready or has issues. Try to create another one.", err = True)
-        print_record(pipeline, pipeline_attributes)
-        return
+        raise Exception("Pipeline is not ready or has issues. Try to create another one.")
 
     df = load_dataframe_from_file(file)
 
-    prediction_id = create_prediction(ctx, pipeline_id, df.values.tolist(), df.columns.get_values().tolist())
-    result = read_prediction(ctx, prediction_id)
+    prediction_id = predictions.create(client, pipeline_id, df.values.tolist(), df.columns.get_values().tolist())
+    result = predictions.read(client, prediction_id)
 
     predict_path = os.path.splitext(file)[0] + "_predicted.csv"
     save_dict_to_csv(result.get('result', {}), predict_path)
 
-    print("Predcition result saved to file: %s"%predict_path)
+    client.print_line("Prediction result saved to file: %s"%predict_path)
 
-def monitor_leaderboard_experiment(ctx, name):
+def monitor_leaderboard(client, name):
     pass

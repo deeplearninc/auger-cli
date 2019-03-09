@@ -3,16 +3,8 @@
 import click
 
 from auger_cli.cli_client import pass_client
-from auger_cli.formatter import print_list
-
-from auger_cli.api.orgs import (
-    org_attributes,
-    create_org,
-    delete_org,
-    list_orgs,
-    update_org,
-    read_org
-)
+from auger_cli.formatter import print_list, print_record
+from auger_cli.api import orgs
 
 
 @click.group(
@@ -23,52 +15,33 @@ from auger_cli.api.orgs import (
 @click.pass_context
 def orgs_group(ctx):
     if ctx.invoked_subcommand is None:
-        print_list(
-            list_data=list_orgs(ctx.obj),
-            attributes=org_attributes
-        )
+        with ctx.obj.cli_error_handler():
+            print_list(
+                list_data=orgs.list(ctx.obj),
+                attributes=orgs.display_attributes
+            )
     else:
         pass
 
 
-@click.command()
-@click.argument('name')
-@click.option('--access-key', help='AWS public access key.')
-@click.option('--secret-key', help='AWS secret key.')
-@pass_client
-def create(ctx, name, access_key, secret_key):
-    create_org(ctx, name, access_key, secret_key)
-
-
-@click.command()
-@click.argument('organization_id', required=True)
-@pass_client
-def delete(ctx, organization_id):
-    delete_org(ctx, organization_id)
-
-
-@click.command()
-@click.argument('organization_id', required=True)
-@click.option('--access-key', required=True, help='AWS public access key.')
-@click.option('--secret-key', required=True, help='AWS secret key.')
-@pass_client
-def update(ctx, organization_id, access_key, secret_key):
-    update_org(ctx, access_key, secret_key, organization_id)
-
-
 @click.command(short_help='Display organization details.')
 @click.option(
-    '--organization',
-    '-o',
+    '--org-name',
+    '-n',
     type=click.STRING,
-    required=True,
+    default=None,
     help='Name of the organization to display.'
 )
+@click.option(
+    '--org-id',
+    '-i',
+    type=click.STRING,
+    default=None,
+    help='ID of the organization to display.'
+)
 @pass_client
-def show(ctx, org):
-    print_record(read_org(ctx, org), org_attributes)
+def show(client, org_name, org_id):
+    with client.cli_error_handler():
+        print_record(orgs.read(client, org_name=org_name, org_id=org_id), orgs.display_attributes)
 
-orgs_group.add_command(create)
-orgs_group.add_command(delete)
-orgs_group.add_command(update)
 orgs_group.add_command(show)

@@ -7,12 +7,7 @@ from auger_cli.formatter import (
     print_list,
     print_record
 )
-from auger_cli.api.clusters import (
-    cluster_attributes,
-    list_clusters,
-    delete_cluster,
-    read_cluster
-)
+from auger_cli.api import clusters
 
 
 @click.group(
@@ -30,7 +25,7 @@ from auger_cli.api.clusters import (
 def clusters_group(ctx, organization_id):
     if ctx.invoked_subcommand is None:
         with ctx.obj.cli_error_handler():
-            print_list(list_clusters(ctx.obj, organization_id), cluster_attributes)
+            print_list(clusters.list(ctx.obj, organization_id), clusters.display_attributes)
 
 
 @click.command(short_help='Terminate a cluster.')
@@ -44,7 +39,7 @@ def clusters_group(ctx, organization_id):
 @pass_client
 def delete(client, cluster_id, wait):
     with client.cli_error_handler():
-        ok = delete_cluster(client, cluster_id, wait)
+        ok = clusters.delete(client, cluster_id, wait)
         if not ok:
             client.print_line('Failed to delete cluster.', err=True)
 
@@ -54,7 +49,7 @@ def delete(client, cluster_id, wait):
 @pass_client
 def show(client, cluster_id):
     with client.cli_error_handler():    
-        print_record(read_cluster(client, cluster_id), cluster_attributes)
+        print_record(clusters.read(client, cluster_id), clusters.display_attributes)
 
 
 clusters_group.add_command(delete)

@@ -11,7 +11,7 @@ class AugerConfig(object):
         self.config_session = {}    
         self.experiment_name = None
 
-        if os.path.isfile(".auger_experiment_session.yml"):
+        if os.path.isfile("auger_experiment.yml"):
             print_line('Loading {} from current directory ...'.format("auger_experiment.yml"))
 
             with open("auger_experiment.yml", 'r') as stream:
@@ -27,7 +27,10 @@ class AugerConfig(object):
             if os.path.isfile(".auger_experiment_session.yml"):
                 with open(".auger_experiment_session.yml", 'r') as stream:
                     self.config_session = yaml.safe_load(stream)
-            
+
+    def is_dev_mode(self):
+        return self.config.get('dev_mode', False)
+
     def get_project_id(self):
         if self.config.get('project_id') is not None:
             return self.config['project_id']

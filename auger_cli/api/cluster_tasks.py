@@ -1,26 +1,21 @@
 import json
 
-from auger_cli.utils import request_list
-from auger_cli.formatter import wait_for_task_result
+from auger_cli.utils import request_list, wait_for_object_state
 
-cluster_task_attributes = ['id', 'cluster_id', 'project_id',
+
+display_attributes = ['id', 'cluster_id', 'project_id',
                            'status', 'name', 'args', 'result', 'exception']
 
-
-def list_cluster_tasks(client, project_id):
+def list(client, project_id):
     return request_list(client, 'cluster_tasks',
                         params={'project_id': project_id})
 
 
-def read_cluster_task(client, cluster_task_id):
+def read(client, cluster_task_id):
     return client.call_hub_api(['cluster_tasks', 'read'], params={'id': cluster_task_id})
 
 
-def create_cluster_task_ex(client, project_id, name, args_python, wait=True):
-    return create_cluster_task(client, project_id, name, json.dumps([args_python]), wait)
-
-
-def create_cluster_task(client, project_id, name, args, wait=True):
+def create(client, project_id, name, args, wait=True):
     result = client.call_hub_api(
         ['cluster_tasks', 'create'],
         params={
@@ -31,20 +26,23 @@ def create_cluster_task(client, project_id, name, args, wait=True):
     )
 
     if wait and 'id' in result:
-        result = wait_for_task_result(
-            auger_client=client,
+        result = wait_for_object_state(client,
             endpoint=['cluster_tasks', 'read'],
             params={'id': result['id']},
             first_status=result['status'],
             progress_statuses=[
                 'pending', 'received', 'started', 'retry'
             ]
-        )
+        ).get('result')
 
     return result
 
 
-def run_cluster_task(client, wait):
+def create_ex(client, project_id, name, args_python, wait=True):
+    return create(client, project_id, name, json.dumps([args_python]), wait)
+
+
+def run(client, wait):
     from ..projects.api import start_project
 
     project_id = start_project(client, create_if_not_exist=True)

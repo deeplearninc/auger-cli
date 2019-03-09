@@ -5,9 +5,9 @@ import uuid
 import os
 import subprocess
 import base64
+import time
 
-from .constants import REQUEST_LIMIT
-
+from .constants import REQUEST_LIMIT, API_POLL_INTERVAL
 
 def camelize(snake_cased_string):
     parts = snake_cased_string.split('_')
@@ -26,8 +26,37 @@ def urlparse(*args, **kwargs):
 def b64encode(input_string):
     return base64.b64encode(input_string.encode('ascii')).decode('ascii')
 
+
 def b64decode(input_string):
     return base64.b64decode(input_string).decode('ascii')
+
+
+def wait_for_object_state(client, endpoint, params, first_status,
+                  progress_statuses, poll_interval=API_POLL_INTERVAL):
+    from .formatter import progress_spinner
+
+    status = first_status
+    last_status = ''
+    result = {}
+    while status in progress_statuses:
+        if status != last_status:
+            client.print_line('{}... '.format(camelize(status)))
+            last_status = status
+
+        with progress_spinner(client):
+            while status == last_status:
+                time.sleep(poll_interval)
+
+                result = client.call_hub_api(endpoint, params=params)
+                status = result.get('status', 'failure')
+
+    client.print_line('{}... '.format(camelize(status)))
+    if status == "failure":
+        raise Exception('API call {}({}) failed: {}'.format(result.get(
+            'name', ""), result.get('args', ""), result.get("exception", "")))
+
+    return result
+
 
 def request_list(client, what, params):
     offset = params.get('offset', 0)
@@ -57,7 +86,7 @@ def get_uid():
     return uuid.uuid4().hex[:15].upper()
 
 
-def download_remote_file(ctx, local_path, remote_path):
+def download_remote_file(local_path, remote_path):
     from urllib.request import urlopen
     from urllib.parse import urlparse, parse_qs
     import shutil

@@ -11,21 +11,8 @@ from auger_cli.formatter import (
     print_header
 )
 
-from auger_cli.api.experiments import (
-    experiment_attributes,
-    create_experiment,
-    delete_experiment,
-    list_experiments,
-    update_experiment,
-    run_experiment,
-    read_experiment_info,
-    read_experiment_byid,
-    monitor_leaderboard_experiment,
-    read_leaderboard_experiment,
-    export_model_experiment,
-    stop_experiment,
-    predict_experiment
-)
+from auger_cli.api import experiments
+
 
 @click.group(
     'experiments',
@@ -47,10 +34,11 @@ from auger_cli.api.experiments import (
 @click.pass_context
 def experiments_group(ctx, project_id, name):
     if ctx.invoked_subcommand is None:
-        print_list(
-            list_data=list_experiments(ctx.obj, project_id, name),
-            attributes=experiment_attributes
-        )
+        with ctx.obj.cli_error_handler():
+            print_list(
+                list_data=experiments.list(ctx.obj, project_id, name),
+                attributes=experiments.display_attributes
+            )
     else:
         pass
 
@@ -60,8 +48,9 @@ def experiments_group(ctx, project_id, name):
 @click.argument('project_id')
 @click.argument('data_path')
 @pass_client
-def create(ctx, name, project_id):
-    print_record(create_experiment(ctx, name, project_id, data_path), experiment_attributes)
+def create(client, name, project_id):
+    with client.cli_error_handler():
+        print_record(experiments.create(cleint, name, project_id, data_path), experiments.display_attributes)
 
 
 @click.command(short_help='Display experiment details.')
@@ -72,35 +61,40 @@ def create(ctx, name, project_id):
     help='Experiment ID.'
 )
 @pass_client
-def show(ctx, experiment_id):
-    print_record(read_experiment_info(ctx, experiment_id), experiment_attributes)
+def show(client, experiment_id):
+    with client.cli_error_handler():
+        print_record(experiments.read_ex(client, experiment_id), experiments.display_attributes)
 
 
 @click.command()
 @click.argument('experiment_id', required=True)
 @pass_client
-def delete(ctx, experiment_id):
-    delete_experiment(ctx, experiment_id)
+def delete(client, experiment_id):
+    with client.cli_error_handler():
+        experiments.delete(client, experiment_id)
 
 
 @click.command()
 @click.argument('experiment_id', required=True)
 @click.argument('name', required=True)
 @pass_client
-def update(ctx, experiment_id, name):
-    update_experiment(ctx, experiment_id, name)
+def update(client, experiment_id, name):
+    with client.cli_error_handler():
+        print_record(experiments.update(client, experiment_id, name), experiments.display_attributes)
 
 
 @click.command()
 @pass_client
-def run(ctx):
-    run_experiment(ctx)
+def run(client):
+    with client.cli_error_handler():
+        experiments.run(client)
 
 
 @click.command()
 @pass_client
-def stop(ctx):
-    stop_experiment(ctx)
+def stop(client):
+    with client.cli_error_handler():
+        experiments.stop(client)
 
 
 @click.command()
@@ -111,18 +105,19 @@ def stop(ctx):
     help='Experiment session ID.'
 )
 @pass_client
-def leaderboard(ctx, experiment_session_id):
-    leaderboard, info = read_leaderboard_experiment(ctx, experiment_session_id)
-    print_line("=======================================")
-    print_header(info)
-    print_table(leaderboard)
+def leaderboard(client, experiment_session_id):
+    with client.cli_error_handler():    
+        leaderboard, info = experiments.read_leaderboard(client, experiment_session_id)
+        print_line("=======================================")
+        print_header(info)
+        print_table(leaderboard)
 
 
 @click.command()
 @click.argument('name', required=True)
 @pass_client
-def monitor_leaderboard(ctx, name):
-    monitor_leaderboard_experiment(ctx, name)
+def monitor_leaderboard(client, name):
+    experiments.monitor_leaderboard(client, name)
 
 
 @click.command()
@@ -133,8 +128,8 @@ def monitor_leaderboard(ctx, name):
     help='Trial ID to export model for the last experiment session, if missed best trial used.'
 )
 @pass_client
-def export_model(ctx, trial_id):
-    export_model_experiment(ctx, trial_id)
+def export_model(client, trial_id):
+    experiments.export_model(client, trial_id)
 
 @click.command()
 @click.option(
@@ -144,8 +139,8 @@ def export_model(ctx, trial_id):
     help='Trial ID to deploy model for the last experiment session, if missed best trial used.'
 )
 @pass_client
-def deploy_model(ctx, trial_id):
-    export_model_experiment(ctx, trial_id, deploy=True)
+def deploy_model(client, trial_id):
+    experiments.export_model(client, trial_id, deploy=True)
 
 @click.command()
 @click.option(
@@ -168,8 +163,8 @@ def deploy_model(ctx, trial_id):
     required=True
 )
 @pass_client
-def predict(ctx, pipeline_id, trial_id, file):
-    predict_experiment(ctx, pipeline_id, trial_id, file)
+def predict(client, pipeline_id, trial_id, file):
+    experiments.predict(client, pipeline_id, trial_id, file)
 
 experiments_group.add_command(create)
 experiments_group.add_command(show)

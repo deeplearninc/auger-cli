@@ -9,12 +9,7 @@ from auger_cli.formatter import (
     print_table
 )
 
-from auger_cli.api.experiment_sessions import (
-    experiment_session_attributes,
-    experiment_session_list_attributes,
-    list_experiment_sessions,
-    read_experiment_session
-)
+from auger_cli.api import experiment_sessions
 
 
 @click.group(
@@ -37,10 +32,11 @@ from auger_cli.api.experiment_sessions import (
 @click.pass_context
 def experiment_sessions_group(ctx, project_id, experiment_id):
     if ctx.invoked_subcommand is None:
-        print_table(
-            list_experiment_sessions(ctx.obj, project_id, experiment_id),
-            attributes=experiment_session_list_attributes
-        )
+        with ctx.obj.cli_error_handler():
+            print_table(
+                experiment_sessions.list(ctx.obj, project_id, experiment_id),
+                attributes=experiment_sessions.display_list_attributes
+            )
     else:
         pass
 
@@ -48,8 +44,9 @@ def experiment_sessions_group(ctx, project_id, experiment_id):
 @click.command(short_help='Display experiment session details.')
 @click.argument('experiment_session_id')
 @pass_client
-def show(ctx, experiment_session_id):
-    print_record(read_experiment_session(ctx, experiment_session_id), experiment_session_attributes)
+def show(client, experiment_session_id):
+    with client.cli_error_handler():
+        print_record(experiment_sessions.read(client, experiment_session_id), experiment_sessions.display_attributes)
 
 
 experiment_sessions_group.add_command(show)

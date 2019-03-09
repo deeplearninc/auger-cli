@@ -7,12 +7,7 @@ from auger_cli.formatter import (
     print_list,
     print_record
 )
-
-from auger_cli.api.trials import (
-    trial_attributes,
-    list_trials,
-    read_trial
-)
+from auger_cli.api import trials
 
 
 @click.group(
@@ -29,10 +24,8 @@ from auger_cli.api.trials import (
 @click.pass_context
 def trials_group(ctx, experiment_session_id):
     if ctx.invoked_subcommand is None:
-        print_list(
-            list_data=list_trials(ctx.obj, experiment_session_id),
-            attributes=trial_attributes
-        )
+        with ctx.obj.cli_error_handler():        
+            print_list(trials.list(ctx.obj, experiment_session_id), trials.display_attributes)
     else:
         pass
 
@@ -41,8 +34,8 @@ def trials_group(ctx, experiment_session_id):
 @click.argument('trial_id')
 @click.argument('experiment_session_id')
 @pass_client
-def show(ctx, trial_id, experiment_session_id):
-    print_record(read_trial(ctx, trial_id, experiment_session_id), trial_attributes)
+def show(client, trial_id, experiment_session_id):
+    print_record(trials.read(client, trial_id, experiment_session_id), trials.display_attributes)
 
 
 trials_group.add_command(show)

@@ -5,43 +5,15 @@ from coreapi.transports import http as coreapi_http
 import click
 import click_spinner
 import collections
-import time
+from contextlib import contextmanager
 
-from .constants import API_POLL_INTERVAL
 from .utils import camelize
 
 
-def wait_for_task(client, endpoint, params, first_status,
-                  progress_statuses, poll_interval=API_POLL_INTERVAL):
-    status = first_status
-    last_status = ''
-    result = {}
-    while status in progress_statuses:
-        if status != last_status:
-            auger_client.print_line('{}... '.format(camelize(status)))
-            last_status = status
-
-        with click_spinner.spinner():
-            while status == last_status:
-                time.sleep(poll_interval)
-
-                result = auger_client.call_hub_api(endpoint, params=params)
-                status = result.get('status', 'failure')
-
-    auger_client.print_line('{}... '.format(camelize(status)))
-    if status == "failure":
-        raise Exception('API call {}({}) failed: {}'.format(result.get(
-            'name', ""), result.get('args', ""), result.get("exception", "")))
-
-    return result
-
-
-def wait_for_task_result(client, endpoint, params, first_status,
-                         progress_statuses, poll_interval=API_POLL_INTERVAL):
-    result = wait_for_task(client, endpoint, params,
-                           first_status, progress_statuses, poll_interval)
-    return result.get('result')
-
+@contextmanager
+def progress_spinner(client):
+    with click_spinner.spinner():
+        yield
 
 def print_list(list_data, attributes):
     for object_data in iter(list_data):
@@ -66,7 +38,7 @@ def print_line(line='', nl=True, err=False):
     click.echo(line, nl=nl, err=err)
 
 
-def print_stream(ctx, params):
+def print_stream(client, params):
     # Patch HTTPTransport to handle streaming responses
     def stream_request(self, link, decoders,
                        params=None, link_ancestors=None, force_codec=False):
@@ -96,7 +68,7 @@ def print_stream(ctx, params):
     HTTPTransport.stream_request = stream_request
     # Patch done
 
-    doc = ctx.document
+    doc = client.document
 
     def flatten(list):
         return [item for sublist in list for item in sublist]
@@ -105,9 +77,9 @@ def print_stream(ctx, params):
         list(map(lambda link: list(link._data.values()), doc.data.values()))
     )
     link = list(filter(lambda link: 'stream_logs' in link.url, links))[0]
-    credentials = ctx.credentials
-    headers = ctx.headers
-    decoders = ctx.decoders
+    credentials = client.credentials
+    headers = client.headers
+    decoders = client.decoders
 
     http_transport = HTTPTransport(credentials=credentials, headers=headers)
     http_transport.stream_request(link, decoders, params=params)

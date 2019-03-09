@@ -13,7 +13,9 @@ import shutil
 
 from .config import AugerConfig
 
+
 class AugerClient(object):
+
     def __init__(self, url=DEFAULT_COREAPI_URL):
         self._cached_document = None
         self.setup_client(url)
@@ -34,38 +36,26 @@ class AugerClient(object):
                 self.fetch_document(url=self.coreapi_schema_url)
         return self._cached_document
 
-    # TODO: remove it    
-    @contextmanager
-    def coreapi_action(self):
-        try:
-            yield
-        except coreapi.exceptions.ErrorMessage as exc:
-            self.print_line(exc)
-            sys.exit(1)
-        except coreapi.exceptions.LinkLookupError as exc:
-            self.print_line(exc)
-            sys.exit(1)
-        except coreapi.exceptions.ParseError as exc:
-            self.print_line('Error connecting to {0}'.format(self.coreapi_url))
-            sys.exit(1)
-
     def call_hub_api_ex(self, keys, params=None, validate=True, overrides=None,
-               action=None, encoding=None, transform=None):
-        return self.client.action( self.document, keys, params, validate, overrides,
-               action, encoding, transform)
+                        action=None, encoding=None, transform=None):
+        return self.client.action(self.document, keys, params, validate, overrides,
+                                  action, encoding, transform)
 
     def call_hub_api(self, keys, params=None, validate=True, overrides=None,
-               action=None, encoding=None, transform=None):
+                     action=None, encoding=None, transform=None):
         result = self.call_hub_api_ex(keys, params, validate, overrides,
-               action, encoding, transform)
+                                      action, encoding, transform)
         if 'data' in result:
             return result['data']
 
-        raise Exception("Call of HUB API method %s failed."%keys)
-            
+        raise Exception("Call of HUB API method %s failed." % keys)
+
     def print_exception(self, exc):
-        # TODO: support dev mode and print stacktrace 
-        self.print_line(str(exc), err=True)
+        # TODO: support dev mode and print stacktrace
+        if self.config.is_dev_mode():
+            raise exc
+        else:
+            self.print_line(str(exc), err=True)
 
     def print_line(self, line='', nl=True, err=False):
         from .formatter import print_line as formatter_print_line
@@ -93,7 +83,7 @@ class AugerClient(object):
         self.config = AugerConfig()
 
         def test_callback(res):
-            #pass
+            # pass
             print(res.url)
 
         self.transports = coreapi.transports.HTTPTransport(
@@ -110,4 +100,3 @@ class AugerClient(object):
     def set_credentials(self, credentials):
         with open(self.coreapi_cli.credentials_path, 'wb') as store:
             store.write(force_bytes(json.dumps(credentials)))
-
