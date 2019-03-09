@@ -26,17 +26,18 @@ evaluation_options:
     - households
     - latitude
     - longitude
-  targetFeature: median_house_value
+
+  target_feature: median_house_value
   #categoricalFeatures:
 
-  labelEncodingFeatures: []
-  datetimeFeatures: []
-  timeSeriesFeatures: []
+  label_encoding_features: []
+  datetime_features: []
+  time_series_features: []
   classification: false
-  binaryClassification: false
+  binary_classification: false
   scoring: neg_rmse
 
-  crossValidationFolds: 5
+  cross_validation_folds: 5
   max_total_time_mins: 60
   max_eval_time_mins: 1
   max_n_trials: 10
@@ -44,7 +45,7 @@ evaluation_options:
   use_ensemble: true
 
   # optimizers_names: []
-  # splitOptions: {}
+  # split_options: {}
   # oversampling: {}
   # search_space: 
   # use_ensemble: true

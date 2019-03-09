@@ -3,7 +3,7 @@ import os
 import io
 
 from .formatter import print_line
-from .utils import remove_file
+from .utils import remove_file, camelize
 
 class AugerConfig(object):
     def __init__(self):
@@ -16,6 +16,7 @@ class AugerConfig(object):
 
             with open("auger_experiment.yml", 'r') as stream:
                 self.config = yaml.safe_load(stream)
+                self._translate_config_names()
 
             self.experiment_name = self.config.get("experiment")
             if self.experiment_name is None:
@@ -27,6 +28,17 @@ class AugerConfig(object):
             if os.path.isfile(".auger_experiment_session.yml"):
                 with open(".auger_experiment_session.yml", 'r') as stream:
                     self.config_session = yaml.safe_load(stream)
+
+    def _translate_config_names(self):
+        camel_cases_props = ['featureColumns', 'targetFeature', 'categoricalFeatures', 'labelEncodingFeatures', 'datetimeFeatures',
+            'timeSeriesFeatures', 'binaryClassification', 'crossValidationFolds', 'splitOptions']
+
+        evaluation_options = self.config.get('evaluation_options', {})    
+        for name, value in evaluation_options.items():
+            camelize_name = camelize(name, join_string="")
+            if camelize_name in camel_cases_props:
+                del evaluation_options[name]
+                evaluation_options[camelize_name] = value
 
     def is_dev_mode(self):
         return self.config.get('dev_mode', False)

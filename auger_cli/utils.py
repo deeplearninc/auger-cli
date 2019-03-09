@@ -9,9 +9,15 @@ import time
 
 from .constants import REQUEST_LIMIT, API_POLL_INTERVAL
 
-def camelize(snake_cased_string):
+def camelize(snake_cased_string, join_string=" "):
     parts = snake_cased_string.split('_')
-    return " ".join((x.upper() if len(x) < 4 else x.title()) for x in parts)
+    for idx, part in enumerate(parts):
+        if idx == 0 and len(join_string) == 0:
+            continue
+
+        parts[idx] = part.upper() if len(part) < 4 else part.title()
+
+    return join_string.join(parts)
 
 
 def urlparse(*args, **kwargs):

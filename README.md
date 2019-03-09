@@ -114,30 +114,30 @@ evaluation_options:
   data_path: files/iris_data_sample.csv
 
   # List of features from data file to be used to evaluate ML models
-  featureColumns:
+  feature_columns:
   - sepal_length
   - sepal_width
   - petal_length
   - petal_width
 
   # Target feature to build ML model for
-  targetFeature: class
+  target_feature: class
 
   # If some of your features are strings, add them to the categoricals, so they will be one-hot encoded
-  categoricalFeatures:
+  categorical_features:
   - class
 
   # If you want some categoricals whould be hashed instead of one-hot encoded add them to label encoded list
-  labelEncodingFeatures: []
+  label_encoding_features: []
 
   # List of features of datetime type
-  datetimeFeatures: []
+  datetime_features: []
 
   # Define type of ML models. true for 'classification', false for 'regression'
   classification: true
 
   # If target has two unique values, set it to true 
-  binaryClassification: false
+  binary_classification: false
 
   # Score used to optimize ML model.
   # Supported scores for classification: accuracy, f1_macro, f1_micro, f1_weighted, neg_log_loss, precision_macro, precision_micro, precision_weighted, recall_macro, recall_micro, recall_weighted
@@ -147,7 +147,7 @@ evaluation_options:
   scoring: accuracy
 
   # Number of K-folds: is a cross validation technique for splitting data into train/test
-  crossValidationFolds: 5
+  cross_validation_folds: 5
 
   # Max Total Time Minutes, the maximum time in minutes an entire training can run for before it is stopped.
   max_total_time_mins: 60
@@ -166,7 +166,7 @@ evaluation_options:
   #data_compression: gzip
 
   #optimizers_names: []
-  #splitOptions: {}
+  #split_options: {}
   #oversampling: {}
   #search_space: 
   #use_ensemble: true
