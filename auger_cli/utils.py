@@ -44,6 +44,7 @@ def wait_for_object_state(client, endpoint, params, first_status,
     status = first_status
     last_status = ''
     result = {}
+    client.print_line("Wait for {} will be in complete state.".format(endpoint[0]))
     while status in progress_statuses:
         if status != last_status:
             client.print_line('{}... '.format(camelize(status)))
