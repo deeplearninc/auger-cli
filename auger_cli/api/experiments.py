@@ -141,7 +141,7 @@ def stop(client):
     )
 
 
-def read_leaderboard(client, experiment_session_id):
+def read_leaderboard(client, experiment_session_id=None):
     from collections import OrderedDict
 
     if experiment_session_id is None:
@@ -174,7 +174,7 @@ def read_leaderboard(client, experiment_session_id):
 
 def export_model(client, trial_id, deploy=False):
     if trial_id is None:
-        res, info = experiments.read_leaderboard(client)
+        res, info = read_leaderboard(client)
         if len(res) == 0:
             raise Exception(
                 'There is no trials for the experiment: %s.' % (name))
@@ -183,7 +183,7 @@ def export_model(client, trial_id, deploy=False):
 
         trial_id = res[0]['id']
 
-    project_id = start_project(client, create_if_not_exist= False)
+    project_id = projects.start(client, create_if_not_exist= False)
     experiment_id, experiment_name = client.config.get_experiment()
 
     task_args = {
@@ -210,7 +210,7 @@ def export_model(client, trial_id, deploy=False):
         client.print_line("Pipeline {} status: {}; error: {}".format(pipeline.get('id'), pipeline.get('status'), pipeline.get('error_message')))
         return trial_id
     else:    
-        model_path = create_cluster_task_ex(client, project_id,
+        model_path = cluster_tasks.create_ex(client, project_id,
                                             "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args
                                             )
         client.print_line("Model exported to remote file: %s"%model_path)

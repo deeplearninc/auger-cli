@@ -51,7 +51,7 @@ def wait_for_object_state(client, endpoint, params, first_status,
                 status = result.get('status', 'failure')
 
     client.print_line('{}... '.format(camelize(status)))
-    if status == "failure":
+    if status == "failure" or status == 'error':
         raise Exception('API call {}({}) failed: {}'.format(result.get(
             'name', ""), result.get('args', ""), result.get("exception", "")))
 
