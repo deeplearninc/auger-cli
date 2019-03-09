@@ -51,8 +51,8 @@ def create(client, project, organization_id):
         }
     )
 
-def delete(client, project):
-    client.call_hub_api(['projects', 'delete'], params={'name': project})
+def delete(client, project_id):
+    client.call_hub_api(['projects', 'delete'], params={'id': project_id})
     
 
 def get_or_create(client, create_if_not_exist=False, project_id=None):

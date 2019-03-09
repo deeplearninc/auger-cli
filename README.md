@@ -273,7 +273,7 @@ Project name is optional, if missed project name will be retrieve from auger_exp
 
 To read project log:
 ```sh
-auger project logs <project_id>
+auger projects logs <project_id>
 ```
 
 To Create project:

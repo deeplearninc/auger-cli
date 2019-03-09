@@ -53,14 +53,24 @@ def create(client, project, organization_id):
     '--project',
     '-p',
     type=click.STRING,
-    required=True,
+    default=None,
     help='Name of the project to delete.'
 )
+@click.option(
+    '--project-id',
+    '-i',
+    type=click.STRING,
+    default=None,
+    help='ID of the project to delete.'
+)
 @pass_client
-def delete(client, project):
+def delete(client, project, project_id):
     with client.cli_error_handler():
-        projects.delete(client, project)
-        print_line('Deleted {}.'.format(project))
+        if project_id is None:
+            project_id = projects.read(client, project_name=project).get('id')
+
+        projects.delete(client, project_id)
+        print_line('Projects {} deleted.'.format(project_id))
 
 @click.command(
     short_help='Download file from project. Path should be relative project path. For example: files/iris_data_sample.csv'
@@ -146,7 +156,7 @@ def logs(client, project, tail):
         if tail:
             print_stream(client, {'id': project_id})
         else:
-            result = client.call_hub_api(['projects', 'logs'], params={'id': project_id})
+            result = client.call_hub_api_ex(['projects', 'logs'], params={'id': project_id})
             print_line(result)
 
 
