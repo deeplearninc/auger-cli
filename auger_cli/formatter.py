@@ -15,6 +15,10 @@ def progress_spinner(client):
     with click_spinner.spinner():
         yield
 
+def print_plain_list(list_data):
+    for object_data in iter(list_data):
+        print_line(object_data)
+
 def print_list(list_data, attributes):
     for object_data in iter(list_data):
         print_record(object_data, attributes)

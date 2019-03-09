@@ -131,3 +131,14 @@ def download_file(client, project_id, remote_path, local_path):
 
     download_remote_file(local_path, s3_signed_model_path)
 
+
+def list_files(client, project_id, remote_path):
+    project_id = start(client, project_id=project_id)
+    
+    task_args = {'augerInfo': {}}
+    if remote_path:
+        task_args = {'augerInfo': {'filesPath': remote_path}}
+
+    return cluster_tasks.create_ex(client, project_id, 
+        "auger_ml.tasks_queue.tasks.list_project_files_task", task_args
+    )

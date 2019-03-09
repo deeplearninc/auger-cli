@@ -40,9 +40,9 @@ def clusters_group(ctx, organization_id):
 def delete(client, cluster_id, wait):
     with client.cli_error_handler():
         ok = clusters.delete(client, cluster_id, wait)
-        if not ok:
-            client.print_line('Failed to delete cluster.', err=True)
-
+        if wait:
+            if not ok:
+                client.print_line('Failed to delete cluster.', err=True)
 
 @click.command(short_help='Display cluster details.')
 @click.argument('cluster_id')

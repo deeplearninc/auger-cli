@@ -7,7 +7,8 @@ from auger_cli.formatter import (
     print_line,
     print_list,
     print_stream,
-    print_record
+    print_record,
+    print_plain_list
 )
 from auger_cli.api import projects
 
@@ -91,6 +92,33 @@ def download_file(client, remote_path, local_path, project):
         projects.download_file(client, project_id, remote_path, local_path)
 
 
+@click.command(
+    short_help='Download file from project. Path should be relative project path. For example: files/iris_data_sample.csv'
+)
+@click.option(
+    '--remote-path',
+    '-r',
+    type=click.STRING,
+    default=None,
+    help='Folder path to list files.'
+)
+@click.option(
+    '--project',
+    '-p',
+    type=click.STRING,
+    default=None,
+    help='Name of the project to delete.'
+)
+@pass_client
+def list_files(client, remote_path, project):
+    with client.cli_error_handler():
+        project_id = None
+        if project:
+            project_id = read_project(client, project).get('id')
+
+        print_plain_list(projects.list_files(client, project_id, remote_path))
+
+
 @click.command(short_help='Display project logs.')
 @click.option(
     '--project',
@@ -165,4 +193,5 @@ projects_group.add_command(logs)
 projects_group.add_command(open_project, name='open')
 projects_group.add_command(show)
 projects_group.add_command(download_file)
+projects_group.add_command(list_files)
 
