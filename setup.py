@@ -72,7 +72,8 @@ setup(
     tests_require=[
         'coverage==4.4.1',
         'vcrpy==1.11.1',
-        'mock==2.0.0'
+        'mock==2.0.0',
+        'pytest'
     ],
     cmdclass={
         'verify': VerifyVersionCommand
