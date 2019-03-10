@@ -92,7 +92,7 @@ def get_or_create(client, project_id):
         client, experiment_name, project_id, client.config.get_evaluation_options()['data_path'])
 
 
-def read_ex(client, experiment_id):
+def read_ex(client, experiment_id=None):
     if experiment_id is not None:
         experiment = read(client, experiment_id=experiment_id)
         project = projects.read(client, project_id=experiment.get('project_id'))

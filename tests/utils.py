@@ -1,13 +1,11 @@
-import pytest
 
 from auger_cli.config import AugerConfig
 from auger_cli.client import AugerClient
 
 
-@pytest.fixture(scope="class")
-def test_api_client(request):
+def init_test_api_client(obj):
     client = AugerClient(AugerConfig(config_dir="tests/fixtures/test_experiment", 
         config_settings={'login_config_path': "tests/fixtures/test_experiment"}))
 
-    request.cls.client = client
+    obj.client = client
     return client
