@@ -232,3 +232,13 @@ def load_dataframe_from_file(path, features=None, nrows=None):
             low_memory=False,
             compression=data_compression
         )
+
+def merge_dicts(d, other):
+    import collections
+
+    for k, v in other.items():
+        d_v = d.get(k)
+        if isinstance(v, collections.Mapping) and isinstance(d_v, collections.Mapping):
+            merge_dicts(d_v, v)
+        else:
+            d[k] = v

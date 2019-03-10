@@ -29,13 +29,13 @@ def auth_group(ctx):
     help='Auger password.'
 )
 @click.option('--url',
-              default=constants.DEFAULT_COREAPI_URL,
+              default=None,
               type=click.STRING,
               help='Auger API endpoint.')
 @pass_client
-def login(client, url, username, password):
+def login(client, username, password, url):
     with client.cli_error_handler():
-        auth.login(client, url, username, password)
+        auth.login(client, username, password, url)
 
         client.print_line(
             "You are now logged in on {0} as {1}.".format(

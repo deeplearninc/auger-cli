@@ -6,23 +6,26 @@ from auger_cli.config import AugerConfig
 class TestConfig(unittest.TestCase):
 
     def test_config_create(self):
-        pass
-        # cur_dir = os.getcwd()
-        # os.chdir("tests/fixtures/test_experiment")
-        # config = AugerConfig()
+        config = AugerConfig(config_dir="tests/fixtures/test_experiment")
 
-        # self.assertEqual(config.experiment_name, "test_experiment")
+        self.assertEqual(config.experiment_name, "test_experiment")
 
-        # os.chdir(cur_dir)
+
+    def test_config_create2(self):
+        config_settings = {'evaluation_options':{'feature_columns':['sepal_length', 'sepal_width']}}
+        config = AugerConfig(config_dir="tests/fixtures/test_experiment", 
+            config_settings=config_settings)
+
+        self.assertEqual(config.experiment_name, "test_experiment")
+        self.assertEqual(config.get_evaluation_options().get('featureColumns'), 
+            config_settings.get('evaluation_options').get('feature_columns'))
+        self.assertEqual(config.get_evaluation_options().get('data_path'), 
+            'files/iris_data_sample.csv')
 
     def test_update_session_file(self):
-        pass
-        # cur_dir = os.getcwd()
-        # os.chdir("tests/fixtures/test_experiment")
+        config = AugerConfig(config_dir="tests/fixtures/test_experiment")
+        settings = {'test': 123}
+        config.update_session_file(settings)
 
-        # config = AugerConfig()
-        # config.update_session_file({'test': 123})
-
-        # self.assertTrue(os.path.isfile(".auger_experiment_session.yml"))
-
-        # os.chdir(cur_dir)
+        self.assertTrue(os.path.isfile(config.exp_session_path))
+        self.assertEqual(config.config_session, settings)

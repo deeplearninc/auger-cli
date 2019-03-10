@@ -1,7 +1,11 @@
 from auger_cli.utils import urlparse, b64encode, b64decode
 
-def login(client, url, username, password):
+
+def login(client, username, password, url=None):
     client.clear_credentials()
+
+    if url is None:
+        url = client.config.get_hub_url()
 
     # extract host name from server URL
     parsed = urlparse(url)
@@ -18,8 +22,10 @@ def login(client, url, username, password):
     # make test call
     client.call_hub_api(['organizations', 'list'])
 
+
 def logout(client):
     client.clear_credentials()
+
 
 def whoami(client):
     username = None
@@ -29,4 +35,4 @@ def whoami(client):
         decoded = b64decode(cred.split(' ')[1])
         username = decoded.split(':')[0]
 
-    return username, host    
+    return username, host

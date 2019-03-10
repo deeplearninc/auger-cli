@@ -74,10 +74,10 @@ def get_or_create(client, project_id):
     if experiment.get('id') is not None:
         return experiment
 
-    if len(client.config.get_evaluation()) == 0:
+    if len(client.config.get_evaluation_options()) == 0:
         return {}
 
-    if len(client.config.get_evaluation().get('data_path', ''))==0:
+    if len(client.config.get_evaluation_options().get('data_path', ''))==0:
         client.print_line("To create experiment {}, evaluation_options should contain data_path.".format(experiment_name))
         return {}
 
@@ -89,7 +89,7 @@ def get_or_create(client, project_id):
     #     {'augerInfo':{'experiment_id': None}}
     # )
     return create(
-        client, experiment_name, project_id, client.config.get_evaluation()['data_path'])
+        client, experiment_name, project_id, client.config.get_evaluation_options()['data_path'])
 
 
 def read_ex(client, experiment_id):
@@ -116,7 +116,7 @@ def run(client):
 
     experiment = get_or_create(client, project_id)
 
-    task_args = client.config.get_evaluation()
+    task_args = client.config.get_evaluation_options()
     task_args['augerInfo'] = {'experiment_id': experiment['id']}
 
     result = cluster_tasks.create_ex(

@@ -10,29 +10,29 @@ evaluation_options:
   data_path: files/iris_data_sample.csv
   # data_extension: ".csv"
   # data_compression: gzip
-  featureColumns:
+  feature_columns:
   - sepal_length
   - sepal_width
   - petal_length
   - petal_width
-  targetFeature: class
-  categoricalFeatures:
+  target_feature: class
+  categorical_features:
   - class
 
-  labelEncodingFeatures: []
-  datetimeFeatures: []
-  timeSeriesFeatures: []
+  label_encoding_features: []
+  datetime_features: []
+  time_series_features: []
   classification: true
-  binaryClassification: false
+  binary_classification: false
   scoring: accuracy
 
-  crossValidationFolds: 5
+  cross_validation_folds: 5
   max_total_time_mins: 60
   max_eval_time_mins: 1
   max_n_trials: 10
 
   # optimizers_names: []
-  # splitOptions: {}
+  # split_options: {}
   # oversampling: {}
   # search_space: 
   # use_ensemble: true

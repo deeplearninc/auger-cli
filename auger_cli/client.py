@@ -16,12 +16,19 @@ from .config import AugerConfig
 
 class AugerClient(object):
 
-    def __init__(self, url=DEFAULT_COREAPI_URL):
-        self._cached_document = None
+    def __init__(self, config=None, url=DEFAULT_COREAPI_URL):
+        self.config = config
+        if self.config is None:
+            self.config = AugerConfig()
+
         self.setup_client(url)
 
     def clear_credentials(self):
-        shutil.rmtree(self.coreapi_cli.config_path)
+        try:
+            shutil.rmtree(self.coreapi_cli.config_path)
+        except OSError:
+            pass
+
         os.makedirs(self.coreapi_cli.config_path)
 
     @property
@@ -71,16 +78,20 @@ class AugerClient(object):
         self.coreapi_cli.set_document(self._cached_document)
 
     def setup_client(self, url):
+        self._cached_document = None
+
         self.coreapi_url = url
         self.coreapi_schema_url = self.coreapi_url + COREAPI_SCHEMA_PATH
+
+        if self.config.get_login_config_path():
+            os.environ['COREAPI_CONFIG_DIR'] = os.path.join(self.config.get_login_config_path(), '.coreapi')
+            #os.makedirs(os.environ.get('COREAPI_CONFIG_DIR'))
 
         coreapi_cli.setup_paths()
         self.coreapi_cli = coreapi_cli
 
         self.credentials = self.coreapi_cli.get_credentials()
         self.headers = self.coreapi_cli.get_headers()
-
-        self.config = AugerConfig()
 
         def test_callback(res):
             # pass
