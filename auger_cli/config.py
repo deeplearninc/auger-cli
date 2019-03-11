@@ -5,7 +5,7 @@ import io
 from .formatter import print_line
 from .utils import remove_file, camelize, merge_dicts
 from auger_cli import constants
-
+from .constants import REQUEST_LIMIT, API_POLL_INTERVAL
 
 class AugerConfig(object):
 
@@ -46,7 +46,7 @@ class AugerConfig(object):
 
         if self.config.get('login_config_path', None):
             self.config['login_config_path'] = os.path.abspath(self.config['login_config_path'])
-            
+
     def _translate_config_names(self):
         camel_cases_props = ['featureColumns', 'targetFeature', 'categoricalFeatures', 'labelEncodingFeatures', 'datetimeFeatures',
                              'timeSeriesFeatures', 'binaryClassification', 'crossValidationFolds', 'splitOptions']
@@ -67,6 +67,18 @@ class AugerConfig(object):
     def get_login_config_path(self):
         return self.config.get('login_config_path', None)
 
+    def get_api_poll_interval(self, poll_interval=None):
+        if poll_interval:
+            return poll_interval
+
+        return self.config.get('api_poll_interval', constants.API_POLL_INTERVAL)
+
+    def get_api_request_limit(self, request_limit=None):
+        if request_limit:
+            return request_limit
+
+        return self.config.get('api_request_limit', constants.REQUEST_LIMIT)
+                
     def get_project_id(self):
         if self.config.get('project_id') is not None:
             return self.config['project_id']

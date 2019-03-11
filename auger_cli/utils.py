@@ -7,8 +7,6 @@ import subprocess
 import base64
 import time
 
-from .constants import REQUEST_LIMIT, API_POLL_INTERVAL
-
 
 def camelize(snake_cased_string, join_string=" "):
     parts = snake_cased_string.split('_')
@@ -39,7 +37,7 @@ def b64decode(input_string):
 
 
 def wait_for_object_state(client, endpoint, params, first_status,
-                          progress_statuses, poll_interval=API_POLL_INTERVAL):
+                          progress_statuses, poll_interval=None):
     from .formatter import progress_spinner
 
     status = first_status
@@ -54,7 +52,7 @@ def wait_for_object_state(client, endpoint, params, first_status,
 
         with progress_spinner(client):
             while status == last_status:
-                time.sleep(poll_interval)
+                time.sleep(client.config.get_api_poll_interval(poll_interval))
 
                 result = client.call_hub_api(endpoint, params=params)
                 status = result.get('status', 'failure')
@@ -72,7 +70,7 @@ def wait_for_object_state(client, endpoint, params, first_status,
 
 def request_list(client, what, params):
     offset = params.get('offset', 0)
-    limit = params.get('limit', REQUEST_LIMIT)
+    limit = params.get('limit', client.config.get_api_request_limit())
     p = params.copy()
     while limit > 0:
         p['offset'] = offset
