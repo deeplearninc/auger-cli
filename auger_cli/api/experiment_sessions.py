@@ -3,8 +3,8 @@ import os
 
 from auger_cli.utils import request_list
 
-display_attributes = ['id', 'project_id', 'experiment_id', 'status', 'datasource_name', 'model_type']
-display_list_attributes = ['id', 'status', 'datasource_name', 'created_at', 'model_type']
+display_attributes = ['id', 'project_id', 'experiment_id', 'status', 'datasource_name', 'model_type', 'error']
+display_list_attributes = ['id', 'status', 'datasource_name', 'created_at', 'model_type', 'error']
 
 
 def list(client, project_id, experiment_id):
@@ -16,6 +16,8 @@ def list(client, project_id, experiment_id):
 
 def read(client, experiment_session_id, attributes=None):
     result = client.call_hub_api(['experiment_sessions', 'read'], params={'id': experiment_session_id})
+    if result.get('status') == 'error':
+        result['error'] = result.get('model_settings', {}).get('errors')
 
     if attributes:
         result = {k: result[k] for k in attributes if k in result}

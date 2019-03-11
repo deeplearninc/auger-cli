@@ -2,6 +2,7 @@
 #organization: auger
 # organization_id: 42
 
+hub_url: https://app-staging.auger.ai
 project: evgeny-fast-new
 # project_id: 271
 
@@ -11,7 +12,7 @@ cluster:
   worker_count : 2
   instance_type: c5.large
   kubernetes_stack: experimental
-  autoterminate_minutes: 30
+  autoterminate_minutes: 120
 
 evaluation_options:
   data_path: files/iris_data_sample.csv

@@ -15,9 +15,11 @@ def progress_spinner(client):
     with click_spinner.spinner():
         yield
 
+
 def print_plain_list(list_data):
     for object_data in iter(list_data):
         print_line(object_data)
+
 
 def print_list(list_data, attributes):
     for object_data in iter(list_data):
@@ -117,6 +119,9 @@ def print_header(myDict):
 
 
 def print_table(myDict, attributes=None):
+    if myDict is None or len(myDict) == 0:
+        return
+        
     colList = attributes
     if not colList:
         colList = list(myDict[0].keys() if myDict else [])

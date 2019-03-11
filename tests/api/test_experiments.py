@@ -4,7 +4,6 @@ import mock
 
 from auger_cli.api import experiments
 from auger_cli.client import AugerClient
-from auger_cli import constants
 from tests.utils import init_test_api_client
 
 

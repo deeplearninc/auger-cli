@@ -9,6 +9,7 @@ import time
 
 from .constants import REQUEST_LIMIT, API_POLL_INTERVAL
 
+
 def camelize(snake_cased_string, join_string=" "):
     parts = snake_cased_string.split('_')
     for idx, part in enumerate(parts):
@@ -38,13 +39,14 @@ def b64decode(input_string):
 
 
 def wait_for_object_state(client, endpoint, params, first_status,
-                  progress_statuses, poll_interval=API_POLL_INTERVAL):
+                          progress_statuses, poll_interval=API_POLL_INTERVAL):
     from .formatter import progress_spinner
 
     status = first_status
     last_status = ''
     result = {}
-    client.print_line("Wait for {} will be in complete state.".format(endpoint[0]))
+    client.print_line(
+        "Wait for {} will be in complete state.".format(endpoint[0]))
     while status in progress_statuses:
         if status != last_status:
             client.print_line('{}... '.format(camelize(status)))
@@ -58,10 +60,13 @@ def wait_for_object_state(client, endpoint, params, first_status,
                 status = result.get('status', 'failure')
 
     client.print_line('{}... '.format(camelize(status)))
-    if status == "failure" or status == 'error':
-        raise Exception('API call {}({}) failed: {}'.format(result.get(
+    if status == "failure":
+        raise Exception('HUB API call {}({}) failed: {}'.format(result.get(
             'name', ""), result.get('args', ""), result.get("exception", "")))
+    if status == 'error':
+        raise Exception('HUB API return error: {}'.format(result.get('errorMessage')))
 
+         
     return result
 
 
@@ -74,7 +79,7 @@ def request_list(client, what, params):
         p['limit'] = limit
         response = client.call_hub_api_ex([what, 'list'], params=p)
         if not 'data' in response or not 'meta' in response:
-            raise Exception("Read list of %s failed."%what)
+            raise Exception("Read list of %s failed." % what)
 
         # print(response['meta'])
         # print(response['data'][0].keys())
@@ -232,6 +237,7 @@ def load_dataframe_from_file(path, features=None, nrows=None):
             low_memory=False,
             compression=data_compression
         )
+
 
 def merge_dicts(d, other):
     import collections

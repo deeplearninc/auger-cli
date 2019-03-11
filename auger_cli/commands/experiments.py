@@ -164,7 +164,8 @@ def deploy_model(client, trial_id):
 )
 @pass_client
 def predict(client, pipeline_id, trial_id, file):
-    experiments.predict(client, pipeline_id, trial_id, file)
+    predict_path = experiments.predict_by_file(client, file, pipeline_id, trial_id, save_to_file=True)
+    client.print_line("Prediction result saved to file: %s"%predict_path)
 
 experiments_group.add_command(create)
 experiments_group.add_command(show)

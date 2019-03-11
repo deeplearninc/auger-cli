@@ -129,6 +129,7 @@ def run(client):
     result['project_id'] = project_id
     client.config.update_session_file(result)
 
+    return result
 
 def stop(client):
     experiment_id, experiment_name = client.config.get_experiment()
@@ -167,6 +168,7 @@ def read_leaderboard(client, experiment_session_id=None):
         'Status': exp_session.get('status'), 
         'Completed': exp_session.get('model_settings', {}).get('completed_evaluations'),
         'Max count': exp_session.get('model_settings', {}).get('total_evaluations'),
+        'Error': exp_session.get('error'), 
     })
 
     return leaderboard, info
@@ -218,8 +220,7 @@ def export_model(client, trial_id, deploy=False):
 
     return None
 
-
-def predict(client, pipeline_id, trial_id, file):
+def predict_by_records(client, records, features, pipeline_id=None, trial_id=None):
     if pipeline_id is None:
         pipeline_id = export_model(client, trial_id, deploy=True)
 
@@ -227,15 +228,20 @@ def predict(client, pipeline_id, trial_id, file):
     if pipeline.get('status') != 'ready':
         raise Exception("Pipeline is not ready or has issues. Try to create another one.")
 
+    prediction_id = predictions.create(client, pipeline_id, records, features)
+    return predictions.read(client, prediction_id).get('result')
+        
+def predict_by_file(client, file, pipeline_id=None, trial_id=None, save_to_file=False):
     df = load_dataframe_from_file(file)
+    result = predict_by_records(client, df.values.tolist(), df.columns.get_values().tolist(), pipeline_id, trial_id)
 
-    prediction_id = predictions.create(client, pipeline_id, df.values.tolist(), df.columns.get_values().tolist())
-    result = predictions.read(client, prediction_id)
+    if save_to_file:
+        predict_path = os.path.splitext(file)[0] + "_predicted.csv"
+        save_dict_to_csv(result, predict_path)
 
-    predict_path = os.path.splitext(file)[0] + "_predicted.csv"
-    save_dict_to_csv(result.get('result', {}), predict_path)
+        return predict_path
 
-    client.print_line("Prediction result saved to file: %s"%predict_path)
-
+    return result
+        
 def monitor_leaderboard(client, name):
     pass
