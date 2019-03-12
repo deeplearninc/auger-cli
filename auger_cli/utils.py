@@ -102,7 +102,7 @@ def download_remote_file(local_path, remote_path):
     import shutil
 
     #print("Downloading file from url: %s"%remote_path)
-
+    local_file_path = ""
     with urlopen(remote_path) as response:
         # print(response)
         # print(response.info())
@@ -148,6 +148,8 @@ def download_remote_file(local_path, remote_path):
         with open(local_file_path, 'wb') as out_file:
             shutil.copyfileobj(response, out_file)
 
+    return local_file_path
+    
 
 def create_parent_folder(path):
     parent = os.path.dirname(path)

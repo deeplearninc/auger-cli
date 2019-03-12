@@ -213,10 +213,10 @@ def export_model(client, trial_id, deploy=False):
         return trial_id
     else:    
         model_path = cluster_tasks.create_ex(client, project_id,
-                                            "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args
-                                            )
+                                            "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args)
+                
         client.print_line("Model exported to remote file: %s"%model_path)
-        projects.download_file(client, project_id, model_path, "models")
+        return projects.download_file(client, project_id, model_path, "models")
 
     return None
 

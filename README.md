@@ -293,6 +293,73 @@ To delete project:
 auger projects delete -p <project name>
 ```
 
+# Auger Python API
+
+To start working with Auger Python API, follow installation instructions for Auger CLI.
+
+## Getting started
+
+### Create AugerClient and login:
+
+```python
+    # To read login information from experiment dir:
+    #config_settings={'login_config_path': "./iris_train"}
+
+    # To use root user dir to read login information
+    # You may specify any properties from auger_experiment.yml
+    config_settings={}
+
+    # Read experiment setting from iris_train\auger_experiment.yml 
+    client = AugerClient(AugerConfig(config_dir="./iris_train", 
+        config_settings=config_settings))
+
+    # To login to Auger:
+    # You may login using CLI and store login credentials in user dir
+    # OR login direcly
+    # url is optional parameter, hub_url may be specified in config_settings
+    #auth.login(client, "user", "pwd")
+```
+
+### Run experiment and wait for completion:
+
+```python
+    # Experiment run, after finish, save experiment session parameters to .auger_experiment_session.yml
+    experiments.run(client)
+
+    while True:
+        leaderboard, info = experiments.read_leaderboard(client)
+
+        if info.get("Status") == 'error':
+            raise Exception("Iris dataset train failed: %s"%info.get("Error"))
+
+        if info.get("Status") != 'completed':
+            time.sleep(5)
+            continue
+
+        break
+
+```
+
+### Predict using pipeline model:
+
+```python
+    # Create pipeline based on best trial    
+    pipeline_id = experiments.export_model(client, trial_id=leaderboard[0]['id'], deploy=True)
+
+    # Pipeline can ber reused multiple time, predict can be called without cluster run
+    result = experiments.predict_by_file(client, pipeline_id=pipeline_id, file='./iris_train/files/iris_data_test.csv', save_to_file=False)
+    print(result[0])
+
+```
+
+### Export model locally:
+
+```python
+    # Export model to local zip file, see readme inside how to call predict     
+    file_path = experiments.export_model(client, trial_id=leaderboard[0]['id'], deploy=False)
+
+
+```
 #How to update Python package:
 1. update version in setup.py
 

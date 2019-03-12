@@ -129,7 +129,8 @@ def monitor_leaderboard(client, name):
 )
 @pass_client
 def export_model(client, trial_id):
-    experiments.export_model(client, trial_id)
+    model_path = experiments.export_model(client, trial_id)
+    client.print_line("Model exported to file: %s"%model_path)
 
 @click.command()
 @click.option(

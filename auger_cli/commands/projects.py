@@ -99,7 +99,8 @@ def download_file(client, remote_path, local_path, project):
         if project:
             project_id = read_project(client, project).get('id')
 
-        projects.download_file(client, project_id, remote_path, local_path)
+        file_path = projects.download_file(client, project_id, remote_path, local_path)
+        print_line('Downloaded file: {}'.format(file_path))
 
 
 @click.command(

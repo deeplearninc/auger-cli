@@ -129,7 +129,7 @@ def download_file(client, project_id, remote_path, local_path):
     )
     client.print_line("Model S3 path: %s"%s3_signed_model_path)
 
-    download_remote_file(local_path, s3_signed_model_path)
+    return download_remote_file(local_path, s3_signed_model_path)
 
 
 def list_files(client, project_id, remote_path):
