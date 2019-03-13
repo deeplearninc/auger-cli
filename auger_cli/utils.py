@@ -4,13 +4,19 @@ import sys
 import uuid
 import os
 import subprocess
+import base64
+import time
 
-from .constants import REQUEST_LIMIT
 
-
-def camelize(snake_cased_string):
+def camelize(snake_cased_string, join_string=" "):
     parts = snake_cased_string.split('_')
-    return " ".join((x.upper() if len(x) < 4 else x.title()) for x in parts)
+    for idx, part in enumerate(parts):
+        if idx == 0 and len(join_string) == 0:
+            continue
+
+        parts[idx] = part.upper() if len(part) < 4 else part.title()
+
+    return join_string.join(parts)
 
 
 def urlparse(*args, **kwargs):
@@ -22,28 +28,64 @@ def urlparse(*args, **kwargs):
     return urlparse(*args, **kwargs)
 
 
-def request_list(auger_client, what, params):
+def b64encode(input_string):
+    return base64.b64encode(input_string.encode('ascii')).decode('ascii')
+
+
+def b64decode(input_string):
+    return base64.b64decode(input_string).decode('ascii')
+
+
+def wait_for_object_state(client, endpoint, params, first_status,
+                          progress_statuses, poll_interval=None):
+    from .formatter import progress_spinner
+
+    status = first_status
+    last_status = ''
+    result = {}
+    client.print_line(
+        "Wait for {} will be in complete state.".format(endpoint[0]))
+    while status in progress_statuses:
+        if status != last_status:
+            client.print_line('{}... '.format(camelize(status)))
+            last_status = status
+
+        with progress_spinner(client):
+            while status == last_status:
+                time.sleep(client.config.get_api_poll_interval(poll_interval))
+
+                result = client.call_hub_api(endpoint, params=params)
+                status = result.get('status', 'failure')
+
+    client.print_line('{}... '.format(camelize(status)))
+    if status == "failure":
+        raise Exception('HUB API call {}({}) failed: {}'.format(result.get(
+            'name', ""), result.get('args', ""), result.get("exception", "")))
+    if status == 'error':
+        raise Exception('HUB API return error: {}'.format(result.get('errorMessage')))
+
+         
+    return result
+
+
+def request_list(client, what, params):
     offset = params.get('offset', 0)
-    limit = params.get('limit', REQUEST_LIMIT)
+    limit = params.get('limit', client.config.get_api_request_limit())
     p = params.copy()
     while limit > 0:
         p['offset'] = offset
         p['limit'] = limit
-        with auger_client.coreapi_action():
-            response = auger_client.client.action(
-                auger_client.document,
-                [what, 'list'],
-                params=p
-            )
+        response = client.call_hub_api_ex([what, 'list'], params=p)
+        if not 'data' in response or not 'meta' in response:
+            raise Exception("Read list of %s failed." % what)
+
         # print(response['meta'])
         # print(response['data'][0].keys())
 
         for item in response['data']:
             yield item
-        assert offset == int(response['meta']['pagination']['offset'])
+
         received = len(response['data'])
-        assert received == response['meta']['pagination']['count']
-        assert received <= limit
         offset += received
         limit -= received
         if offset >= response['meta']['pagination']['total']:
@@ -54,13 +96,13 @@ def get_uid():
     return uuid.uuid4().hex[:15].upper()
 
 
-def download_remote_file(ctx, local_path, remote_path):
+def download_remote_file(local_path, remote_path):
     from urllib.request import urlopen
     from urllib.parse import urlparse, parse_qs
     import shutil
 
     #print("Downloading file from url: %s"%remote_path)
-
+    local_file_path = ""
     with urlopen(remote_path) as response:
         # print(response)
         # print(response.info())
@@ -106,6 +148,8 @@ def download_remote_file(ctx, local_path, remote_path):
         with open(local_file_path, 'wb') as out_file:
             shutil.copyfileobj(response, out_file)
 
+    return local_file_path
+    
 
 def create_parent_folder(path):
     parent = os.path.dirname(path)
@@ -193,3 +237,14 @@ def load_dataframe_from_file(path, features=None, nrows=None):
             low_memory=False,
             compression=data_compression
         )
+
+
+def merge_dicts(d, other):
+    import collections
+
+    for k, v in other.items():
+        d_v = d.get(k)
+        if isinstance(v, collections.Mapping) and isinstance(d_v, collections.Mapping):
+            merge_dicts(d_v, v)
+        else:
+            d[k] = v

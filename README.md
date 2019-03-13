@@ -114,30 +114,30 @@ evaluation_options:
   data_path: files/iris_data_sample.csv
 
   # List of features from data file to be used to evaluate ML models
-  featureColumns:
+  feature_columns:
   - sepal_length
   - sepal_width
   - petal_length
   - petal_width
 
   # Target feature to build ML model for
-  targetFeature: class
+  target_feature: class
 
   # If some of your features are strings, add them to the categoricals, so they will be one-hot encoded
-  categoricalFeatures:
+  categorical_features:
   - class
 
   # If you want some categoricals whould be hashed instead of one-hot encoded add them to label encoded list
-  labelEncodingFeatures: []
+  label_encoding_features: []
 
   # List of features of datetime type
-  datetimeFeatures: []
+  datetime_features: []
 
   # Define type of ML models. true for 'classification', false for 'regression'
   classification: true
 
   # If target has two unique values, set it to true 
-  binaryClassification: false
+  binary_classification: false
 
   # Score used to optimize ML model.
   # Supported scores for classification: accuracy, f1_macro, f1_micro, f1_weighted, neg_log_loss, precision_macro, precision_micro, precision_weighted, recall_macro, recall_micro, recall_weighted
@@ -147,7 +147,7 @@ evaluation_options:
   scoring: accuracy
 
   # Number of K-folds: is a cross validation technique for splitting data into train/test
-  crossValidationFolds: 5
+  cross_validation_folds: 5
 
   # Max Total Time Minutes, the maximum time in minutes an entire training can run for before it is stopped.
   max_total_time_mins: 60
@@ -166,7 +166,7 @@ evaluation_options:
   #data_compression: gzip
 
   #optimizers_names: []
-  #splitOptions: {}
+  #split_options: {}
   #oversampling: {}
   #search_space: 
   #use_ensemble: true
@@ -273,7 +273,7 @@ Project name is optional, if missed project name will be retrieve from auger_exp
 
 To read project log:
 ```sh
-auger project logs <project_id>
+auger projects logs <project_id>
 ```
 
 To Create project:
@@ -293,6 +293,73 @@ To delete project:
 auger projects delete -p <project name>
 ```
 
+# Auger Python API
+
+To start working with Auger Python API, follow installation instructions for Auger CLI.
+
+## Getting started
+
+### Create AugerClient and login:
+
+```python
+    # To read login information from experiment dir:
+    #config_settings={'login_config_path': "./iris_train"}
+
+    # To use root user dir to read login information
+    # You may specify any properties from auger_experiment.yml
+    config_settings={}
+
+    # Read experiment setting from iris_train\auger_experiment.yml 
+    client = AugerClient(AugerConfig(config_dir="./iris_train", 
+        config_settings=config_settings))
+
+    # To login to Auger:
+    # You may login using CLI and store login credentials in user dir
+    # OR login direcly
+    # url is optional parameter, hub_url may be specified in config_settings
+    #auth.login(client, "user", "pwd")
+```
+
+### Run experiment and wait for completion:
+
+```python
+    # Experiment run, after finish, save experiment session parameters to .auger_experiment_session.yml
+    experiments.run(client)
+
+    while True:
+        leaderboard, info = experiments.read_leaderboard(client)
+
+        if info.get("Status") == 'error':
+            raise Exception("Iris dataset train failed: %s"%info.get("Error"))
+
+        if info.get("Status") != 'completed':
+            time.sleep(5)
+            continue
+
+        break
+
+```
+
+### Predict using pipeline model:
+
+```python
+    # Create pipeline based on best trial    
+    pipeline_id = experiments.export_model(client, trial_id=leaderboard[0]['id'], deploy=True)
+
+    # Pipeline can ber reused multiple time, predict can be called without cluster run
+    result = experiments.predict_by_file(client, pipeline_id=pipeline_id, file='./iris_train/files/iris_data_test.csv', save_to_file=False)
+    print(result[0])
+
+```
+
+### Export model locally:
+
+```python
+    # Export model to local zip file, see readme inside how to call predict     
+    file_path = experiments.export_model(client, trial_id=leaderboard[0]['id'], deploy=False)
+
+
+```
 #How to update Python package:
 1. update version in setup.py
 
