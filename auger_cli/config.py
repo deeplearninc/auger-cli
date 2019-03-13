@@ -104,6 +104,19 @@ class AugerConfig(object):
     def get_evaluation_options(self):
         return self.config.get('evaluation_options', {})
 
+    def get_model_type(self):
+        evaluation_options = self.config.get('evaluation_options', {})
+        if 'model_type' in evaluation_options:
+            return evaluation_options['model_type']
+
+        model_type = "regression"
+        if evaluation_options.get('classification', False):
+            model_type = "classification"
+        elif len(evaluation_options.get('timeSeriesFeatures', [])) > 0:
+            model_type = "time_series"
+
+        return model_type
+            
     def update_session_file(self, result):
         with io.open(self.exp_session_path, 'w', encoding='utf8') as outfile:
             yaml.safe_dump(result, outfile, allow_unicode=False)

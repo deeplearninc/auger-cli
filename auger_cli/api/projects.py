@@ -62,29 +62,16 @@ def get_or_create(client, create_if_not_exist=False, project_id=None):
         return read(client, project_id=project_id)
 
     project_name = client.config.get_project_name()
+    org_id = orgs.read(client).get('id')
+    if org_id is None:
+        raise Exception('To create project: %s, you should have at least one organization.'%project_name)
 
-    org_id, org_name = client.config.get_org()
-    if org_id is None and len(org_name) == 0:
-        for org in orgs.list(client):
-            org_name = org.get('name', "")
-            org_id = org.get('id')
-            break
-
-        if len(org_name) == 0:    
-            raise Exception('To create project: %s, you should have at least one organization.'%project_name)
-
-    if org_id is None:    
-        org = orgs.read(client, org_name)
-        if org.get('id') is None:
-            raise Exception('To create project: %s, organization %s should exist.'%(project_name, org_name))
-        org_id = org['id']    
-            
     project = read(client, project_name=project_name, org_id=org_id)
     if project.get('id') is not None:
         return project
 
     if create_if_not_exist:    
-        project = projects.create(client, project_name, org_id)
+        project = create(client, project_name, org_id)
         return project
 
     raise Exception("Project %s does not exist."%project_name)

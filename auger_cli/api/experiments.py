@@ -11,6 +11,7 @@ from auger_cli.api import experiment_sessions
 from auger_cli.api import clusters
 from auger_cli.api import pipelines
 from auger_cli.api import predictions
+from auger_cli.api import orgs
 
 display_attributes = ['id', 'name',
                          'project_id', 'project_file_id', 'session', 'cluster' ]
@@ -116,15 +117,22 @@ def run(client):
 
     experiment = get_or_create(client, project_id)
 
-    task_args = client.config.get_evaluation_options()
-    task_args['augerInfo'] = {'experiment_id': experiment['id']}
+    org = orgs.read(client)
+    result = {}
+    if not org.get('is_jupyter_enabled'):
+        session = experiment_sessions.create(client, project_id, experiment['id'])
 
-    result = cluster_tasks.create_ex(
-        client, project_id,
-        "auger_ml.tasks_queue.evaluate_api.run_cli_evaluate_task", task_args
-    )
-    if result is None:
-        result = {}
+        experiment_sessions.update(client, session['id'], status = 'preprocess', 
+            model_settings = client.config.get_evaluation_options(), model_type=client.config.get_model_type())
+        result['experiment_session_id'] = session['id']
+    else:        
+        task_args = client.config.get_evaluation_options()
+        task_args['augerInfo'] = {'experiment_id': experiment['id']}
+
+        result = cluster_tasks.create_ex(
+            client, project_id,
+            "auger_ml.tasks_queue.evaluate_api.run_cli_evaluate_task", task_args
+        )
 
     result['project_id'] = project_id
     client.config.update_session_file(result)
@@ -132,15 +140,17 @@ def run(client):
     return result
 
 def stop(client):
-    experiment_id, experiment_name = client.config.get_experiment()
-
-    cluster_tasks.create_ex(
-        client, client.config.get_project_id(),
-        "auger_ml.tasks_queue.evaluate_api.stop_evaluate_task",
-        {'augerInfo': {'experiment_id': experiment_id,
-                       'experiment_session_id': client.config.get_experiment_session_id()}}
-    )
-
+    org = orgs.read(client)
+    if not org.get('is_jupyter_enabled'):
+        experiment_sessions.update(client, experiment_session_id=client.config.get_experiment_session_id(), status='interrupted')
+    else:    
+        experiment_id, experiment_name = client.config.get_experiment()
+        cluster_tasks.create_ex(
+            client, client.config.get_project_id(),
+            "auger_ml.tasks_queue.evaluate_api.stop_evaluate_task",
+            {'augerInfo': {'experiment_id': experiment_id,
+                           'experiment_session_id': client.config.get_experiment_session_id()}}
+        )
 
 def read_leaderboard(client, experiment_session_id=None):
     from collections import OrderedDict

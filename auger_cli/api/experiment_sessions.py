@@ -24,3 +24,23 @@ def read(client, experiment_session_id, attributes=None):
 
     return result
 
+def create(client, project_id, experiment_id):
+    return client.call_hub_api(['experiment_sessions', 'create'], 
+        params = {
+            'project_id': project_id,
+            'experiment_id': experiment_id    
+        })
+
+def update(client, experiment_session_id, status=None, model_settings = None, model_type = None):
+    params = {
+        'id': experiment_session_id
+    }
+    if status is not None:
+        params['status'] = status
+    if model_settings is not None:
+        params['model_settings'] = model_settings
+    if model_type is not None:
+        params['model_type'] = model_type
+
+    return client.call_hub_api(['experiment_sessions', 'update'], params=params)
+
