@@ -120,10 +120,24 @@ def run(client):
     org = orgs.read(client)
     result = {}
     if not org.get('is_jupyter_enabled'):
-        session = experiment_sessions.create(client, project_id, experiment['id'])
+        project_file = wait_for_object_state(client,
+            endpoint=['project_files', 'read'],
+            params={'id': experiment['project_file_id'], 'project_id': project_id},
+            first_status='processing',
+            progress_statuses=[
+                'processing'
+            ]
+        )
 
-        experiment_sessions.update(client, session['id'], status = 'preprocess', 
-            model_settings = client.config.get_evaluation_options(), model_type=client.config.get_model_type())
+        params = {
+            'project_id': project_id,
+            'experiment_id': experiment['id'],
+            'status': 'preprocess', 
+            'model_settings' : {'evaluation_options': client.config.get_evaluation_options()}, 
+            'model_type': client.config.get_model_type()            
+        }
+        session = experiment_sessions.create(client, params)
+
         result['experiment_session_id'] = session['id']
     else:        
         task_args = client.config.get_evaluation_options()

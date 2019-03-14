@@ -24,12 +24,8 @@ def read(client, experiment_session_id, attributes=None):
 
     return result
 
-def create(client, project_id, experiment_id):
-    return client.call_hub_api(['experiment_sessions', 'create'], 
-        params = {
-            'project_id': project_id,
-            'experiment_id': experiment_id    
-        })
+def create(client, params):
+    return client.call_hub_api(['experiment_sessions', 'create'], params = params)
 
 def update(client, experiment_session_id, status=None, model_settings = None, model_type = None):
     params = {
