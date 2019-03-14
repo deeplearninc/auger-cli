@@ -27,13 +27,14 @@ def list(client, project_id, name):
 def read(client, project_id = None, experiment_name = None, experiment_id = None):
     result = {}
     if experiment_id:
-        result = client.call_hub_api(['experiments', 'read'],
-            params={'id': experiment_id}
-        )
-    elif project_id and experiment_name:    
-        experiments_list = client.call_hub_api(['experiments', 'list'],
-            params={'name': experiment_name, 'project_id': project_id, 'limit': REQUEST_LIMIT}
-        )
+        result = client.call_hub_api('get_experiment', {'id': experiment_id})
+    elif project_id and experiment_name:
+        experiments_list = client.call_hub_api('get_experiments', {
+            'name': experiment_name,
+            'project_id': project_id,
+            'limit': REQUEST_LIMIT
+        })
+
         if len(experiments_list) > 0:
             result = experiments_list[0]
 
@@ -41,28 +42,22 @@ def read(client, project_id = None, experiment_name = None, experiment_id = None
 
 
 def create(client, name, project_id, data_path):
-    return client.call_hub_api(['experiments', 'create'],
-        params={
-            'id': "experiment_" + name + "_" + get_uid(),
-            'name': name,
-            'project_id': project_id,
-            'data_path': data_path
-        }
-    )
+    return client.call_hub_api('create_experiment', {
+        'id': "experiment_" + name + "_" + get_uid(),
+        'name': name,
+        'project_id': project_id,
+        'data_path': data_path
+    })
 
 
 def delete(client, experiment_id):
-    experiment = client.call_hub_api(['experiments', 'delete'],
-        params={'id': experiment_id}
-    )
+    experiment = client.call_hub_api('delete_experiment', {'id': experiment_id})
 
 def update(client, experiment_id, name):
-    return client.call_hub_api(['experiments', 'update'],
-        params={
-            'id': experiment_id,
-            'name': name
-        }
-    )
+    return client.call_hub_api('update_experiment', {
+        'id': experiment_id,
+        'name': name
+    })
 
 
 def get_or_create(client, project_id):
@@ -97,15 +92,15 @@ def read_ex(client, experiment_id=None):
     if experiment_id is not None:
         experiment = read(client, experiment_id=experiment_id)
         project = projects.read(client, project_id=experiment.get('project_id'))
-    else:    
+    else:
         project = projects.get_or_create(client, create_if_not_exist=True)
         experiment = get_or_create(client, project['id'])
 
-    result = experiment    
+    result = experiment
     if project.get('cluster_id'):
         result['cluster'] = clusters.read(client, project.get('cluster_id'), clusters.display_attributes)
 
-    if client.config.get_experiment_session_id():    
+    if client.config.get_experiment_session_id():
         result['session'] = experiment_sessions.read(client, client.config.get_experiment_session_id(), ['id', 'status', 'datasource_name', 'model_type'])
 
     return result
@@ -132,14 +127,14 @@ def run(client):
         params = {
             'project_id': project_id,
             'experiment_id': experiment['id'],
-            'status': 'preprocess', 
-            'model_settings' : {'evaluation_options': client.config.get_evaluation_options()}, 
-            'model_type': client.config.get_model_type()            
+            'status': 'preprocess',
+            'model_settings' : {'evaluation_options': client.config.get_evaluation_options()},
+            'model_type': client.config.get_model_type()
         }
         session = experiment_sessions.create(client, params)
 
         result['experiment_session_id'] = session['id']
-    else:        
+    else:
         task_args = client.config.get_evaluation_options()
         task_args['augerInfo'] = {'experiment_id': experiment['id']}
 
@@ -157,7 +152,7 @@ def stop(client):
     org = orgs.read(client)
     if not org.get('is_jupyter_enabled'):
         experiment_sessions.update(client, experiment_session_id=client.config.get_experiment_session_id(), status='interrupted')
-    else:    
+    else:
         experiment_id, experiment_name = client.config.get_experiment()
         cluster_tasks.create_ex(
             client, client.config.get_project_id(),
@@ -188,11 +183,11 @@ def read_leaderboard(client, experiment_session_id=None):
     exp_session = experiment_sessions.read(client, experiment_session_id)
     #print(exp_session.get('model_settings', {}).keys())
     info = OrderedDict({
-        'Start': exp_session.get('model_settings', {}).get('start_time'), 
-        'Status': exp_session.get('status'), 
+        'Start': exp_session.get('model_settings', {}).get('start_time'),
+        'Status': exp_session.get('status'),
         'Completed': exp_session.get('model_settings', {}).get('completed_evaluations'),
         'Max count': exp_session.get('model_settings', {}).get('total_evaluations'),
-        'Error': exp_session.get('error'), 
+        'Error': exp_session.get('error'),
     })
 
     return leaderboard, info
@@ -223,7 +218,7 @@ def export_model(client, trial_id, deploy=False):
                                             )
         client.print_line("Waiting for deploy of pipeline: %s"%trial_id)
         wait_for_object_state(client,
-            endpoint=['pipelines', 'read'],
+            method='get_pipeline',
             params={'id': trial_id},
             first_status='creating_files',
             progress_statuses=[
@@ -231,14 +226,14 @@ def export_model(client, trial_id, deploy=False):
             ],
             poll_interval=10
         )
-        
-        pipeline = pipelines.read(client, trial_id)        
+
+        pipeline = pipelines.read(client, trial_id)
         client.print_line("Pipeline {} status: {}; error: {}".format(pipeline.get('id'), pipeline.get('status'), pipeline.get('error_message')))
         return trial_id
-    else:    
+    else:
         model_path = cluster_tasks.create_ex(client, project_id,
                                             "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args)
-                
+
         client.print_line("Model exported to remote file: %s"%model_path)
         return projects.download_file(client, project_id, model_path, "models")
 
@@ -254,7 +249,7 @@ def predict_by_records(client, records, features, pipeline_id=None, trial_id=Non
 
     prediction_id = predictions.create(client, pipeline_id, records, features)
     return predictions.read(client, prediction_id).get('result')
-        
+
 def predict_by_file(client, file, pipeline_id=None, trial_id=None, save_to_file=False):
     df = load_dataframe_from_file(file)
     result = predict_by_records(client, df.values.tolist(), df.columns.get_values().tolist(), pipeline_id, trial_id)
@@ -266,6 +261,6 @@ def predict_by_file(client, file, pipeline_id=None, trial_id=None, save_to_file=
         return predict_path
 
     return result
-        
+
 def monitor_leaderboard(client, name):
     pass

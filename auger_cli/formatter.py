@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from coreapi.transports import HTTPTransport
-from coreapi.transports import http as coreapi_http
 import click
 import click_spinner
 import collections
+import types
 from contextlib import contextmanager
 
 from .utils import camelize
@@ -45,35 +44,6 @@ def print_line(line='', nl=True, err=False):
 
 
 def print_stream(client, params):
-    # Patch HTTPTransport to handle streaming responses
-    def stream_request(self, link, decoders,
-                       params=None, link_ancestors=None, force_codec=False):
-        session = self._session
-        method = coreapi_http._get_method(link.action)
-        encoding = coreapi_http._get_encoding(link.encoding)
-        params = coreapi_http._get_params(
-            method, encoding, link.fields, params
-        )
-        url = coreapi_http._get_url(link.url, params.path)
-        headers = coreapi_http._get_headers(
-            url, decoders, self.credentials
-        )
-        headers.update(self.headers)
-
-        request = coreapi_http._build_http_request(
-            session, url, method, headers, encoding, params
-        )
-
-        with session.send(request, stream=True) as response:
-            print(response)
-            for line in response.iter_lines():
-                line = line.decode('utf-8')
-                if line != 'ping':
-                    print(line)
-
-    HTTPTransport.stream_request = stream_request
-    # Patch done
-
     doc = client.document
 
     def flatten(list):
@@ -83,12 +53,13 @@ def print_stream(client, params):
         list(map(lambda link: list(link._data.values()), doc.data.values()))
     )
     link = list(filter(lambda link: 'stream_logs' in link.url, links))[0]
-    credentials = client.credentials
-    headers = client.headers
-    decoders = client.decoders
+    # TODO: fix streaming (it's better to use websockets)
+    # credentials = client.credentials
+    # headers = client.headers
+    # decoders = client.decoders
 
-    http_transport = HTTPTransport(credentials=credentials, headers=headers)
-    http_transport.stream_request(link, decoders, params=params)
+    # http_transport = HTTPTransport(credentials=credentials, headers=headers)
+    # http_transport.stream_request(link, decoders, params=params)
 
 
 def string_for_attrib(attrib):
@@ -119,9 +90,12 @@ def print_header(myDict):
 
 
 def print_table(myDict, attributes=None):
+    if isinstance(myDict, types.GeneratorType):
+        myDict = list(myDict)
+
     if myDict is None or len(myDict) == 0:
         return
-        
+
     colList = attributes
     if not colList:
         colList = list(myDict[0].keys() if myDict else [])

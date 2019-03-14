@@ -148,16 +148,16 @@ def list_files(client, remote_path, project):
 )
 @pass_client
 def logs(client, project, tail):
-    with client.cli_error_handler():    
+    with client.cli_error_handler():
         if project is None:
             project_id = client.config.get_project_id()
         else:
             project_id = projects.read(client, project).get('id')
-        
+
         if tail:
             print_stream(client, {'id': project_id})
         else:
-            result = client.call_hub_api_ex(['projects', 'logs'], params={'id': project_id})
+            result = client.call_hub_api_ex('get_project_logs', params={'id': project_id})
             print_line(result)
 
 
@@ -171,17 +171,17 @@ def logs(client, project, tail):
 )
 @pass_client
 def open_project(client, project):
-    from auger_cli.utils import urlparse    
+    from auger_cli.utils import urlparse
     with client.cli_error_handler():
         project_name = project
         if project is None:
             project = projects.get_or_create(client, create_if_not_exist=True)
             project_name = project.get('name')
 
-        parsed_url = urlparse(client.document.url)
-        url = "{}://{}/auger/projects/{}".format(parsed_url.scheme, parsed_url.netloc, project_name)    
+        parsed_url = urlparse(client.config.get_api_url())
+        url = "{}://{}/auger/projects/{}".format(parsed_url.scheme, parsed_url.netloc, project_name)
         print("Open url in default browser: %s"%url)
-        
+
         click.launch(url)
 
 
@@ -195,7 +195,7 @@ def open_project(client, project):
 )
 @pass_client
 def show(client, project):
-    with client.cli_error_handler():    
+    with client.cli_error_handler():
         print_record(projects.read(client, project), projects.display_attributes)
 
 projects_group.add_command(create)

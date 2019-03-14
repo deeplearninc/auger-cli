@@ -12,9 +12,8 @@ class TestExperiments(unittest.TestCase):
     def test_read(self):
         init_test_api_client(self)
 
-        def call_hub_api_ex(self, keys, params=None, validate=True, overrides=None,
-                        action=None, encoding=None, transform=None):
-            assert keys == ['experiments', 'read']
+        def call_hub_api_ex(self, method, params=None):
+            assert method == 'get_experiment'
             assert params == {'id': 'exp1'}
 
             return {'data': {}}

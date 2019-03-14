@@ -23,12 +23,12 @@ def list(client, organization_id=None):
     params = {}
     if organization_id is not None:
         params={'organization_id': organization_id}
-        
+
     return request_list(client, 'clusters', params=params)
 
 
 def read(client, cluster_id, attributes=None):
-    result = client.call_hub_api(['clusters', 'read'], params={'id': cluster_id})
+    result = client.call_hub_api('get_cluster', {'id': cluster_id})
     if attributes:
         result = {k: result[k] for k in attributes if k in result}
 
@@ -40,7 +40,7 @@ def is_running(client, cluster):
 
 def create(client, organization_id, project_id,
         worker_count, instance_type, kubernetes_stack, autoterminate_minutes, wait=True):
-    params={
+    params = {
         'organization_id': organization_id,
         'project_id': project_id,
         'worker_nodes_count': worker_count,
@@ -48,11 +48,12 @@ def create(client, organization_id, project_id,
         'kubernetes_stack': kubernetes_stack,
         'autoterminate_minutes': autoterminate_minutes
     }
-    cluster = client.call_hub_api(['clusters', 'create'], params= params)
+
+    cluster = client.call_hub_api('create_cluster', params)
 
     if wait and 'id' in cluster:
         cluster = wait_for_object_state(client,
-            endpoint=['clusters', 'read'],
+            method='get_cluster',
             params={'id': cluster['id']},
             first_status=cluster['status'],
             progress_statuses=[
@@ -61,15 +62,16 @@ def create(client, organization_id, project_id,
             poll_interval=10
         )
 
-    return cluster    
+    return cluster
 
 def delete(client, cluster_id, wait=True):
-    cluster = client.call_hub_api(['clusters', 'delete'], params={'id': cluster_id})
+    cluster = client.call_hub_api('delete_cluster', {'id': cluster_id})
+
     if cluster.get('id') == int(cluster_id):
         client.print_line("Deleting {}.".format(cluster['name']))
         if wait:
             cluster = wait_for_object_state(client,
-                endpoint=['clusters', 'read'],
+                method='get_cluster',
                 params={'id': cluster['id']},
                 first_status=cluster['status'],
                 progress_statuses=[
@@ -79,4 +81,4 @@ def delete(client, cluster_id, wait=True):
             )
             return cluster.get('status') == 'terminated'
 
-    return False        
+    return False

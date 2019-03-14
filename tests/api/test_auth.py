@@ -11,10 +11,9 @@ class TestAuth(unittest.TestCase):
 
     def test_login(self):
         init_test_api_client(self)
-        def call_hub_api_ex(self, keys, params=None, validate=True, overrides=None,
-                        action=None, encoding=None, transform=None):
-            assert keys == ['organizations', 'list']
-            return {'data': {}}
+        def call_hub_api_ex(self, method, params={}):
+            assert method == 'create_token'
+            return {'data': {'token': 'topsecret'}}
 
         with mock.patch.object(AugerClient, 'call_hub_api_ex', call_hub_api_ex):
-            auth.login(self.client, "user", "pwd", url=constants.TEST_COREAPI_URL)
+            auth.login(self.client, "user", "pwd", url=constants.TEST_API_URL)

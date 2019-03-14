@@ -8,8 +8,8 @@ display_attributes = [
 
 
 def read(client, prediction_id, attributes=None):
-    result = client.call_hub_api(['predictions', 'read'], params={'id': prediction_id})
-    
+    result = client.call_hub_api('get_prediction', {'id': prediction_id})
+
     if attributes:
         result = {k: result[k] for k in attributes if k in result}
 
@@ -21,18 +21,17 @@ def create(client, pipeline_id, records, features, wait=True):
         'records': records,
         'features': features
     }
-    prediction = client.call_hub_api( ['predictions', 'create'],
-        params= {'payload': params}, encoding='application/json', validate=False)
+    prediction = client.call_hub_api('create_prediction', {'payload': params})
 
     if wait:
         wait_for_object_state(client,
-            endpoint=['predictions', 'read'],
+            method='get_prediction',
             params={'id': prediction['id']},
             first_status=prediction['status'],
             progress_statuses=[
                 'requested', 'running'
             ]
         )
-        
-    return prediction['id']    
+
+    return prediction['id']
 
