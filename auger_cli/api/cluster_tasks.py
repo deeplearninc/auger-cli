@@ -12,22 +12,19 @@ def list(client, project_id):
 
 
 def read(client, cluster_task_id):
-    return client.call_hub_api(['cluster_tasks', 'read'], params={'id': cluster_task_id})
+    return client.call_hub_api('get_cluster_task', {'id': cluster_task_id})
 
 
 def create(client, project_id, name, args, wait=True):
-    result = client.call_hub_api(
-        ['cluster_tasks', 'create'],
-        params={
-            'project_id': project_id,
-            'name': name,
-            'args_encoded': args,
-        }
-    )
+    result = client.call_hub_api('create_cluster_task', {
+        'project_id': project_id,
+        'name': name,
+        'args_encoded': args,
+    })
 
     if wait and 'id' in result:
         result = wait_for_object_state(client,
-            endpoint=['cluster_tasks', 'read'],
+            method='get_cluster_task',
             params={'id': result['id']},
             first_status=result['status'],
             progress_statuses=[

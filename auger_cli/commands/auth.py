@@ -36,12 +36,7 @@ def auth_group(ctx):
 def login(client, username, password, url):
     with client.cli_error_handler():
         auth.login(client, username, password, url)
-
-        client.print_line(
-            "You are now logged in on {0} as {1}.".format(
-                client.coreapi_url, username
-            )
-        )
+        client.print_line("You are now logged in on {0} as {1}.".format(client.config.get_api_url(), username))
 
 
 @click.command(short_help='Logout from Auger.')

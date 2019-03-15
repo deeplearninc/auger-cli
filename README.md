@@ -46,8 +46,6 @@ Commands:
   instances   Display available instance types for clusters.
   clusters    Manage Auger Clusters.
   projects    Manage Auger Projects.
-  schema      Display current Auger schema.
-
 ```
 
 ```sh
@@ -60,7 +58,6 @@ Options:
 Commands:
   login   Login to Auger.
   logout  Logout from Auger.
-  whoami  Display the current logged in user.
 ```
 
 ## Login
@@ -360,7 +357,7 @@ To start working with Auger Python API, follow installation instructions for Aug
 
 
 ```
-#How to update Python package:
+# How to update Python package:
 1. update version in setup.py
 
 2. commit setup.py

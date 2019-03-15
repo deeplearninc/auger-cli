@@ -16,11 +16,11 @@ def list(client, organization_id, experiment_id, active):
     if active:
         params['active'] = active
 
-    return request_list(cleint, 'pipelines', params=params)
+    return request_list(client, 'pipelines', params=params)
 
 
 def read(client, pipeline_id, attributes=None):
-    result = client.call_hub_api(['pipelines', 'read'], params={'id': pipeline_id})
+    result = client.call_hub_api('get_pipeline', {'id': pipeline_id})
 
     if attributes:
         result = {k: result[k] for k in attributes if k in result}

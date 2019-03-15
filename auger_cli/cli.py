@@ -12,7 +12,6 @@ from auger_cli.commands.pipelines import pipelines_group
 from auger_cli.commands.experiments import experiments_group
 from auger_cli.commands.experiment_sessions import experiment_sessions_group
 from auger_cli.commands.trials import trials_group
-from auger_cli.commands.schema import schema_group
 from auger_cli.commands.cluster_tasks import cluster_tasks_group
 
 CONTEXT_SETTINGS = dict(auto_envvar_prefix='AUGER')
@@ -28,7 +27,6 @@ COMMANDS = {
     'experiment_sessions':  experiment_sessions_group,
     'pipelines':  pipelines_group,
     'trials':    trials_group,
-    'schema':    schema_group,
 }
 
 

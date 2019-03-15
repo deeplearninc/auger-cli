@@ -1,38 +1,20 @@
-from auger_cli.utils import urlparse, b64encode, b64decode
 
-
-def login(client, username, password, url=None):
-    client.clear_credentials()
-
+def login(client, email, password, url=None):
     if url is None:
-        url = client.config.get_hub_url()
+        url = client.config.get_api_url()
 
-    # extract host name from server URL
-    parsed = urlparse(url)
-    host = parsed.hostname
-    creds_string = "{0}:{1}".format(username, password)
-    header = 'Basic ' + b64encode(creds_string)
-
-    # reload client
-    credentials = {}
-    credentials[host] = header
-    client.set_credentials(credentials)
+    client.clear_credentials()
     client.setup_client(url)
 
-    # make test call
-    client.call_hub_api(['organizations', 'list'])
+    res = client.call_hub_api_ex('create_token', {'email': email, 'password': password})
+    client.setup_client(url, res['data']['token'], email)
 
 
 def logout(client):
     client.clear_credentials()
 
-
 def whoami(client):
-    username = None
-    host = None
-    creds = client.get_credentials()
-    for host, cred in creds.items():
-        decoded = b64decode(cred.split(' ')[1])
-        username = decoded.split(':')[0]
+    if client.config.get_api_token() is None or len(client.config.get_api_token()) == 0:
+        return None, None
 
-    return username, host
+    return client.config.get_api_username(), client.config.get_api_url()

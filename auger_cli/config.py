@@ -1,6 +1,7 @@
 from ruamel import yaml
 import os
 import io
+import json
 
 from .formatter import print_line
 from .utils import remove_file, camelize, merge_dicts
@@ -18,7 +19,7 @@ class AugerConfig(object):
         if self.config_dir is None or len(self.config_dir) == 0:
             self.config_dir = os.getcwd()
 
-        self.config_dir = os.path.abspath(self.config_dir)    
+        self.config_dir = os.path.abspath(self.config_dir)
         self.config_yml_path = os.path.join(self.config_dir, 'auger_experiment.yml')
         self.exp_session_path = os.path.join(
             self.config_dir, '.auger_experiment_session.yml')
@@ -44,8 +45,10 @@ class AugerConfig(object):
         merge_dicts(self.config, config_settings)
         self._translate_config_names()
 
-        if self.config.get('login_config_path', None):
-            self.config['login_config_path'] = os.path.abspath(self.config['login_config_path'])
+        default_config_path = '{home}/.auger'.format(home=os.getenv("HOME"))
+        login_config_path = self.config.get('login_config_path', default_config_path)
+        self.config['login_config_path'] = os.path.abspath(login_config_path)
+        self.credentials_path = os.path.join(self.config['login_config_path'], 'credentials')
 
     def _translate_config_names(self):
         camel_cases_props = ['featureColumns', 'targetFeature', 'categoricalFeatures', 'labelEncodingFeatures', 'datetimeFeatures',
@@ -61,9 +64,6 @@ class AugerConfig(object):
     def is_dev_mode(self):
         return self.config.get('dev_mode', False)
 
-    def get_hub_url(self):
-        return self.config.get('hub_url', constants.DEFAULT_COREAPI_URL)
-
     def get_login_config_path(self):
         return self.config.get('login_config_path', None)
 
@@ -78,7 +78,7 @@ class AugerConfig(object):
             return request_limit
 
         return self.config.get('api_request_limit', constants.REQUEST_LIMIT)
-                
+
     def get_project_id(self):
         if self.config.get('project_id') is not None:
             return self.config['project_id']
@@ -116,7 +116,7 @@ class AugerConfig(object):
             model_type = "timeseries"
 
         return model_type
-            
+
     def update_session_file(self, result):
         with io.open(self.exp_session_path, 'w', encoding='utf8') as outfile:
             yaml.safe_dump(result, outfile, allow_unicode=False)
@@ -140,3 +140,59 @@ class AugerConfig(object):
 
     def get_cluster_task(self):
         return self.config.get("cluster_task", {})
+
+    def clear_api_token(self):
+        self.set_api_token('')
+
+    def get_api_token(self):
+        return self.get_credential_key('token')
+
+    def set_api_token(self, token):
+        self.set_credentials_key('token', token)
+
+    def get_api_url(self):
+        url = self.get_credential_key('url')
+        if url is None:
+            url = self.config.get('api_url', constants.DEFAULT_API_URL)
+
+        return url
+
+    def get_api_username(self):
+        return self.get_credential_key('username')
+
+    def set_api_url(self, url):
+        if url:
+            self.set_credentials_key('url', url)
+
+    def set_api_username(self, username):
+        if username:
+            self.set_credentials_key('username', username)
+
+    def set_credentials_key(self, key, value):
+        self.ensure_credentials_file()
+
+        with open(self.credentials_path, 'r') as file:
+            content = json.loads(file.read())
+
+        content[key] = value
+
+        with open(self.credentials_path, 'w') as file:
+            file.write(json.dumps(content))
+
+    def get_credential_key(self, key):
+        self.ensure_credentials_file()
+
+        with open(self.credentials_path, 'r') as file:
+            content = json.loads(file.read())
+            return content.get(key)
+
+    def ensure_credentials_file(self):
+        file = self.credentials_path
+        dir = os.path.dirname(file)
+
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+
+        if not os.path.exists(file):
+            with open(file, 'w') as file:
+                file.write('{}')

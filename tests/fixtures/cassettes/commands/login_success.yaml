@@ -1,73 +1,56 @@
 interactions:
 - request:
-    body: null
+    body: '{"email": "her@mail.com", "password": "password"}'
     headers:
-      Accept-Encoding: ['gzip, deflate']
-      Connection: [keep-alive]
-      accept: ['application/openapi+json, */*']
-      user-agent: [coreapi]
-    method: GET
-    uri: http://localhost:5000/api/v1/schema/
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '49'
+      Content-type:
+      - application/json
+      User-Agent:
+      - python-requests/2.21.0
+    method: POST
+    uri: http://localhost:5000/api/v1/tokens
   response:
-    body: {string: '{"swagger":"2.0","info":{"version":"1.0.0","title":"Auger API","description":"Hosted
-        service for Auger AI."},"consumes":["application/json"],"produces":["application/json"],"securityDefinitions":{"basic":{"type":"basic"}},"paths":{"/api/v1/projects":{"get":{"operationId":"list","produces":["application/json"],"tags":["projects"],"parameters":[{"name":"limit","description":null,"required":false,"type":null,"in":"query"},{"name":"offset","description":null,"required":false,"type":null,"in":"query"}],"responses":{"200":{"description":"Successful
-        response"}}},"post":{"operationId":"create","produces":["application/json"],"tags":["projects"],"parameters":[{"name":"url","description":null,"required":true,"type":null,"in":"query"},{"name":"organization_id","description":null,"required":true,"type":null,"in":"query"},{"name":"cluster_id","description":null,"required":false,"type":null,"in":"query"}],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/projects/{id}":{"delete":{"operationId":"delete","produces":["application/json"],"tags":["projects"],"parameters":[{"name":"id","description":null,"required":true,"type":null,"in":"path"}],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/projects/{id}/attach":{"patch":{"operationId":"attach","produces":["application/json"],"tags":["projects"],"parameters":[{"name":"id","description":null,"required":true,"type":null,"in":"path"},{"name":"cluster_id","description":null,"required":true,"type":null,"in":"query"}],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/projects/{id}/detach":{"patch":{"operationId":"detach","produces":["application/json"],"tags":["projects"],"parameters":[{"name":"id","description":null,"required":true,"type":null,"in":"path"}],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/projects/{id}/logs":{"get":{"operationId":"logs","produces":["application/json"],"tags":["projects"],"parameters":[{"name":"id","description":null,"required":true,"type":null,"in":"path"}],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/projects/{id}/stream_logs":{"get":{"operationId":"stream_logs","produces":["application/json"],"tags":["projects"],"parameters":[{"name":"id","description":null,"required":true,"type":null,"in":"path"}],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/clusters":{"get":{"operationId":"list","produces":["application/json"],"tags":["clusters"],"parameters":[{"name":"limit","description":null,"required":false,"type":null,"in":"query"},{"name":"offset","description":null,"required":false,"type":null,"in":"query"}],"responses":{"200":{"description":"Successful
-        response"}}},"post":{"operationId":"create","produces":["application/json"],"tags":["clusters"],"parameters":[{"name":"name","description":null,"required":true,"type":null,"in":"query"},{"name":"organization_id","description":null,"required":true,"type":null,"in":"query"},{"name":"worker_nodes_count","description":null,"required":false,"type":null,"in":"query"},{"name":"node_instance_type","description":null,"required":false,"type":null,"in":"query"}],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/clusters/{id}":{"get":{"operationId":"read","produces":["application/json"],"tags":["clusters"],"parameters":[{"name":"id","description":null,"required":true,"type":null,"in":"path"}],"responses":{"200":{"description":"Successful
-        response"}}},"delete":{"operationId":"delete","produces":["application/json"],"tags":["clusters"],"parameters":[{"name":"id","description":null,"required":true,"type":null,"in":"path"}],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/clusters/{id}/restart":{"patch":{"operationId":"restart","produces":["application/json"],"tags":["clusters"],"parameters":[{"name":"id","description":null,"required":true,"type":null,"in":"path"}],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/cluster_audit_items":{"get":{"operationId":"list","produces":["application/json"],"tags":["cluster_audit_items"],"parameters":[{"name":"limit","description":null,"required":false,"type":null,"in":"query"},{"name":"offset","description":null,"required":false,"type":null,"in":"query"},{"name":"cluster_id","description":null,"required":false,"type":null,"in":"query"},{"name":"kind","description":null,"required":false,"type":null,"in":"query"}],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/cluster_jobs":{"get":{"operationId":"list","produces":["application/json"],"tags":["cluster_jobs"],"parameters":[{"name":"limit","description":null,"required":false,"type":null,"in":"query"},{"name":"offset","description":null,"required":false,"type":null,"in":"query"},{"name":"cluster_id","description":null,"required":false,"type":null,"in":"query"}],"responses":{"200":{"description":"Successful
-        response"}}},"post":{"operationId":"create","produces":["application/json"],"tags":["cluster_jobs"],"parameters":[{"name":"cluster_id","description":null,"required":true,"type":null,"in":"query"},{"name":"command_line","description":null,"required":true,"type":null,"in":"query"}],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/cluster_jobs/{id}":{"get":{"operationId":"read","produces":["application/json"],"tags":["cluster_jobs"],"parameters":[{"name":"id","description":null,"required":true,"type":null,"in":"path"}],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/cluster_jobs/{id}/cancel":{"patch":{"operationId":"cancel","produces":["application/json"],"tags":["cluster_jobs"],"parameters":[{"name":"id","description":null,"required":true,"type":null,"in":"path"}],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/cluster_provisioning_jobs":{"get":{"operationId":"list","produces":["application/json"],"tags":["cluster_provisioning_jobs"],"parameters":[{"name":"limit","description":null,"required":false,"type":null,"in":"query"},{"name":"offset","description":null,"required":false,"type":null,"in":"query"},{"name":"cluster_id","description":null,"required":false,"type":null,"in":"query"}],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/cluster_statuses":{"get":{"operationId":"list","produces":["application/json"],"tags":["cluster_statuses"],"parameters":[{"name":"limit","description":null,"required":false,"type":null,"in":"query"},{"name":"offset","description":null,"required":false,"type":null,"in":"query"},{"name":"cluster_id","description":null,"required":false,"type":null,"in":"query"}],"responses":{"200":{"description":"Successful
-        response"}}},"post":{"operationId":"create","produces":["application/json"],"tags":["cluster_statuses"],"parameters":[{"name":"cluster_id","description":null,"required":true,"type":null,"in":"query"},{"name":"cpu","description":null,"required":true,"type":null,"in":"query"},{"name":"memory","description":null,"required":true,"type":null,"in":"query"}],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/instance_types":{"get":{"operationId":"list","produces":["application/json"],"tags":["instance_types"],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/organizations/{organization_id}/ssh_keys":{"get":{"operationId":"list","produces":["application/json"],"tags":["ssh_keys"],"parameters":[{"name":"limit","description":null,"required":false,"type":null,"in":"query"},{"name":"offset","description":null,"required":false,"type":null,"in":"query"},{"name":"organization_id","description":null,"required":true,"type":null,"in":"path"}],"responses":{"200":{"description":"Successful
-        response"}}},"post":{"operationId":"create","produces":["application/json"],"tags":["ssh_keys"],"parameters":[{"name":"public_key","description":null,"required":true,"type":null,"in":"query"},{"name":"organization_id","description":null,"required":true,"type":null,"in":"path"}],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/organizations/{organization_id}/ssh_keys/{id}":{"delete":{"operationId":"delete","produces":["application/json"],"tags":["ssh_keys"],"parameters":[{"name":"organization_id","description":null,"required":true,"type":null,"in":"path"},{"name":"id","description":null,"required":true,"type":null,"in":"path"}],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/organizations":{"get":{"operationId":"list","produces":["application/json"],"tags":["organizations"],"parameters":[{"name":"limit","description":null,"required":false,"type":null,"in":"query"},{"name":"offset","description":null,"required":false,"type":null,"in":"query"}],"responses":{"200":{"description":"Successful
-        response"}}},"post":{"operationId":"create","produces":["application/json"],"tags":["organizations"],"parameters":[{"name":"name","description":null,"required":true,"type":null,"in":"query"},{"name":"access_key","description":null,"required":true,"type":null,"in":"query"},{"name":"secret_key","description":null,"required":true,"type":null,"in":"query"}],"responses":{"200":{"description":"Successful
-        response"}}}},"/api/v1/organizations/{id}":{"get":{"operationId":"read","produces":["application/json"],"tags":["organizations"],"parameters":[{"name":"id","description":null,"required":true,"type":null,"in":"path"}],"responses":{"200":{"description":"Successful
-        response"}}},"delete":{"operationId":"delete","produces":["application/json"],"tags":["organizations"],"parameters":[{"name":"id","description":null,"required":true,"type":null,"in":"path"}],"responses":{"200":{"description":"Successful
-        response"}}}}}}'}
+    body:
+      string: !!binary |
+        H4sIADBRilwAAyTOTQ/BMByA8e/yPy/SLSLsVuKlRReGhYt0VTRrN1u7MbLvTuL6/C7PBy7ccQg/
+        4IpM5hCCbOk9nQsVKUr2b+IzRUe9X9RpMnukEzIg5q5FNnbHRNuVYU0aE0vMoS9+tt7tfbYjiL1x
+        yxao9yyzFgcmKjBNZLxpm8ftFehteYrpMjoqXKNATDFrhk8EHogiv6rKcKeK/FzJslaVvEB45drK
+        zgMj/6fWcVdbCAOEuu4LAAD//wMAF5SV1MEAAAA=
     headers:
-      Cache-Control: ['max-age=0, private, must-revalidate']
-      Content-Type: [application/json; charset=utf-8]
-      ETag: [W/"609b471f97e2ff757e37b89e21c66579"]
-      X-Content-Type-Options: [nosniff]
-      X-Frame-Options: [SAMEORIGIN]
-      X-Request-Id: [d19e0434-215c-4f44-90ec-31ff55516759]
-      X-Runtime: ['0.093533']
-      X-XSS-Protection: [1; mode=block]
-    status: {code: 200, message: OK}
-- request:
-    body: null
-    headers:
-      Accept-Encoding: ['gzip, deflate']
-      Connection: [keep-alive]
-      accept: ['application/openapi+json, */*']
-      user-agent: [coreapi]
-    method: GET
-    uri: http://localhost:5000/api/v1/organizations
-  response:
-    body: {string: '{"data":[{"object":"organization","id":14,"name":"testorg","subdomain":"testorg","s3_bucket_name":"auger-testorg-sb43hw"}],"meta":{"status":200,"pagination":{"limit":10,"offset":0,"count":1,"total":1}}}'}
-    headers:
-      Cache-Control: ['max-age=0, private, must-revalidate']
-      Content-Type: [application/json; charset=utf-8]
-      ETag: [W/"28373a6e9a4d8706eca8546de2da3e84"]
-      X-Content-Type-Options: [nosniff]
-      X-Frame-Options: [SAMEORIGIN]
-      X-Request-Id: [06888a71-b0a4-43e9-a5b8-94ab955259b0]
-      X-Runtime: ['0.142265']
-      X-XSS-Protection: [1; mode=block]
-    status: {code: 200, message: OK}
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json; charset=utf-8
+      ETag:
+      - W/"f4e12fa59aa53931547a3ab7c38c6ace"
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Vary:
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Request-Id:
+      - 9021d73e-8075-4ff0-a518-96d3eeff1038
+      X-Runtime:
+      - '0.900467'
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
 version: 1

@@ -28,32 +28,35 @@ def list(client):
 def read(client, project_name=None, org_id=None, project_id=None):
     result = {}
     if project_id:
-        result = client.call_hub_api(['projects', 'read'], params={'id': project_id})
+        result = client.call_hub_api('get_project', {'id': project_id})
     elif project_name:
         if org_id:
-            projects_list = client.call_hub_api(['projects', 'list'],
-                params={'name': project_name, 'limit': REQUEST_LIMIT, 'organization_id': org_id}
-            )
+            projects_list = client.call_hub_api('get_projects', {
+                'name': project_name,
+                'limit': REQUEST_LIMIT,
+                'organization_id': org_id
+            })
         else:
-            projects_list = client.call_hub_api(['projects', 'list'], params={'name': project_name, 'limit': REQUEST_LIMIT})
+            projects_list = client.call_hub_api('get_projects', {
+                'name': project_name,
+                'limit': REQUEST_LIMIT
+            })
 
         if len(projects_list) > 0:
             result = projects_list[0]
-    
+
     return result
 
 
 def create(client, project, organization_id):
-    return client.call_hub_api(['projects', 'create'], 
-        params = {
-            'name': project,
-            'organization_id': organization_id
-        }
-    )
+    return client.call_hub_api('create_project', {
+        'name': project,
+        'organization_id': organization_id
+    })
 
 def delete(client, project_id):
-    client.call_hub_api(['projects', 'delete'], params={'id': project_id})
-    
+    client.call_hub_api('delete_project', {'id': project_id})
+
 
 def get_or_create(client, create_if_not_exist=False, project_id=None):
     if project_id is None:
@@ -70,7 +73,7 @@ def get_or_create(client, create_if_not_exist=False, project_id=None):
     if project.get('id') is not None:
         return project
 
-    if create_if_not_exist:    
+    if create_if_not_exist:
         project = create(client, project_name, org_id)
         return project
 
@@ -93,7 +96,7 @@ def start(client, create_if_not_exist=False, project_id=None):
             raise Exception('Failed to create cluster.')
 
     wait_for_object_state(client,
-        endpoint=['projects', 'read'],
+        method='get_project',
         params={'id': project['id']},
         first_status=project['status'],
         progress_statuses=[
@@ -107,11 +110,11 @@ def start(client, create_if_not_exist=False, project_id=None):
 def download_file(client, project_id, remote_path, local_path):
     project_id = start(client, project_id=project_id)
 
-    s3_model_path = cluster_tasks.create_ex(client, project_id, 
+    s3_model_path = cluster_tasks.create_ex(client, project_id,
         "pipeline_functions.packager.tasks.upload_file", remote_path
     )
 
-    s3_signed_model_path = cluster_tasks.create_ex(client, project_id, 
+    s3_signed_model_path = cluster_tasks.create_ex(client, project_id,
         "pipeline_functions.packager.tasks.generate_presigned_url", s3_model_path
     )
     client.print_line("Model S3 path: %s"%s3_signed_model_path)
@@ -121,11 +124,11 @@ def download_file(client, project_id, remote_path, local_path):
 
 def list_files(client, project_id, remote_path):
     project_id = start(client, project_id=project_id)
-    
+
     task_args = {'augerInfo': {}}
     if remote_path:
         task_args = {'augerInfo': {'filesPath': remote_path}}
 
-    return cluster_tasks.create_ex(client, project_id, 
+    return cluster_tasks.create_ex(client, project_id,
         "auger_ml.tasks_queue.tasks.list_project_files_task", task_args
     )

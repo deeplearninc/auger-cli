@@ -22,13 +22,13 @@ from auger_cli.api import experiments
 @click.option(
     '--project-id',
     '-p',
-    default='',
+    default=None,
     help='Experiments project ID.'
 )
 @click.option(
     '--name',
     '-n',
-    default='',
+    default=None,
     help='Experiment name.'
 )
 @click.pass_context

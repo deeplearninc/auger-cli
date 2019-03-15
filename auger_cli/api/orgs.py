@@ -22,16 +22,18 @@ def read(client, org_name=None, org_id=None):
                 org_id = org.get('id')
                 break
 
-        if org_id is None:    
+        if org_id is None:
             org = read(client, org_name)
             org_id = org.get('id')
 
     if org_id:
-        result = client.call_hub_api(['organizations', 'read'], params={'id': org_id})
+        result = client.call_hub_api('get_organization', {'id': org_id})
     elif org_name:
-        orgs_list = client.call_hub_api(['organizations', 'list'],
-            params={'name': org_name, 'limit': REQUEST_LIMIT}
-        )
+        orgs_list = client.call_hub_api('get_organizations', {
+            'name': org_name,
+            'limit': REQUEST_LIMIT
+        })
+
         if len(orgs_list) > 0:
             result = orgs_list[0]
 
