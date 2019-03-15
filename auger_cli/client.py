@@ -24,6 +24,7 @@ class AugerClient(object):
     def call_hub_api_ex(self, method, params={}):
         params = params.copy()
 
+        self.print_debug("API call: {}({})".format(method, params))
         if params.get('id'):
             id = params['id']
             del params['id']
@@ -46,18 +47,25 @@ class AugerClient(object):
         else:
             self.print_line(str(exc), err=True)
 
+    def print_debug(self, line):        
+        if self.config.is_dev_mode():
+            self.print_line(line)
+
     def print_line(self, line='', nl=True, err=False):
         from .formatter import print_line as formatter_print_line
 
         # TODO: add some filtration
         formatter_print_line(line, nl, err)
 
-    def setup_client(self, url, token=None):
+    def setup_client(self, url, token=None, username=None):
         if url:
             self.config.set_api_url(url)
 
         if token:
             self.config.set_api_token(token)
+
+        if username:
+            self.config.set_api_username(username)
 
         self.client = HubApiClient(
             hub_app_url=self.config.get_api_url(),

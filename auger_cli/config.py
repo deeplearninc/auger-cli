@@ -64,9 +64,6 @@ class AugerConfig(object):
     def is_dev_mode(self):
         return self.config.get('dev_mode', False)
 
-    def get_hub_url(self):
-        return self.config.get('hub_url', constants.DEFAULT_API_URL)
-
     def get_login_config_path(self):
         return self.config.get('login_config_path', None)
 
@@ -154,11 +151,22 @@ class AugerConfig(object):
         self.set_credentials_key('token', token)
 
     def get_api_url(self):
-        return self.get_credential_key('url')
+        url = self.get_credential_key('url')
+        if url is None:
+            url = self.config.get('api_url', constants.DEFAULT_API_URL)
+
+        return url
+
+    def get_api_username(self):
+        return self.get_credential_key('username')
 
     def set_api_url(self, url):
         if url:
             self.set_credentials_key('url', url)
+
+    def set_api_username(self, username):
+        if username:
+            self.set_credentials_key('username', username)
 
     def set_credentials_key(self, key, value):
         self.ensure_credentials_file()

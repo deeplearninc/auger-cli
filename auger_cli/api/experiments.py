@@ -18,6 +18,9 @@ display_attributes = ['id', 'name',
 
 
 def list(client, project_id, name):
+    if project_id is None:
+        project_id = projects.get_or_create(client).get('id')
+
     return request_list(client,
         'experiments',
         params={'project_id': project_id, 'name': name}
