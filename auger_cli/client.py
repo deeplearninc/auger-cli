@@ -25,7 +25,7 @@ class AugerClient(object):
         params = params.copy()
 
         self.print_debug("API call: {}({})".format(method, params))
-        if params.get('id'):
+        if params.get('id') and not method.startswith('create_'):
             id = params['id']
             del params['id']
             return getattr(self.client, method)(id, **params)
