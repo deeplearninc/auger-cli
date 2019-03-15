@@ -113,7 +113,7 @@ class AugerConfig(object):
         if evaluation_options.get('classification', False):
             model_type = "classification"
         elif len(evaluation_options.get('timeSeriesFeatures', [])) > 0:
-            model_type = "time_series"
+            model_type = "timeseries"
 
         return model_type
             
