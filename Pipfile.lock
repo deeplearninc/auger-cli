@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "0c2af1df03b8eddabbfd88ea0903341da53062364b7d0d7088f926bd194f0503"
+            "sha256": "87adb14e26bae4c0ccd46e1ef5dd6d040fc25820b73139b825e2d604090caaaa"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -20,11 +20,11 @@
         },
         "auger-hub-api-client": {
             "hashes": [
-                "sha256:34647abcb8cf7fa5fa95370fb0045e32e4f151e779a32ec1609c682c227d1c38",
-                "sha256:64b9f4cd706a16230e31808a2eb26d769bd9fa852c3aca94a40b6a43f1f63159"
+                "sha256:61cace8a8e8b39cca9ecd8138af155856dbe43622125d0b0dc715af94f41994c",
+                "sha256:af8db169be1dec74a87be19a929521650a9d7dca4c5d3859c25e911fbae3ad26"
             ],
             "index": "pypi",
-            "version": "==0.4.3"
+            "version": "==0.4.4"
         },
         "certifi": {
             "hashes": [

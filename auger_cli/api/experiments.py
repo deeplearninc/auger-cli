@@ -119,7 +119,7 @@ def run(client):
     result = {}
     if not org.get('is_jupyter_enabled'):
         project_file = wait_for_object_state(client,
-            endpoint=['project_files', 'read'],
+            method='get_project_file',
             params={'id': experiment['project_file_id'], 'project_id': project_id},
             first_status='processing',
             progress_statuses=[
