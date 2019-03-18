@@ -25,7 +25,10 @@ def print_list(list_data, attributes):
         print_record(object_data, attributes)
 
 
-def print_record(object_data, attributes):
+def print_record(object_data, attributes=None, max_level=10):
+    if attributes is None:
+        attributes = object_data.keys()
+
     print_line('=======')
     width = len(max(attributes, key=len)) + 2
     for attrib in attributes:
@@ -33,7 +36,7 @@ def print_record(object_data, attributes):
             '{name:<{width}} {value}'.format(
                 name=camelize(attrib) + ':',
                 width=width,
-                value=string_for_attrib(object_data.get(attrib))
+                value=string_for_attrib(object_data.get(attrib), 0, max_level)
             )
         )
     print_line()
@@ -62,8 +65,8 @@ def print_stream(client, params):
     # http_transport.stream_request(link, decoders, params=params)
 
 
-def string_for_attrib(attrib):
-    if type(attrib) in (int, str):
+def string_for_attrib(attrib, cur_level, max_level):
+    if type(attrib) in (int, str) or cur_level>=max_level:
         return attrib
 
     if isinstance(attrib, collections.OrderedDict) or isinstance(attrib, dict):
@@ -72,7 +75,7 @@ def string_for_attrib(attrib):
             if type(k) == str and k != 'object':
                 if isinstance(v, collections.OrderedDict) or isinstance(v, dict):
                     items.append('\n  {}: {}'.format(
-                        camelize(k), string_for_attrib(v)))
+                        camelize(k), string_for_attrib(v, cur_level+1, max_level)))
                 else:
                     items.append('\n  {}: {}'.format(camelize(k), v))
 

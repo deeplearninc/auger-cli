@@ -108,11 +108,43 @@ def read_ex(client, experiment_id=None):
 
     return result
 
+def read_settings(client):
+    evaluation_options = None
+    if client.config.get_experiment_session_id():
+        evaluation_options = experiment_sessions.read(client, 
+            client.config.get_experiment_session_id()).get('model_settings', {}).get('evaluation_options')
+
+    return client.config.get_settings_yml(evaluation_options)
+
+def read_search_space(client):
+    project_id = projects.start(client, create_if_not_exist=True)
+    experiment = get_or_create(client, project_id)
+
+    configs = cluster_tasks.create_ex(
+        client, project_id,
+        "auger_ml.tasks_queue.tasks.get_experiment_configs_task", {'augerInfo': {'experiment_id': experiment['id']}}
+    )
+    result = {
+        'default_optimizer_names': configs['global_config_dict']['global']['optimizers'],
+        'all_optimizer_names': [*configs['optimizers_space']],
+        'default_algorithms': {
+            'classification': [*configs['user_config_dict']['model_group']['classification']['learning_algorithms']],
+            'regression': [*configs['user_config_dict']['model_group']['regression']['learning_algorithms']],
+            'timeseries': [*configs['user_config_dict']['model_group']['timeseries']['learning_algorithms']],
+        },
+        'all_algorithms': {
+            'classification': configs['classifier_config_dict']['classification']['learning_algorithms'],
+            'regression': configs['regressor_config_dict']['regression']['learning_algorithms'],
+            'timeseries': configs['timeseries_config_dict']['timeseries']['learning_algorithms'],
+            }
+    }
+
+    return result
+
 def run(client):
     client.config.delete_session_file()
 
     project_id = projects.start(client, create_if_not_exist=True)
-
     experiment = get_or_create(client, project_id)
 
     org = orgs.read(client)
@@ -174,11 +206,16 @@ def read_leaderboard(client, experiment_session_id=None):
 
     leaderboard = []
     for trial in trials_list:
+        optimizer_name = trial.get('raw_data').get('optimizer_name', '')
+        if len(optimizer_name) > 0:
+            optimizer_name = optimizer_name.split('.')[-1]
+
         leaderboard.append({
             trial.get('score_name'): trial.get('score_value'),
-            'eval_time(sec)': "{0:.2f}".format(trial.get('raw_data').get('evaluation_time')),
+            'time(sec)': "{0:.2f}".format(trial.get('raw_data').get('evaluation_time')),
             'id': trial.get('id'),
-            'algorithm_name': trial.get('raw_data').get('algorithm_name')
+            'algorithm': trial.get('raw_data').get('algorithm_name'),
+            'optimizer': optimizer_name
         })
 
     leaderboard.sort(key=lambda t: t[trial.get('score_name')], reverse=True)

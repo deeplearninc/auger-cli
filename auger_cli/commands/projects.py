@@ -72,7 +72,7 @@ def delete(client, project, project_id):
         projects.delete(client, project_id)
         print_line('Projects {} deleted.'.format(project_id))
 
-@click.command(
+@click.command( "download_file",
     short_help='Download file from project. Path should be relative project path. For example: files/iris_data_sample.csv'
 )
 @click.argument('remote_path', required=True)
@@ -103,7 +103,7 @@ def download_file(client, remote_path, local_path, project):
         print_line('Downloaded file: {}'.format(file_path))
 
 
-@click.command(
+@click.command( "list_files",
     short_help='Download file from project. Path should be relative project path. For example: files/iris_data_sample.csv'
 )
 @click.option(
@@ -161,7 +161,7 @@ def logs(client, project, tail):
             print_line(result)
 
 
-@click.command(short_help='Open project in a browser.')
+@click.command("open_project", short_help='Open project in a browser.')
 @click.option(
     '--project',
     '-p',
