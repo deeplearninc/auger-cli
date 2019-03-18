@@ -234,18 +234,18 @@ def read_leaderboard(client, experiment_session_id=None):
 
 
 def export_model(client, trial_id, deploy=False):
+    project_id = projects.start(client, create_if_not_exist= False)
+    experiment_id, experiment_name = client.config.get_experiment()
+ 
     if trial_id is None:
         res, info = read_leaderboard(client)
         if len(res) == 0:
             raise Exception(
-                'There is no trials for the experiment: %s.' % (name))
+                'There is no trials for the experiment: %s.' % (experiment_name))
 
         client.print_line('Use best trial to export model: {}'.format(res[0]))
 
         trial_id = res[0]['id']
-
-    project_id = projects.start(client, create_if_not_exist= False)
-    experiment_id, experiment_name = client.config.get_experiment()
 
     task_args = {
         'augerInfo': {'experiment_id': experiment_id, 'experiment_session_id': client.config.get_experiment_session_id()},
