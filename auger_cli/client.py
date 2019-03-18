@@ -2,7 +2,6 @@
 
 from contextlib import contextmanager
 from auger.hub_api_client import HubApiClient
-import json
 import os
 import shutil
 

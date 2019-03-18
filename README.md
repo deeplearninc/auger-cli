@@ -159,13 +159,26 @@ evaluation_options:
   use_ensemble: true
 
   # OPTIONAL evaluation parameters  
+
+  # To see list of available algorithms call 'auger experiments search_space'
+  #search_space: 
+    # Use algorithm with parameters range defined in Auger ML
+    #sklearn.ensemble.AdaBoostClassifier: {}
+
+    # Modify some of algorithm parameters
+    #sklearn.ensemble.GradientBoostingClassifier: {"max_depth": {"bounds": [10, 20]}}
+
+    # Use limited set of algorithm parameters, all other parameters will be not tunable and set to default values
+    #sklearn.ensemble.GradientBoostingClassifier: {'_no_defaults': True, "max_depth": {"bounds": [10, 20]}}
+
+  # To see list of available optimizers call 'auger experiments search_space'
+  #optimizers_names: []
+
   #data_extension: ".csv"
   #data_compression: gzip
 
-  #optimizers_names: []
   #split_options: {}
   #oversampling: {}
-  #search_space: 
   #use_ensemble: true
   #preprocessors: {}
 
@@ -231,6 +244,16 @@ CSV file path should point to local file with data for predcition
 Display information about experiment:
 ```sh
 auger experiments show
+```
+
+Display information about experiment settings:
+```sh
+auger experiments settings
+```
+
+Display information about Auger ML oprimizers and algorithms:
+```sh
+auger experiments search_space
 ```
 
 ## Clusters

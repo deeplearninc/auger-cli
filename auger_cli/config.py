@@ -4,7 +4,7 @@ import io
 import json
 
 from .formatter import print_line
-from .utils import remove_file, camelize, merge_dicts
+from .utils import remove_file, camelize, merge_dicts, to_snake_name
 from auger_cli import constants
 from .constants import REQUEST_LIMIT, API_POLL_INTERVAL
 
@@ -43,23 +43,29 @@ class AugerConfig(object):
                     self.config_session = yaml.safe_load(stream)
 
         merge_dicts(self.config, config_settings)
-        self._translate_config_names()
+        self._translate_config_names(self.config.get('evaluation_options', {}))
 
         default_config_path = '{home}/.auger'.format(home=os.getenv("HOME"))
         login_config_path = self.config.get('login_config_path', default_config_path)
         self.config['login_config_path'] = os.path.abspath(login_config_path)
         self.credentials_path = os.path.join(self.config['login_config_path'], 'credentials')
 
-    def _translate_config_names(self):
+    def _translate_config_names(self, evaluation_options, to_camel_case=True):
         camel_cases_props = ['featureColumns', 'targetFeature', 'categoricalFeatures', 'labelEncodingFeatures', 'datetimeFeatures',
-                             'timeSeriesFeatures', 'binaryClassification', 'crossValidationFolds', 'splitOptions']
+                             'timeSeriesFeatures', 'binaryClassification', 'crossValidationFolds', 'splitOptions', 'scoreNames']
 
-        evaluation_options = self.config.get('evaluation_options', {})
-        for name, value in evaluation_options.items():
-            camelize_name = camelize(name, join_string="")
-            if camelize_name in camel_cases_props:
-                del evaluation_options[name]
-                evaluation_options[camelize_name] = value
+        if to_camel_case:
+            for name, value in evaluation_options.items():
+                camelize_name = camelize(name, join_string="")
+                if camelize_name in camel_cases_props:
+                    del evaluation_options[name]
+                    evaluation_options[camelize_name] = value
+        else:
+            for name in camel_cases_props:
+                if name in evaluation_options:
+                    snake_name = to_snake_name(name)
+                    evaluation_options[snake_name] = evaluation_options[name]
+                    del evaluation_options[name]
 
     def is_dev_mode(self):
         return self.config.get('dev_mode', False)
@@ -103,6 +109,33 @@ class AugerConfig(object):
 
     def get_evaluation_options(self):
         return self.config.get('evaluation_options', {})
+
+    def get_settings_yml(self, evaluation_options):
+        from collections import OrderedDict
+
+        result = self.config
+        result['cluster'] = self.get_cluster_settings()
+
+        if evaluation_options:
+            result['evaluation_options'] = evaluation_options
+        else:
+            result['evaluation_options'] = self.get_evaluation_options()
+
+        for name, params in result['evaluation_options'].get('search_space', {}).items():
+            result['evaluation_options']['search_space'][name] = json.dumps(params)
+
+        props_to_remove = ['search_space_ensembles', 'split_to_folds_files', 'start_time', 'originalFeaturesCount']
+        for prop in props_to_remove:
+            if prop in result['evaluation_options']:
+                del result['evaluation_options'][prop]
+
+        if 'originalFeatureColumns' in result['evaluation_options']:        
+            result['evaluation_options']['feature_columns'] = result['evaluation_options']['originalFeatureColumns']
+            del result['evaluation_options']['originalFeatureColumns']
+
+        self._translate_config_names(result['evaluation_options'], to_camel_case=False)
+
+        return yaml.safe_dump(result, allow_unicode=False, default_flow_style = False)    
 
     def get_model_type(self):
         evaluation_options = self.config.get('evaluation_options', {})

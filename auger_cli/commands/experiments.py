@@ -66,6 +66,18 @@ def show(client, experiment_id):
         print_record(experiments.read_ex(client, experiment_id), experiments.display_attributes)
 
 
+@click.command(short_help='Display experiment settings.')
+@pass_client
+def settings(client):
+    with client.cli_error_handler():
+        print_line(experiments.read_settings(client))
+
+@click.command("search_space", short_help='Display Auger ML serach space definition.')
+@pass_client
+def search_space(client):
+    with client.cli_error_handler():
+        print_record(experiments.read_search_space(client), attributes=None, max_level=2)
+
 @click.command()
 @click.argument('experiment_id', required=True)
 @pass_client
@@ -113,14 +125,14 @@ def leaderboard(client, experiment_session_id):
         print_table(leaderboard)
 
 
-@click.command()
+@click.command("monitor_leaderboard")
 @click.argument('name', required=True)
 @pass_client
 def monitor_leaderboard(client, name):
     experiments.monitor_leaderboard(client, name)
 
 
-@click.command()
+@click.command("export_model")
 @click.option(
     '--trial-id',
     '-t',
@@ -132,7 +144,7 @@ def export_model(client, trial_id):
     model_path = experiments.export_model(client, trial_id)
     client.print_line("Model exported to file: %s"%model_path)
 
-@click.command()
+@click.command("deploy_model")
 @click.option(
     '--trial-id',
     '-t',
@@ -178,4 +190,7 @@ experiments_group.add_command(leaderboard)
 experiments_group.add_command(export_model)
 experiments_group.add_command(deploy_model)
 experiments_group.add_command(predict)
+experiments_group.add_command(settings)
+experiments_group.add_command(search_space)
+
 #experiments_group.add_command(monitor_leaderboard)

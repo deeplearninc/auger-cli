@@ -19,6 +19,8 @@ def camelize(snake_cased_string, join_string=" "):
 
     return join_string.join(parts)
 
+def to_snake_name(camel_cased_string):
+    return re.sub('([A-Z]+)', r'_\1', camel_cased_string).lower()
 
 def urlparse(*args, **kwargs):
     if sys.version_info[0] < 3:
