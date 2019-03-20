@@ -171,6 +171,9 @@ evaluation_options:
     # Use limited set of algorithm parameters, all other parameters will be not tunable and set to default values
     #sklearn.ensemble.GradientBoostingClassifier: {'_no_defaults': True, "max_depth": {"bounds": [10, 20]}}
 
+    # Add new parameter to algorithm. If one value is present, it will be passed as default value to algorithm
+    #lightgbm.LGBMClassifier: {"feature_border_type": {"values": ['Median'], "type": "categorical", "tunable": True}}
+
   # To see list of available optimizers call 'auger experiments search_space'
   #optimizers_names: []
 

@@ -154,7 +154,7 @@ def read_leaderboard(client):
     for item in running_projects:
         exp_sessions = [res for res in experiment_sessions.list(client, project_id = item.get('id'), experiment_id=None, limit=100)]
         exp_sessions.sort(key=lambda t: t.get('created_at'), reverse=True)
-        
+
         running_session = {}
         completed_sessions = 0
         for exp_session in exp_sessions:
@@ -166,7 +166,9 @@ def read_leaderboard(client):
 
         session_time = 0        
         dt_format = '%Y-%m-%dT%H:%M:%S.%fZ'
-        session_time = int((datetime.utcnow()-datetime.strptime(running_session.get('created_at'), dt_format)).total_seconds()/60.0)
+        if running_session.get('created_at'):
+            session_time = int((datetime.utcnow()-datetime.strptime(running_session.get('created_at'), dt_format)).total_seconds()/60.0)
+                
         leaderboard.append({
             'id': item.get('id'),
             'name': item.get('name'),
@@ -175,7 +177,7 @@ def read_leaderboard(client):
             'session_time': session_time,
             'session_trials': running_session.get('model_settings', {}).get('completed_evaluations'),
             'completed': completed_sessions,
-            'data_path': os.path.basename(running_session.get('model_settings', {}).get('evaluation_options', {}).get('data_path')),
+            'data_path': os.path.basename(running_session.get('model_settings', {}).get('evaluation_options', {}).get('data_path','')),
         })
             
     return leaderboard
