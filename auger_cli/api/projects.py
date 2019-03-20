@@ -8,6 +8,7 @@ from auger_cli.constants import REQUEST_LIMIT
 from auger_cli.api import clusters
 from auger_cli.api import orgs
 from auger_cli.api import cluster_tasks
+from auger_cli.api import experiment_sessions
 
 display_attributes = [
     'id',
@@ -21,8 +22,12 @@ display_attributes = [
 ]
 
 
-def list(client):
-    return request_list(client, 'projects', params={})
+def list(client, org_id=None):
+    params = {}
+    if org_id:
+        params = {'organization_id': org_id}
+
+    return request_list(client, 'projects', params=params)
 
 
 def read(client, project_name=None, org_id=None, project_id=None):
@@ -132,3 +137,45 @@ def list_files(client, project_id, remote_path):
     return cluster_tasks.create_ex(client, project_id,
         "auger_ml.tasks_queue.tasks.list_project_files_task", task_args
     )
+
+def read_leaderboard(client):
+    from datetime import datetime
+    from auger_cli.formatter import print_list
+
+    #Get running projects
+    org_id = orgs.read(client).get('id')
+    list_projects = list(client, org_id=org_id)
+    running_projects = []
+    for item in list_projects:
+        if item.get('status') == 'running':
+            running_projects.append(item)
+
+    leaderboard = []
+    for item in running_projects:
+        exp_sessions = [res for res in experiment_sessions.list(client, project_id = item.get('id'), experiment_id=None, limit=100)]
+        exp_sessions.sort(key=lambda t: t.get('created_at'), reverse=True)
+        
+        running_session = {}
+        completed_sessions = 0
+        for exp_session in exp_sessions:
+            if exp_session.get('status') == 'started' and len(running_session) == 0:
+                running_session = exp_session
+
+            if exp_session.get('status') == 'completed':    
+                completed_sessions+=1
+
+        session_time = 0        
+        dt_format = '%Y-%m-%dT%H:%M:%S.%fZ'
+        session_time = int((datetime.utcnow()-datetime.strptime(running_session.get('created_at'), dt_format)).total_seconds()/60.0)
+        leaderboard.append({
+            'id': item.get('id'),
+            'name': item.get('name'),
+            'status': item.get('status'),
+            'session_id': running_session.get('id'),
+            'session_time': session_time,
+            'session_trials': running_session.get('model_settings', {}).get('completed_evaluations'),
+            'completed': completed_sessions,
+            'data_path': os.path.basename(running_session.get('model_settings', {}).get('evaluation_options', {}).get('data_path')),
+        })
+            
+    return leaderboard

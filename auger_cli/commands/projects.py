@@ -8,7 +8,8 @@ from auger_cli.formatter import (
     print_list,
     print_stream,
     print_record,
-    print_plain_list
+    print_plain_list,
+    print_table
 )
 from auger_cli.api import projects
 
@@ -198,6 +199,12 @@ def show(client, project):
     with client.cli_error_handler():
         print_record(projects.read(client, project), projects.display_attributes)
 
+@click.command(short_help='Display running projects details.')
+@pass_client
+def leaderboard(client):
+    with client.cli_error_handler():
+        print_table(projects.read_leaderboard(client))
+
 projects_group.add_command(create)
 projects_group.add_command(delete)
 projects_group.add_command(logs)
@@ -205,4 +212,5 @@ projects_group.add_command(open_project, name='open')
 projects_group.add_command(show)
 projects_group.add_command(download_file)
 projects_group.add_command(list_files)
+projects_group.add_command(leaderboard)
 

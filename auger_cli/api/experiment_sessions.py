@@ -7,11 +7,11 @@ display_attributes = ['id', 'project_id', 'experiment_id', 'status', 'model_type
 display_list_attributes = ['id', 'project_id', 'experiment_id', 'status', 'created_at', 'model_type']
 
 
-def list(client, project_id, experiment_id):
+def list(client, project_id, experiment_id, limit=10):
     return request_list(client, 'experiment_sessions', {
         'project_id': project_id,
         'experiment_id': experiment_id,
-        'limit': 10
+        'limit': limit
     })
 
 

@@ -26,6 +26,7 @@ def print_list(list_data, attributes):
 
 
 def print_record(object_data, attributes=None, max_level=10):
+    #print(object_data.keys())
     if attributes is None:
         attributes = object_data.keys()
 
