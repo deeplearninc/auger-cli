@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+from zipfile import ZipFile
 
 from auger_cli.utils import request_list, get_uid, load_dataframe_from_file, save_dict_to_csv, wait_for_object_state
 from auger_cli.constants import REQUEST_LIMIT
@@ -228,7 +229,7 @@ def read_leaderboard(client, experiment_session_id=None):
 
 
 def export_model(client, trial_id, deploy=False):
-    project_id = projects.start(client, create_if_not_exist= False)
+    project_id = projects.start(client, create_if_not_exist=False)
     experiment_id, experiment_name = client.config.get_experiment()
  
     if trial_id is None:
@@ -298,3 +299,24 @@ def predict_by_file(client, file, pipeline_id=None, trial_id=None, save_to_file=
 
 def monitor_leaderboard(client, name):
     pass
+
+def predict_by_file_locally(client, file, pipeline_id=None, trial_id=None, save_to_file=False):
+    df = load_dataframe_from_file(file)
+
+    model_path = export_model(client, trial_id, deploy=False)
+
+    zip_time, existing_time = map(lambda path: os.path.getmtime(path) if os.path.exists(path) else 0, [model_path, 'models/model'])
+    if zip_time > existing_time:
+        with ZipFile(model_path, 'r') as zip_file:
+            zip_file.extractall('models/model')
+
+
+    # run predict inside docker
+
+    if save_to_file:
+        predict_path = os.path.splitext(file)[0] + "_predicted.csv"
+        save_dict_to_csv(result, predict_path)
+
+        return predict_path
+
+    return result
