@@ -252,3 +252,16 @@ def merge_dicts(d, other):
             merge_dicts(d_v, v)
         else:
             d[k] = v
+
+def remove_nones_from_dict(d):
+    import collections
+
+    for k in list(d.keys()):
+        v = d[k]
+        if isinstance(v, collections.Mapping):
+            remove_nones_from_dict(v)
+        elif v is None:
+            del d[k]
+
+    return d
+            

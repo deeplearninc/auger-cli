@@ -149,8 +149,8 @@ evaluation_options:
   # Max Total Time Minutes, the maximum time in minutes an entire training can run for before it is stopped.
   max_total_time_mins: 60
 
-  # Max Trial Time Minutes, this is the maximum time in minutes an individual trial can run before it is stopped.
-  max_eval_time_mins: 1
+  # Max Trial Time Minutes, this is the maximum time in minutes an individual fold in trial can run before it is stopped.
+  max_eval_time_mins: 10
 
   # Max Trials, this is the maximum number of trials to be run before training stops.
   max_n_trials: 10

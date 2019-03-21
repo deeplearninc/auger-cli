@@ -4,7 +4,7 @@ import io
 import json
 
 from .formatter import print_line
-from .utils import remove_file, camelize, merge_dicts, to_snake_name
+from .utils import remove_file, camelize, merge_dicts, to_snake_name, remove_nones_from_dict
 from auger_cli import constants
 from .constants import REQUEST_LIMIT, API_POLL_INTERVAL
 
@@ -108,7 +108,7 @@ class AugerConfig(object):
         return experiment_id, self.experiment_name
 
     def get_evaluation_options(self):
-        return self.config.get('evaluation_options', {})
+        return remove_nones_from_dict(self.config.get('evaluation_options', {}))
 
     def get_settings_yml(self, evaluation_options):
         from collections import OrderedDict

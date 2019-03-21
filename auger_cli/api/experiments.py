@@ -135,7 +135,7 @@ def read_search_space(client):
 
     return result
 
-def run(client):
+def run(client):    
     client.config.delete_session_file()
 
     project_id = projects.start(client, create_if_not_exist=True)
