@@ -169,7 +169,7 @@ evaluation_options:
     #sklearn.ensemble.GradientBoostingClassifier: {"max_depth": {"bounds": [10, 20]}}
 
     # Use limited set of algorithm parameters, all other parameters will be not tunable and set to default values
-    #sklearn.ensemble.GradientBoostingClassifier: {'_no_defaults': True, "max_depth": {"bounds": [10, 20]}}
+    #sklearn.ensemble.GradientBoostingClassifier: {'_no_default_params': True, "max_depth": {"bounds": [10, 20]}}
 
     # Add new parameter to algorithm. If one value is present, it will be passed as default value to algorithm
     #lightgbm.LGBMClassifier: {"feature_border_type": {"values": ['Median'], "type": "categorical", "tunable": True}}

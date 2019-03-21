@@ -168,7 +168,11 @@ def read_leaderboard(client):
         dt_format = '%Y-%m-%dT%H:%M:%S.%fZ'
         if running_session.get('created_at'):
             session_time = int((datetime.utcnow()-datetime.strptime(running_session.get('created_at'), dt_format)).total_seconds()/60.0)
-                
+
+        data_name = running_session.get('model_settings', {}).get('evaluation_options', {}).get('data_name','')
+        if len(data_name) == 0:
+            data_name = os.path.basename(running_session.get('model_settings', {}).get('evaluation_options', {}).get('data_path',''))
+            
         leaderboard.append({
             'id': item.get('id'),
             'name': item.get('name'),
@@ -177,7 +181,7 @@ def read_leaderboard(client):
             'session_time': session_time,
             'session_trials': running_session.get('model_settings', {}).get('completed_evaluations'),
             'completed': completed_sessions,
-            'data_path': os.path.basename(running_session.get('model_settings', {}).get('evaluation_options', {}).get('data_path','')),
+            'data_name': data_name,
         })
             
     return leaderboard
