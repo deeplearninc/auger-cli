@@ -87,15 +87,6 @@ def delete(client, experiment_id):
 
 
 @click.command()
-@click.argument('experiment_id', required=True)
-@click.argument('name', required=True)
-@pass_client
-def update(client, experiment_id, name):
-    with client.cli_error_handler():
-        print_record(experiments.update(client, experiment_id, name), experiments.display_attributes)
-
-
-@click.command()
 @pass_client
 def run(client):
     with client.cli_error_handler():
@@ -183,7 +174,6 @@ def predict(client, pipeline_id, trial_id, file):
 experiments_group.add_command(create)
 experiments_group.add_command(show)
 experiments_group.add_command(delete)
-experiments_group.add_command(update)
 experiments_group.add_command(run)
 experiments_group.add_command(stop)
 experiments_group.add_command(leaderboard)

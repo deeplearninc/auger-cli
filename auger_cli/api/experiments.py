@@ -56,12 +56,6 @@ def create(client, name, project_id, data_path):
 def delete(client, experiment_id):
     experiment = client.call_hub_api('delete_experiment', {'id': experiment_id})
 
-def update(client, experiment_id, name):
-    return client.call_hub_api('update_experiment', {
-        'id': experiment_id,
-        'name': name
-    })
-
 
 def get_or_create(client, project_id):
     experiment_id, experiment_name = client.config.get_experiment()
