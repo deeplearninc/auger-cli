@@ -137,8 +137,10 @@ class AugerConfig(object):
 
         return yaml.safe_dump(result, allow_unicode=False, default_flow_style = False)    
 
-    def get_model_type(self):
-        evaluation_options = self.config.get('evaluation_options', {})
+    def get_model_type(self, evaluation_options = None):
+        if evaluation_options is None:
+            evaluation_options = self.config.get('evaluation_options', {})
+
         if 'model_type' in evaluation_options:
             return evaluation_options['model_type']
 
@@ -161,6 +163,158 @@ class AugerConfig(object):
 
     def get_experiment_session_id(self):
         return self.config_session.get('experiment_session_id')
+
+    def get_space_definition(self, evaluation_options=None):
+        MT_ALGOS = ['XGB', 'LGBM', 'ExtraTrees', 'RandomForest', 'CatBoost', 'LogisticRegression']
+        SEQ_OPTIMIZERS = ['RandomSearchOptimizer', 'NelderMeadOptimizer', 'DEOptimizer', 'PSOOptimizer', 'LIPOOptimizer']
+
+        result = []
+        #Default settings
+        optimizers = {"seq": 1, "batch": 1}
+        algorithms = {'mt': 6, 'non_mt': 4}
+
+        if evaluation_options is not None:
+            if evaluation_options.get('optimizers_names'):
+                optimizers = {"seq": 0, "batch": 0}
+                non_batch = 1 if 'auger_ml.optimizers.warmstart_optimizer.WarmStartOptimizer' in evaluation_options['optimizers_names'] else 0
+                for seq_name in SEQ_OPTIMIZERS:
+                    for opt_name in evaluation_options['optimizers_names']:
+                        if seq_name in opt_name:
+                            optimizers['seq'] = optimizers['seq'] + 1
+                        
+                optimizers['batch'] = len(evaluation_options['optimizers_names']) - optimizers['seq'] - non_batch
+
+            if not evaluation_options.get('search_space'):
+                if evaluation_options.get('model_type'):
+                    model_type = self.get_model_type(evaluation_options)
+                    if model_type == 'classification':
+                        algorithms = {'mt': 6, 'non_mt': 4}
+                    elif model_type == 'regression':
+                        algorithms = {'mt': 5, 'non_mt': 5}
+                    elif model_type == 'timeseries':
+                        algorithms = {'mt': 5, 'non_mt': 6}
+            else:
+                algorithms = {'mt': 0, 'non_mt': 0}
+                for mt_name in MT_ALGOS:
+                    for algo_name in evaluation_options['search_space'].keys():
+                        if mt_name in algo_name:
+                            algorithms['mt'] = algorithms['mt'] + 1
+
+                algorithms['non_mt'] = len(evaluation_options['search_space']) - algorithms['mt']
+
+        return optimizers, algorithms
+
+    def get_worker_types(self, cluster, evaluation_options=None):
+        INSTANCE_TYPES = {
+            'c5.large': '2xCPU 4.0 GB RAM',
+            'c5.xlarge': '4xCPU 8.0 GB RAM',
+            'c5.2xlarge': '8xCPU 16.0 GB RAM',
+            'c5.4xlarge': '16xCPU 32.0 GB RAM',
+            'c5.9xlarge': '36xCPU 72.0 GB RAM',
+            'c5.18xlarge': '72xCPU 144.0 GB RAM',
+            'r5.large': '2xCPU 16.0 GB RAM',
+            'r5.xlarge': '4xCPU 32.0 GB RAM',
+            'r5.2xlarge': '8xCPU 64.0 GB RAM',
+            'r5.4xlarge': '16xCPU 128.0 GB RAM',
+            'r5.12xlarge': '48xCPU 384.0 GB RAM',
+            'r5.24xlarge': '96xCPU 768.0 GB RAM',
+            'p3.2xlarge': '8xCPU 61.0 GB RAM'
+        }
+        def _divide(n1, n2):
+            main_count = n1//n2
+            last_count = main_count+n1%n2
+            return main_count, last_count
+
+        cpu_node = int(INSTANCE_TYPES[cluster['instance_type']].split('x')[0])-1
+        nodes_count = cluster['worker_count']
+
+        optimizers, algorithms = self.get_space_definition(evaluation_options)
+        print(optimizers, algorithms)
+
+        optimizers_count = optimizers['seq'] + optimizers['batch']
+        workers = { '1': {
+            'worker_count': max(optimizers_count*algorithms['non_mt'], 1), 
+            'worker_args': '--queues evaluate_trials,augerml_api'
+        }}
+        
+        mt_workers = optimizers_count*algorithms['mt']
+        cpu_count = cpu_node * nodes_count - 1 #One cpu worker minimum
+        print("cpu_count:%s, mt_workers: %s, non_mt_workers: %s"%(cpu_count, mt_workers, workers['1']['worker_count']))
+
+        if cpu_count <= mt_workers + workers['1']['worker_count']:
+            workers['1']['worker_count'] = cpu_count + 1
+            return workers
+
+        #Distribute workers by nodes evenly:
+        node_workers, last_node_workers = _divide(mt_workers + workers['1']['worker_count'], nodes_count)
+        print("node_workers: %s, last_node_workers: %s"%(node_workers, last_node_workers))
+        if node_workers == 0:
+            if optimizers['batch'] > 0:
+                if mt_workers == 0:
+                    node_workers = last_node_workers = cpu_node
+                else:
+                    #node_workers, last_node_workers = _divide(cpu_node,2)
+                    node_workers = last_node_workers = 1
+            else:
+                node_workers = last_node_workers = 1
+
+        nodes = []
+        for i in range(0, nodes_count):
+            nodes.append({'1': {'worker_count': node_workers}})
+
+        nodes[-1] = {'1': {'worker_count': last_node_workers}}
+        print(nodes)
+
+        #Adjust mt workes cpus:
+        if mt_workers > 0:
+            mt_workers_per_node, last_mt_workers_per_node = _divide(mt_workers, nodes_count)
+            if mt_workers_per_node == 0:
+                mt_workers_per_node = 1
+                last_mt_workers_per_node = 1
+
+            print(mt_workers_per_node, last_mt_workers_per_node)
+            for i in range(0, nodes_count):
+                cur_mt_workers = mt_workers_per_node if i < nodes_count-1 else last_mt_workers_per_node
+                if cur_mt_workers > 0:
+                    if nodes[i]['1']['worker_count'] == 1:
+                        nodes[i]['1']['worker_count'] += 1
+
+                    mt_cpus, last_mt_cpus = _divide(cpu_node-(nodes[i]['1']['worker_count']-cur_mt_workers), cur_mt_workers)
+                    print(mt_cpus, last_mt_cpus)
+                    if not str(mt_cpus) in nodes[i]:
+                        nodes[i][str(mt_cpus)] = {'worker_count':0}    
+                    nodes[i][str(mt_cpus)]['worker_count'] += cur_mt_workers-1
+                    nodes[i]['1']['worker_count'] -= cur_mt_workers-1
+
+                    if not str(last_mt_cpus) in nodes[i]:
+                        nodes[i][str(last_mt_cpus)] = {'worker_count':0}
+                    nodes[i][str(last_mt_cpus)]['worker_count'] += 1
+                    nodes[i]['1']['worker_count'] -= 1
+
+            print(nodes)            
+
+        #Calc workers cpu:
+        workers = {}
+        for item in nodes:
+            for item_cpu, value in item.items():
+                if not item_cpu in workers:
+                    workers[item_cpu] = {'worker_count': 0}
+
+                workers[item_cpu]['worker_count'] += value['worker_count']
+                
+        #Assign workers args:
+        for worker_cpu, params in workers.items():
+            if worker_cpu == '1':
+                params['worker_args'] = '--queues evaluate_trials,augerml_api'
+            else:
+                params['worker_args'] = "--queues evaluate_trials_mt --auger-worker-cpu=%s"%worker_cpu
+
+        return workers    
+        # return [
+        #     {'cpu_count': 1, 'worker_count': 2, 'worker_args': '--queues evaluate_trials,augerml_api'},
+        #     {'cpu_count': 2, 'worker_count': 2, 'worker_args': '--queues evaluate_trials_mt --auger-worker-cpu=2'},
+        #     {'cpu_count': 3, 'worker_count': 1, 'worker_args': '--queues evaluate_trials_mt --auger-worker-cpu=3'},        
+        # ]
 
     def get_cluster_settings(self):
         cluster = self.config.get("cluster", {})
