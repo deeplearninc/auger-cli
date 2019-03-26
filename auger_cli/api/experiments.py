@@ -177,6 +177,17 @@ def run(client):
 
     return result
 
+def stop_cluster(client):
+    project = projects.get_or_create(client, create_if_not_exist=False)
+    clusters.delete(client, project.get('cluster_id'))
+
+def restart_cluster(client, run_experiment=True):
+    stop_cluster(client)
+    if run_experiment:
+        run(client)
+    else:
+        project = projects.start(client, create_if_not_exist=True)
+
 def stop(client):
     org = orgs.read(client)
     if not org.get('is_jupyter_enabled'):

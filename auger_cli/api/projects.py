@@ -91,10 +91,7 @@ def start(client, create_if_not_exist=False, project_id=None):
         cluster = clusters.create( client,
             organization_id=project['organization_id'],
             project_id=project['id'],
-            worker_count=client.config.get_cluster_settings()['worker_count'],
-            instance_type=client.config.get_cluster_settings()['instance_type'],
-            kubernetes_stack=client.config.get_cluster_settings()['kubernetes_stack'],
-            autoterminate_minutes=client.config.get_cluster_settings()['autoterminate_minutes']
+            cluster_config=client.config.get_cluster_settings()
         )
 
         if not clusters.is_running(client, cluster):

@@ -196,7 +196,7 @@ evaluation_options:
 # Cluster settings
 cluster:
   # Number of nodes to run on cluster
-  #worker_count : 2
+  #worker_nodes_count : 2
 
   # To list available types call: `auger instances`
 #  instance_type: c5.large

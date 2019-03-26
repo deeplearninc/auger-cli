@@ -38,17 +38,12 @@ def read(client, cluster_id, attributes=None):
 def is_running(client, cluster):
     return cluster.get('status') == 'running'
 
-def create(client, organization_id, project_id,
-        worker_count, instance_type, kubernetes_stack, autoterminate_minutes, wait=True):
+def create(client, organization_id, project_id, cluster_config, wait=True):
     params = {
         'organization_id': organization_id,
-        'project_id': project_id,
-        'worker_nodes_count': worker_count,
-        'instance_type': instance_type,
-        'kubernetes_stack': kubernetes_stack,
-        'autoterminate_minutes': autoterminate_minutes
+        'project_id': project_id
     }
-
+    params.update(cluster_config)
     cluster = client.call_hub_api('create_cluster', params)
 
     if wait and 'id' in cluster:
@@ -65,10 +60,12 @@ def create(client, organization_id, project_id,
     return cluster
 
 def delete(client, cluster_id, wait=True):
-    cluster = client.call_hub_api('delete_cluster', {'id': cluster_id})
+    cluster = read(client, cluster_id)
+    if cluster.get('status') == 'running':
+        cluster = client.call_hub_api('delete_cluster', {'id': cluster_id})
+        client.print_line("Deleting {}.".format(cluster['name']))
 
     if cluster.get('id') == int(cluster_id):
-        client.print_line("Deleting {}.".format(cluster['name']))
         if wait:
             cluster = wait_for_object_state(client,
                 method='get_cluster',

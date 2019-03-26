@@ -100,6 +100,26 @@ def stop(client):
         experiments.stop(client)
 
 
+@click.command("stop_cluster", short_help='Stop cluster assosiated with experiment')
+@pass_client
+def stop_cluster(client):
+    with client.cli_error_handler():
+        experiments.stop_cluster(client)
+
+
+@click.command("restart_cluster", short_help='Start/Stop cluster assosiated with experiment to apply cluster changes.')
+@click.option(
+    '--run/--no-run',
+    '-r/',
+    default=True,
+    help='Run experiment after cluster restart.'
+)
+@pass_client
+def restart_cluster(client, run):
+    with client.cli_error_handler():
+        experiments.restart_cluster(client, run_experiment=run)
+
+
 @click.command()
 @click.option(
     '--experiment-session-id',
@@ -182,5 +202,7 @@ experiments_group.add_command(deploy_model)
 experiments_group.add_command(predict)
 experiments_group.add_command(settings)
 experiments_group.add_command(search_space)
+experiments_group.add_command(stop_cluster)
+experiments_group.add_command(restart_cluster)
 
 #experiments_group.add_command(monitor_leaderboard)

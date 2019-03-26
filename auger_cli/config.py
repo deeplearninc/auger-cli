@@ -226,7 +226,7 @@ class AugerConfig(object):
             return main_count, last_count
 
         cpu_node = int(INSTANCE_TYPES[cluster['instance_type']].split('x')[0])-1
-        nodes_count = cluster['worker_count']
+        nodes_count = cluster['worker_nodes_count']
 
         optimizers, algorithms = self.get_space_definition(evaluation_options)
         print(optimizers, algorithms)
@@ -318,13 +318,23 @@ class AugerConfig(object):
 
     def get_cluster_settings(self):
         cluster = self.config.get("cluster", {})
-        return {
-            "worker_count": cluster.get('worker_count', 2),
+        #Deprecated worker_count
+        if 'worker_count' in cluster:
+            worker_nodes_count = cluster['worker_count']
+        else:
+            worker_nodes_count = cluster.get('worker_nodes_count', 2)
+                
+        res = {
+            "worker_nodes_count": worker_nodes_count,
             "instance_type": cluster.get('instance_type', 'c5.large'),
             "kubernetes_stack": cluster.get('kubernetes_stack', 'stable'),
             "autoterminate_minutes": cluster.get('autoterminate_minutes', 30)
         }
+        if cluster.get('workers_per_node_count') is not None:
+            res["workers_per_node_count"] = cluster['workers_per_node_count']
 
+        return res
+            
     def get_cluster_task(self):
         return self.config.get("cluster_task", {})
 

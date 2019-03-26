@@ -9,7 +9,7 @@ project: evgeny-fast-new
 # experiment: iris
 
 cluster:
-  worker_count : 2
+  worker_nodes_count : 2
   instance_type: c5.large
   kubernetes_stack: experimental
   autoterminate_minutes: 120
