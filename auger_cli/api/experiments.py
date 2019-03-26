@@ -315,9 +315,8 @@ def monitor_leaderboard(client, name):
 def predict_by_file_locally(client, file, pipeline_id=None, trial_id=None, save_to_file=False):
     df = load_dataframe_from_file(file)
 
-    # FixMe: get cluster model export working
-    # model_path = export_model(client, trial_id, deploy=False)
-    model_path = "models/model"
+    model_path = export_model(client, trial_id, deploy=False)
+    # model_path = "models/model"
 
     zip_time, existing_time = map(lambda path: os.path.getmtime(path) if os.path.exists(path) else 0, [model_path, model_path])
     if zip_time > existing_time:
@@ -338,6 +337,7 @@ def predict_by_file_locally(client, file, pipeline_id=None, trial_id=None, save_
                         data_path=data_path,
                         pwd=os.getcwd()
                   )
+        print(command)
         subprocess.call(command,
             shell=True, stdout=output, stderr=output)
 
