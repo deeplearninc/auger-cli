@@ -190,6 +190,7 @@ def deploy_model(client, trial_id):
     '--export',
     '-e',
     type=click.BOOL,
+    is_flag=True,
     default=False,
     help='Export model if doesn\'t exist yet')
 @pass_client
@@ -197,7 +198,7 @@ def predict(client, pipeline_id, trial_id, file, export):
     if export:
         predict_path = experiments.predict_by_file_locally(client, file, pipeline_id, trial_id, save_to_file=True)
     else:
-        predict_path = experiments.predict_by_file(client, file, pipeline_id, trial_id, save_to_file=True, export=export)
+        predict_path = experiments.predict_by_file(client, file, pipeline_id, trial_id, save_to_file=True)
     client.print_line("Prediction result saved to file: %s"%predict_path)
 
 experiments_group.add_command(create)
