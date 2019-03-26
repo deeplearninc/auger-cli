@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import subprocess
 from zipfile import ZipFile
 
 from auger_cli.utils import request_list, get_uid, load_dataframe_from_file, save_dict_to_csv, wait_for_object_state
@@ -314,20 +315,30 @@ def monitor_leaderboard(client, name):
 def predict_by_file_locally(client, file, pipeline_id=None, trial_id=None, save_to_file=False):
     df = load_dataframe_from_file(file)
 
-    model_path = export_model(client, trial_id, deploy=False)
+    # FixMe: get cluster model export working
+    # model_path = export_model(client, trial_id, deploy=False)
+    model_path = "models/model"
 
-    zip_time, existing_time = map(lambda path: os.path.getmtime(path) if os.path.exists(path) else 0, [model_path, 'models/model'])
+    zip_time, existing_time = map(lambda path: os.path.getmtime(path) if os.path.exists(path) else 0, [model_path, model_path])
     if zip_time > existing_time:
         with ZipFile(model_path, 'r') as zip_file:
-            zip_file.extractall('models/model')
+            zip_file.extractall(model_path)
 
+    filename = os.path.basename(file)
+    data_path = os.path.dirname(file)
+    target_filename = os.path.splitext(filename)[0]
+    with open("predict.log", 'a') as output:
+        command = (r"docker run "
+                    "-v {pwd}/models/model:/var/src/auger-ml-worker/exported_model "
+                    "-v {pwd}/{data_path}:/var/src/auger-ml-worker/model_data "
+                    "deeplearninc/auger-ml-worker:stable python "
+                    "./exported_model/client.py "
+                    "--path_to_predict=./model_data/{filename}").format(
+                        filename=filename,
+                        data_path=data_path,
+                        pwd=os.getcwd()
+                  )
+        subprocess.call(command,
+            shell=True, stdout=output, stderr=output)
 
-    # run predict inside docker
-
-    if save_to_file:
-        predict_path = os.path.splitext(file)[0] + "_predicted.csv"
-        save_dict_to_csv(result, predict_path)
-
-        return predict_path
-
-    return result
+    return "{}_predicted.csv".format(target_filename)
