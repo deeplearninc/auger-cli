@@ -219,6 +219,11 @@ Display leaderboard from last run:
 auger experiments leaderboard
 ```
 
+Display individual model parameters from last run:
+```sh
+auger trials show <id_from_leaderboard>
+```
+
 To export model locally:
 ```sh
 auger experiments export_model -t <trial id>
