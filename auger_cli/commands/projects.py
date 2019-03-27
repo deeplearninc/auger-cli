@@ -154,8 +154,16 @@ def list_files(client, remote_path, project):
     is_flag=True,
     help='Stream logs to console.'
 )
+@click.option(
+    '--filter',
+    '-f',
+    type=click.STRING,
+    required=False,
+    default=None,
+    help='Regex-based filter'
+    )
 @pass_client
-def logs(client, project, tail):
+def logs(client, project, tail, filter):
     with client.cli_error_handler():
         if project is None:
             project_id = client.config.get_project_id()
