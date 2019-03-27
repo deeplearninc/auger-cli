@@ -32,10 +32,15 @@ def trials_group(ctx, experiment_session_id):
 
 @click.command(short_help='Display experiment session trial details.')
 @click.argument('trial_id')
-@click.argument('experiment_session_id')
+@click.option(
+    '--experiment-session-id',
+    '-e',
+    default=None,
+    help='Experiment session ID.'
+)
 @pass_client
 def show(client, trial_id, experiment_session_id):
-    print_record(trials.read(client, trial_id, experiment_session_id), trials.display_attributes)
+    print_record(trials.read(client, trial_id, experiment_session_id), trials.display_attributes, max_level=0)
 
 
 trials_group.add_command(show)
