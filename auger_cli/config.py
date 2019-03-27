@@ -70,6 +70,9 @@ class AugerConfig(object):
     def is_dev_mode(self):
         return self.config.get('dev_mode', False)
 
+    def get_models_path(self):
+        return self.config.get('models_path', 'models')
+        
     def get_login_config_path(self):
         return self.config.get('login_config_path', None)
 

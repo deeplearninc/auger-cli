@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import shutil
 import subprocess
 from zipfile import ZipFile
 
@@ -314,14 +315,23 @@ def monitor_leaderboard(client, name):
 
 def predict_by_file_locally(client, file, pipeline_id=None, trial_id=None, save_to_file=False):
     df = load_dataframe_from_file(file)
+    models_path = client.config.get_models_path()
 
-    model_path = export_model(client, trial_id, deploy=False)
-    # model_path = "models/model"
+    # check for downloaded models in "export_<UUID>.zip"'s
+    files = tuple(filter(lambda x: x.startswith('export_') and x.endswith('.zip'), os.listdir('models')))
+    if len(files) == 0:
+        zip_path = export_model(client, trial_id, deploy=False)
+    else:
+        if len(files) > 1:
+            # choose latest if more than 1 model exists
+            files = sorted(files, key=lambda x: os.path.getmtime(os.path.join('models',x)), reverse=True)
+        zip_path = os.path.join('models', files[0])
 
-    zip_time, existing_time = map(lambda path: os.path.getmtime(path) if os.path.exists(path) else 0, [model_path, model_path])
+    # check mtime of zip against extracted folder (if exists)
+    zip_time, existing_time = map(lambda path: os.path.getmtime(path) if os.path.exists(path) else 0, [zip_path, os.path.join(models_path, 'model')])
     if zip_time > existing_time:
-        with ZipFile(model_path, 'r') as zip_file:
-            zip_file.extractall(model_path)
+        with ZipFile(zip_path, 'r') as zip_file:
+            zip_file.extractall(os.path.join(models_path, 'model'))
 
     filename = os.path.basename(file)
     data_path = os.path.dirname(file)
@@ -337,8 +347,8 @@ def predict_by_file_locally(client, file, pipeline_id=None, trial_id=None, save_
                         data_path=data_path,
                         pwd=os.getcwd()
                   )
-        print(command)
         subprocess.call(command,
             shell=True, stdout=output, stderr=output)
+    shutil.rmtree(os.path.join(models_path, 'model'), ignore_errors=True)
 
     return "{}_predicted.csv".format(target_filename)
