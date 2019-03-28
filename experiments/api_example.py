@@ -41,7 +41,7 @@ def run_iris_train():
     # Create pipeline based on best trial    
     pipeline_id = experiments.export_model(client, trial_id=leaderboard[0]['id'], deploy=True)
 
-    # Pipeline can ber reused multiple time, predict can be called without cluster run
+    # Pipeline can be reused multiple time, predict can be called without cluster run
     result = experiments.predict_by_file(client, pipeline_id=pipeline_id, file='./iris_train/files/iris_data_test.csv', save_to_file=False)
     print(result[0])
 
