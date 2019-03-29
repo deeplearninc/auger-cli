@@ -1,17 +1,13 @@
 ---
-#organization: auger
-# organization_id: 42
-
-hub_url: https://app-staging.auger.ai
-project: evgeny-fast-new
-# project_id: 271
-
-# experiment: iris
+#optional parameters
+#organization: <org name>
+#project: <project name>
+#experiment: iris
 
 cluster:
   worker_nodes_count : 2
   instance_type: c5.large
-  kubernetes_stack: experimental
+  kubernetes_stack: stable
   autoterminate_minutes: 120
 
 evaluation_options:
