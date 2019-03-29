@@ -241,7 +241,7 @@ def read_leaderboard(client, experiment_session_id=None):
     return leaderboard, info
 
 
-def export_model(client, trial_id, deploy=False):
+def export_model(client, trial_id, deploy=False, models_path='models'):
     project_id = projects.start(client, create_if_not_exist=False)
     experiment_id, experiment_name = client.config.get_experiment()
  
@@ -279,6 +279,9 @@ def export_model(client, trial_id, deploy=False):
         client.print_line("Pipeline {} status: {}; error: {}".format(pipeline.get('id'), pipeline.get('status'), pipeline.get('error_message')))
         return trial_id
     else:
+        target = os.path.join(models_path, 'export_{}.zip'.format(trial_id))
+        if os.path.exists(target):
+            return target
         model_path = cluster_tasks.create_ex(client, project_id,
                                             "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args)
 
@@ -316,39 +319,33 @@ def monitor_leaderboard(client, name):
 def predict_by_file_locally(client, file, pipeline_id=None, trial_id=None, save_to_file=False):
     df = load_dataframe_from_file(file)
     models_path = client.config.get_models_path()
+    docker_tag = client.config.get_cluster_settings()['kubernetes_stack']
 
-    # check for downloaded models in "export_<UUID>.zip"'s
-    files = tuple(filter(lambda x: x.startswith('export_') and x.endswith('.zip'), os.listdir('models')))
-    if len(files) == 0:
-        zip_path = export_model(client, trial_id, deploy=False)
-    else:
-        if len(files) > 1:
-            # choose latest if more than 1 model exists
-            files = sorted(files, key=lambda x: os.path.getmtime(os.path.join('models',x)), reverse=True)
-        zip_path = os.path.join('models', files[0])
+    zip_path = export_model(client, trial_id, deploy=False, models_path=models_path)
+    target_path = os.path.splitext(zip_path)[0].replace('export_', 'model_', 1)
 
-    # check mtime of zip against extracted folder (if exists)
-    zip_time, existing_time = map(lambda path: os.path.getmtime(path) if os.path.exists(path) else 0, [zip_path, os.path.join(models_path, 'model')])
-    if zip_time > existing_time:
+    zip_time, target_time = map(lambda path: os.path.getmtime(path) if os.path.exists(path) else 0, [zip_path, target_path])
+    if zip_time > target_time:
         with ZipFile(zip_path, 'r') as zip_file:
-            zip_file.extractall(os.path.join(models_path, 'model'))
+            zip_file.extractall(target_path)
 
     filename = os.path.basename(file)
     data_path = os.path.dirname(file)
     target_filename = os.path.splitext(filename)[0]
-    with open("predict.log", 'a') as output:
-        command = (r"docker run "
-                    "-v {pwd}/models/model:/var/src/auger-ml-worker/exported_model "
-                    "-v {pwd}/{data_path}:/var/src/auger-ml-worker/model_data "
-                    "deeplearninc/auger-ml-worker:stable python "
-                    "./exported_model/client.py "
-                    "--path_to_predict=./model_data/{filename}").format(
-                        filename=filename,
-                        data_path=data_path,
-                        pwd=os.getcwd()
-                  )
-        subprocess.call(command,
-            shell=True, stdout=output, stderr=output)
-    shutil.rmtree(os.path.join(models_path, 'model'), ignore_errors=True)
-
-    return "{}_predicted.csv".format(target_filename)
+    command = (r"docker run "
+                "-v {pwd}/{model_path}:/var/src/auger-ml-worker/exported_model "
+                "-v {pwd}/{data_path}:/var/src/auger-ml-worker/model_data "
+                "deeplearninc/auger-ml-predict:{docker_tag} python "
+                "./exported_model/client.py "
+                "--path_to_predict=./model_data/{filename}").format(
+                    filename=filename,
+                    model_path=target_path,
+                    data_path=data_path,
+                    docker_tag=docker_tag,
+                    pwd=os.getcwd()
+              )
+    client.print_debug(command)
+    subprocess.check_call(command, shell=True)
+    shutil.rmtree(target_path, ignore_errors=True)
+        
+    return os.path.join(data_path, "{}_predicted.csv".format(target_filename))
