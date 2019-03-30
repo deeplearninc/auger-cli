@@ -242,8 +242,8 @@ def read_leaderboard(client, experiment_session_id=None):
 
 
 def export_model(client, trial_id, deploy=False):
-    project_id = projects.start(client, create_if_not_exist=False)
     experiment_id, experiment_name = client.config.get_experiment()
+    models_path = client.config.get_models_path()
  
     if trial_id is None:
         res, info = read_leaderboard(client)
@@ -255,6 +255,12 @@ def export_model(client, trial_id, deploy=False):
 
         trial_id = res[0]['id']
 
+    if not deploy:
+        exported_model_path = os.path.join(models_path, 'export_{}.zip'.format(trial_id))
+        if os.path.exists(exported_model_path):
+            return exported_model_path
+        
+    project_id = projects.start(client, create_if_not_exist=False)
     task_args = {
         'augerInfo': {'experiment_id': experiment_id, 'experiment_session_id': client.config.get_experiment_session_id()},
         "export_model_uid": trial_id
@@ -279,12 +285,6 @@ def export_model(client, trial_id, deploy=False):
         client.print_line("Pipeline {} status: {}; error: {}".format(pipeline.get('id'), pipeline.get('status'), pipeline.get('error_message')))
         return trial_id
     else:
-        models_path = client.config.get_models_path()
-
-        target = os.path.join(models_path, 'export_{}.zip'.format(trial_id))
-        if os.path.exists(target):
-            return target
-
         model_path = cluster_tasks.create_ex(client, project_id,
                                             "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args)
 
