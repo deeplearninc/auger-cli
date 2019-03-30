@@ -108,6 +108,7 @@ auger_experiment.yml fields:
 ```yml
 evaluation_options:
   # Path to file with data. May be URL or path in project files folder 
+  # For Google drive use the following format: https://drive.google.com/uc?export=download&id=<shared file ID>
   data_path: files/iris_data_sample.csv
 
   # List of features from data file to be used to evaluate ML models
