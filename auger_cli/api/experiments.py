@@ -241,7 +241,7 @@ def read_leaderboard(client, experiment_session_id=None):
     return leaderboard, info
 
 
-def export_model(client, trial_id, deploy=False, models_path='models'):
+def export_model(client, trial_id, deploy=False):
     project_id = projects.start(client, create_if_not_exist=False)
     experiment_id, experiment_name = client.config.get_experiment()
  
@@ -279,14 +279,17 @@ def export_model(client, trial_id, deploy=False, models_path='models'):
         client.print_line("Pipeline {} status: {}; error: {}".format(pipeline.get('id'), pipeline.get('status'), pipeline.get('error_message')))
         return trial_id
     else:
+        models_path = client.config.get_models_path()
+
         target = os.path.join(models_path, 'export_{}.zip'.format(trial_id))
         if os.path.exists(target):
             return target
+
         model_path = cluster_tasks.create_ex(client, project_id,
                                             "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args)
 
         client.print_line("Model exported to remote file: %s"%model_path)
-        return projects.download_file(client, project_id, model_path, "models")
+        return projects.download_file(client, project_id, model_path, models_path)
 
     return None
 
@@ -318,10 +321,9 @@ def monitor_leaderboard(client, name):
 
 def predict_by_file_locally(client, file, pipeline_id=None, trial_id=None, save_to_file=False):
     df = load_dataframe_from_file(file)
-    models_path = client.config.get_models_path()
     docker_tag = client.config.get_cluster_settings()['kubernetes_stack']
 
-    zip_path = export_model(client, trial_id, deploy=False, models_path=models_path)
+    zip_path = export_model(client, trial_id, deploy=False)
     target_path = os.path.splitext(zip_path)[0].replace('export_', 'model_', 1)
 
     zip_time, target_time = map(lambda path: os.path.getmtime(path) if os.path.exists(path) else 0, [zip_path, target_path])
