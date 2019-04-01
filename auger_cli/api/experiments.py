@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
+import shutil
+import subprocess
+from zipfile import ZipFile
 
 from auger_cli.utils import request_list, get_uid, load_dataframe_from_file, save_dict_to_csv, wait_for_object_state
 from auger_cli.constants import REQUEST_LIMIT
@@ -239,8 +242,8 @@ def read_leaderboard(client, experiment_session_id=None):
 
 
 def export_model(client, trial_id, deploy=False):
-    project_id = projects.start(client, create_if_not_exist= False)
     experiment_id, experiment_name = client.config.get_experiment()
+    models_path = client.config.get_models_path()
  
     if trial_id is None:
         res, info = read_leaderboard(client)
@@ -252,6 +255,12 @@ def export_model(client, trial_id, deploy=False):
 
         trial_id = res[0]['id']
 
+    if not deploy:
+        exported_model_path = os.path.join(models_path, 'export_{}.zip'.format(trial_id))
+        if os.path.exists(exported_model_path):
+            return exported_model_path
+        
+    project_id = projects.start(client, create_if_not_exist=False)
     task_args = {
         'augerInfo': {'experiment_id': experiment_id, 'experiment_session_id': client.config.get_experiment_session_id()},
         "export_model_uid": trial_id
@@ -280,7 +289,7 @@ def export_model(client, trial_id, deploy=False):
                                             "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args)
 
         client.print_line("Model exported to remote file: %s"%model_path)
-        return projects.download_file(client, project_id, model_path, "models")
+        return projects.download_file(client, project_id, model_path, models_path)
 
     return None
 
@@ -309,3 +318,40 @@ def predict_by_file(client, file, pipeline_id=None, trial_id=None, save_to_file=
 
 def monitor_leaderboard(client, name):
     pass
+
+def predict_by_file_locally(client, file, pipeline_id=None, trial_id=None, save_to_file=False):
+    df = load_dataframe_from_file(file)
+    docker_tag = client.config.get_cluster_settings()['kubernetes_stack']
+
+    zip_path = export_model(client, trial_id, deploy=False)
+    target_path = os.path.splitext(zip_path)[0].replace('export_', 'model_', 1)
+    folder_existed = os.path.exists(target_path)
+
+    if not folder_existed:
+        with ZipFile(zip_path, 'r') as zip_file:
+            zip_file.extractall(target_path)
+
+    filename = os.path.basename(file)
+    data_path = os.path.dirname(file)
+    target_filename = os.path.splitext(filename)[0]
+    command = 'docker pull deeplearninc/auger-ml-predict:{docker_tag}'.format(docker_tag=docker_tag)
+    client.print_debug(command)
+    subprocess.check_call(command, shell=True)
+    command = (r"docker run "
+                "-v {pwd}/{model_path}:/var/src/auger-ml-worker/exported_model "
+                "-v {pwd}/{data_path}:/var/src/auger-ml-worker/model_data "
+                "deeplearninc/auger-ml-predict:{docker_tag} python "
+                "./exported_model/client.py "
+                "--path_to_predict=./model_data/{filename}").format(
+                    filename=filename,
+                    model_path=target_path,
+                    data_path=data_path,
+                    docker_tag=docker_tag,
+                    pwd=os.getcwd()
+              )
+    client.print_debug(command)
+    subprocess.check_call(command, shell=True)
+    if not folder_existed:
+        shutil.rmtree(target_path, ignore_errors=True)
+        
+    return os.path.join(data_path, "{}_predicted.csv".format(target_filename))

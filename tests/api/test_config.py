@@ -74,69 +74,69 @@ class TestConfig(unittest.TestCase):
     def test_get_worker_types(self):
         config = AugerConfig()
 
-        res = config.get_worker_types({"instance_type":'c5.large', "worker_count": 3},None)
+        res = config.get_worker_types({"instance_type":'c5.large', "worker_nodes_count": 3},None)
         self.assertEqual(res, {'1': {'worker_args': '--queues evaluate_trials,augerml_api', 'worker_count': 3}})
 
-        res = config.get_worker_types({"instance_type":'c5.2xlarge', "worker_count": 3},
+        res = config.get_worker_types({"instance_type":'c5.2xlarge', "worker_nodes_count": 3},
             {'optimizers_names': ['auger_ml.optimizers.de_optimizer.DEOptimizer'],
             }
         )
         self.assertEqual(res, {'1': {'worker_args': '--queues evaluate_trials,augerml_api', 'worker_count': 4}, '3': {'worker_args': '--queues evaluate_trials_mt --auger-worker-cpu=3', 'worker_count': 5}, '2': {'worker_args': '--queues evaluate_trials_mt --auger-worker-cpu=2', 'worker_count': 1}})
 
-        res = config.get_worker_types({"instance_type":'c5.xlarge', "worker_count": 3},
+        res = config.get_worker_types({"instance_type":'c5.xlarge', "worker_nodes_count": 3},
             {'optimizers_names': ['auger_ml.optimizers.de_optimizer.DEOptimizer'],
              'search_space':{'auger_ml.algorithms.svm.SVC':{}}}
         )
         self.assertEqual(res, {'1': {'worker_args': '--queues evaluate_trials,augerml_api', 'worker_count': 3}})
-        res = config.get_worker_types({"instance_type":'c5.xlarge', "worker_count": 3},
+        res = config.get_worker_types({"instance_type":'c5.xlarge', "worker_nodes_count": 3},
             {'optimizers_names': ['auger_ml.optimizers.de_optimizer.DEOptimizer'],
              'search_space':{'auger_ml.algorithms.svm.SVC':{}, 'auger_ml.algorithms.svm.LinearSVC':{}}}
         )
         self.assertEqual(res, {'1': {'worker_args': '--queues evaluate_trials,augerml_api', 'worker_count': 3}})
 
-        res = config.get_worker_types({"instance_type":'c5.4xlarge', "worker_count": 6},
+        res = config.get_worker_types({"instance_type":'c5.4xlarge', "worker_nodes_count": 6},
             {'optimizers_names': ['auger_ml.optimizers.de_optimizer.DEOptimizer', 'auger_ml.optimizers.hyperopt_async_optimizer.HyperoptAsyncOptimizer'],
             }
         )
         self.assertEqual(res, {'1': {'worker_args': '--queues evaluate_trials,augerml_api', 'worker_count': 8}, '7': {'worker_args': '--queues evaluate_trials_mt --auger-worker-cpu=7', 'worker_count': 10}, '6': {'worker_args': '--queues evaluate_trials_mt --auger-worker-cpu=6', 'worker_count': 2}})
 
-        res = config.get_worker_types({"instance_type":'c5.xlarge', "worker_count": 3},
+        res = config.get_worker_types({"instance_type":'c5.xlarge', "worker_nodes_count": 3},
             {'optimizers_names': ['auger_ml.optimizers.hyperopt_async_optimizer.HyperoptAsyncOptimizer'],
              'search_space':{'auger_ml.algorithms.svm.SVC':{}}}
         )
         self.assertEqual(res, {'1': {'worker_args': '--queues evaluate_trials,augerml_api', 'worker_count': 9}})
 
-        res = config.get_worker_types({"instance_type":'c5.xlarge', "worker_count": 3},
+        res = config.get_worker_types({"instance_type":'c5.xlarge', "worker_nodes_count": 3},
             {'optimizers_names': ['auger_ml.optimizers.hyperopt_async_optimizer.HyperoptAsyncOptimizer'],
              'search_space':{'auger_ml.algorithms.svm.SVC':{}, 'sklearn.linear_model.LogisticRegression': {}}}
         )
         self.assertEqual(res, {'1': {'worker_args': '--queues evaluate_trials,augerml_api', 'worker_count': 3}, '2': {'worker_args': '--queues evaluate_trials_mt --auger-worker-cpu=2', 'worker_count': 3}})
 
-        res = config.get_worker_types({"instance_type":'c5.4xlarge', "worker_count": 10},
+        res = config.get_worker_types({"instance_type":'c5.4xlarge', "worker_nodes_count": 10},
             {'optimizers_names': ['auger_ml.optimizers.de_optimizer.DEOptimizer'],
             }
         )
         self.assertEqual(res, {'1': {'worker_args': '--queues evaluate_trials,augerml_api', 'worker_count': 10}, '14': {'worker_args': '--queues evaluate_trials_mt --auger-worker-cpu=14', 'worker_count': 10}})
 
-        res = config.get_worker_types({"instance_type":'c5.4xlarge', "worker_count": 10},
+        res = config.get_worker_types({"instance_type":'c5.4xlarge', "worker_nodes_count": 10},
             {'optimizers_names': ['auger_ml.optimizers.hyperopt_async_optimizer.HyperoptAsyncOptimizer'],
              'search_space':{'sklearn.linear_model.LogisticRegression': {}}}
         )
         self.assertEqual(res, {'1': {'worker_args': '--queues evaluate_trials,augerml_api', 'worker_count': 10}, '14': {'worker_args': '--queues evaluate_trials_mt --auger-worker-cpu=14', 'worker_count': 10}})
 
-        res = config.get_worker_types({"instance_type":'c5.xlarge', "worker_count": 30},
+        res = config.get_worker_types({"instance_type":'c5.xlarge', "worker_nodes_count": 30},
             {'optimizers_names': ['auger_ml.optimizers.hyperopt_async_optimizer.HyperoptAsyncOptimizer'],
              'search_space':{'auger_ml.algorithms.svm.SVC':{}, 'sklearn.linear_model.LogisticRegression': {}}}
         )
         self.assertEqual(res, {'1': {'worker_args': '--queues evaluate_trials,augerml_api', 'worker_count': 30}, '2': {'worker_args': '--queues evaluate_trials_mt --auger-worker-cpu=2', 'worker_count': 30}})
 
-        res = config.get_worker_types({"instance_type":'c5.4xlarge', "worker_count": 50},
+        res = config.get_worker_types({"instance_type":'c5.4xlarge', "worker_nodes_count": 50},
             {'optimizers_names': ['auger_ml.optimizers.de_optimizer.DEOptimizer'],
             }
         )
         self.assertEqual(res, {'1': {'worker_args': '--queues evaluate_trials,augerml_api', 'worker_count': 50}, '14': {'worker_args': '--queues evaluate_trials_mt --auger-worker-cpu=14', 'worker_count': 50}})
 
-        res = config.get_worker_types({"instance_type":'c5.4xlarge', "worker_count": 30},
+        res = config.get_worker_types({"instance_type":'c5.4xlarge', "worker_nodes_count": 30},
             {'optimizers_names': ['auger_ml.optimizers.hyperopt_async_optimizer.HyperoptAsyncOptimizer'],
              'search_space':{'auger_ml.algorithms.svm.SVC':{}}}
         )
