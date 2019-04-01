@@ -325,9 +325,9 @@ def predict_by_file_locally(client, file, pipeline_id=None, trial_id=None, save_
 
     zip_path = export_model(client, trial_id, deploy=False)
     target_path = os.path.splitext(zip_path)[0].replace('export_', 'model_', 1)
+    folder_existed = os.path.exists(target_path)
 
-    zip_time, target_time = map(lambda path: os.path.getmtime(path) if os.path.exists(path) else 0, [zip_path, target_path])
-    if zip_time > target_time:
+    if not folder_existed:
         with ZipFile(zip_path, 'r') as zip_file:
             zip_file.extractall(target_path)
 
@@ -348,6 +348,7 @@ def predict_by_file_locally(client, file, pipeline_id=None, trial_id=None, save_
               )
     client.print_debug(command)
     subprocess.check_call(command, shell=True)
-    shutil.rmtree(target_path, ignore_errors=True)
+    if not folder_existed:
+        shutil.rmtree(target_path, ignore_errors=True)
         
     return os.path.join(data_path, "{}_predicted.csv".format(target_filename))
