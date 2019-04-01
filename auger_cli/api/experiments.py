@@ -293,6 +293,33 @@ def export_model(client, trial_id, deploy=False):
 
     return None
 
+def undeploy_model(client, pipeline_id):
+    project_id = projects.start(client, create_if_not_exist=False)
+    experiment_id, experiment_name = client.config.get_experiment()
+    if not pipeline_id:
+            raise Exception(
+                'There is no pipeline_id passed.'
+            )
+    
+    params = {
+        'status': 'undeploying',
+        'id': pipeline_id
+    }
+
+    pipelines.update(client, params)
+
+    client.print_line("Waiting for undeploy of pipeline: %s" % pipeline_id)
+    wait_for_object_state(client,
+                          method='get_pipeline',
+                          params={'id': pipeline_id},
+                          first_status='ready',
+                          progress_statuses=[
+                              'undeploying'
+                          ],
+                          poll_interval=2
+                          )
+    return None
+
 def predict_by_records(client, records, features, pipeline_id=None, trial_id=None):
     if pipeline_id is None:
         pipeline_id = export_model(client, trial_id, deploy=True)

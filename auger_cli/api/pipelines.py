@@ -30,3 +30,6 @@ def read(client, pipeline_id, attributes=None):
 
 def create(client, params):
     return client.call_hub_api('create_pipeline', params)
+
+def update(client, params):
+    return client.call_hub_api('update_pipeline', params)
