@@ -241,7 +241,8 @@ def read_leaderboard(client, experiment_session_id=None):
 def export_model(client, trial_id, deploy=False):
     project_id = projects.start(client, create_if_not_exist= False)
     experiment_id, experiment_name = client.config.get_experiment()
- 
+    org = orgs.read(client)
+    
     if trial_id is None:
         res, info = read_leaderboard(client)
         if len(res) == 0:
@@ -258,9 +259,17 @@ def export_model(client, trial_id, deploy=False):
     }
 
     if deploy:
-        cluster_tasks.create_ex(client, project_id,
-                                            "auger_ml.tasks_queue.tasks.promote_pipeline_task", task_args
-                                            )
+        if not org.get('is_jupyter_enabled'):
+            params = {
+                'trial_id': trial_id
+            }
+            pipeline = pipelines.create(client, params)
+            trial_id = pipeline['id']
+        else:
+            cluster_tasks.create_ex(client, project_id,
+                                                "auger_ml.tasks_queue.tasks.promote_pipeline_task", task_args
+                                                )
+
         client.print_line("Waiting for deploy of pipeline: %s"%trial_id)
         wait_for_object_state(client,
             method='get_pipeline',
