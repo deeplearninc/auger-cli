@@ -294,8 +294,6 @@ def export_model(client, trial_id, deploy=False):
     return None
 
 def undeploy_model(client, pipeline_id):
-    project_id = projects.start(client, create_if_not_exist=False)
-    experiment_id, experiment_name = client.config.get_experiment()
     if not pipeline_id:
             raise Exception(
                 'There is no pipeline_id passed.'
