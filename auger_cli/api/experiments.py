@@ -334,6 +334,9 @@ def predict_by_file_locally(client, file, pipeline_id=None, trial_id=None, save_
     filename = os.path.basename(file)
     data_path = os.path.dirname(file)
     target_filename = os.path.splitext(filename)[0]
+    command = 'docker pull deeplearninc/auger-ml-predict:{docker_tag}'.format(docker_tag=docker_tag)
+    client.print_debug(command)
+    subprocess.check_call(command, shell=True)
     command = (r"docker run "
                 "-v {pwd}/{model_path}:/var/src/auger-ml-worker/exported_model "
                 "-v {pwd}/{data_path}:/var/src/auger-ml-worker/model_data "
