@@ -40,14 +40,14 @@ def b64decode(input_string):
 
 
 def wait_for_object_state(client, method, params, first_status,
-                          progress_statuses, poll_interval=None):
+                          progress_statuses, poll_interval=None, status_name='status'):
     from .formatter import progress_spinner
 
     status = first_status
     last_status = ''
     result = {}
     object_type = re.sub(r'\w+_', '', method)
-    client.print_line("Wait for {} will be in complete state.".format(object_type))
+    client.print_line("Wait for the {} to be in complete state.".format(object_type))
 
     while status in progress_statuses:
         if status != last_status:
@@ -59,7 +59,7 @@ def wait_for_object_state(client, method, params, first_status,
                 time.sleep(client.config.get_api_poll_interval(poll_interval))
 
                 result = client.call_hub_api(method, params=params)
-                status = result.get('status', 'failure')
+                status = result.get(status_name, 'failure')
 
     client.print_line('{}... '.format(camelize(status)))
     if status == "failure":

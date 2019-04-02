@@ -4,7 +4,7 @@ import shutil
 import subprocess
 from zipfile import ZipFile
 
-from auger_cli.utils import request_list, get_uid, load_dataframe_from_file, save_dict_to_csv, wait_for_object_state
+from auger_cli.utils import request_list, get_uid, load_dataframe_from_file, save_dict_to_csv, wait_for_object_state, download_remote_file
 from auger_cli.constants import REQUEST_LIMIT
 
 from auger_cli.api import cluster_tasks
@@ -13,6 +13,7 @@ from auger_cli.api import trials
 from auger_cli.api import experiment_sessions
 from auger_cli.api import clusters
 from auger_cli.api import pipelines
+from auger_cli.api import pipeline_files
 from auger_cli.api import predictions
 from auger_cli.api import orgs
 
@@ -294,11 +295,32 @@ def export_model(client, trial_id, deploy=False):
         client.print_line("Pipeline {} status: {}; error: {}".format(pipeline.get('id'), pipeline.get('status'), pipeline.get('error_message')))
         return trial_id
     else:
-        model_path = cluster_tasks.create_ex(client, project_id,
-                                            "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args)
+        if not org.get('is_jupyter_enabled'):
+            params = {
+                'trial_id': trial_id
+            }
+            pipeline_file = pipeline_files.create(client, params)
+            
+            client.print_line("Waiting for download of pipeline: %s" % trial_id)
+            wait_for_object_state(client,
+                method='get_pipeline_file',
+                params={'id': pipeline_file['id']},
+                first_status='not_requested',
+                progress_statuses=[
+                    'pending','success'
+                ],
+                poll_interval=2,
+                status_name='signed_s3_model_path_status'
+            )
+            client.print_line("Model S3 path: %s" %
+                              pipeline_file)
+            return download_remote_file('models', pipeline_file['s3_signed_model_path'])
+        else:
+            model_path = cluster_tasks.create_ex(client, project_id,
+                                                "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args)
 
-        client.print_line("Model exported to remote file: %s"%model_path)
-        return projects.download_file(client, project_id, model_path, models_path)
+            client.print_line("Model exported to remote file: %s"%model_path)
+            return projects.download_file(client, project_id, model_path, "models")
 
     return None
 
