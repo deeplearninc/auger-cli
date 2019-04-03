@@ -39,7 +39,8 @@ class TestLogout(unittest.TestCase):
         runner = CliRunner()
         result = runner.invoke(auth_group, ['logout'])
         self.assertEqual(0, result.exit_code, result.output)
-        self.assertEqual(
+        self.assertTrue(
+            result.output.endswith(
             'You are now logged out.\n',
-            result.output
+            )
         )
