@@ -159,11 +159,12 @@ def run(client):
         params = {
             'project_id': project_id,
             'experiment_id': experiment['id'],
-            'status': 'preprocess',
+            #'status': 'preprocess',
             'model_settings' : {'evaluation_options': client.config.get_evaluation_options()},
             'model_type': client.config.get_model_type()
         }
         session = experiment_sessions.create(client, params)
+        experiment_sessions.update(client, session['id'], status='preprocess')
 
         result['experiment_session_id'] = session['id']
     else:
