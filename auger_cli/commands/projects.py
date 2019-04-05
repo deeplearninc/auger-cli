@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-
 import click
+import re
 
 from auger_cli.cli_client import pass_client
 from auger_cli.formatter import (
@@ -161,20 +161,45 @@ def list_files(client, remote_path, project):
     required=False,
     default=None,
     help='Regex-based filter'
-    )
+)
+@click.option(
+    '--stacktrace',
+    '-s',
+    type=click.BOOL,
+    is_flag=True,
+    help='Show only error traces')
 @pass_client
-def logs(client, project, tail, filter):
+def logs(client, project, tail, filter, stacktrace, squash=True):
     with client.cli_error_handler():
+        ERROR_RE = re.compile(r'^\[.{23}: ERROR')
+        ERROR_RE = re.compile(": ERROR", re.M)
+
         if project is None:
             project_id = client.config.get_project_id()
         else:
             project_id = projects.read(client, project).get('id')
 
-        if tail:
-            print_stream(client, {'id': project_id})
-        else:
-            result = client.call_hub_api_ex('get_project_logs', params={'id': project_id})
-            print_line(result)
+        # # Following should work on the same abstraction level: either get result by stream or whole and pass to formatter
+        # if tail:
+        #     print_stream(client, {'id': project_id})
+        # else:
+        result = client.call_hub_api_ex('get_project_logs', params={'id': project_id})
+        last_line, last_line_count = None, 0
+        for line in result.replace('\n\n', '\n').splitlines():
+            if squash:
+                if last_line == line:
+                    # if line repeats, skip output, just count
+                    last_line_count += 1
+                    continue
+                if last_line_count > 1:
+                    # if line was repeated, but different line came
+                    print_line("{} <repeats {} times>".format(line, last_line_count))
+                    last_line_count = 0
+                last_line = line
+            print(line)
+        if last_line_count > 0:
+            # if line was repeated, but different line came
+            print_line("<repeats {} times>".format(last_line_count))
 
 
 @click.command("open_project", short_help='Open project in a browser.')
