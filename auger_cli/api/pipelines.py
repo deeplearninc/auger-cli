@@ -26,3 +26,10 @@ def read(client, pipeline_id, attributes=None):
         result = {k: result[k] for k in attributes if k in result}
 
     return result
+
+
+def create(client, params):
+    return client.call_hub_api('create_pipeline', params)
+
+def update(client, params):
+    return client.call_hub_api('update_pipeline', params)
