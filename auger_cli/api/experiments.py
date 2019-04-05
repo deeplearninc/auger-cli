@@ -320,7 +320,7 @@ def predict_by_file(client, file, pipeline_id=None, trial_id=None, save_to_file=
 def monitor_leaderboard(client, name):
     pass
 
-def predict_by_file_locally(client, file, pipeline_id=None, trial_id=None, save_to_file=False):
+def predict_by_file_locally(client, file, trial_id=None, save_to_file=False):
     df = load_dataframe_from_file(file)
     docker_tag = client.config.get_cluster_settings()['kubernetes_stack']
 

@@ -251,6 +251,25 @@ Display individual model parameters from last run:
 auger trials show <id_from_leaderboard>
 ```
 
+To call predict using deployed model:
+```sh
+auger experiments predict -p <pipeline id> -t <trial id> -f <csv file path>
+```
+
+Pipeline ID is optional, if missed model with trial id will be automatically deployed
+Trial ID to export model for the last experiment session, if missed best trial used.
+CSV file path should point to local file with data for predcition
+
+To call predict using locally exported model:
+```sh
+auger experiments predict -e -t <trial id> -f <csv file path>
+```
+
+Pipeline ID is optional, if missed model with trial id will be automatically deployed
+Trial ID to export model for the last experiment session, if missed best trial used.
+CSV file path should point to local file with data for predcition
+
+
 To export model locally:
 ```sh
 auger experiments export_model -t <trial id>
@@ -266,15 +285,6 @@ auger experiments deploy_model -t <trial id>
 ```
 
 Trial ID to export model for the last experiment session, if missed best trial used.
-
-To call predict using deployed model:
-```sh
-auger experiments predict -p <pipeline id> -t <trial id> -f <csv file path>
-```
-
-Pipeline ID is optional, if missed model with trial id will be automatically deployed
-Trial ID to export model for the last experiment session, if missed best trial used.
-CSV file path should point to local file with data for predcition
 
 Display information about experiment:
 ```sh
@@ -403,6 +413,14 @@ To start working with Auger Python API, follow installation instructions for Aug
 
     # Pipeline can ber reused multiple time, predict can be called without cluster run
     result = experiments.predict_by_file(client, pipeline_id=pipeline_id, file='./iris_train/files/iris_data_test.csv', save_to_file=False)
+    print(result[0])
+
+```
+
+### Predict using locally exported model:
+
+```python
+    result = experiments.predict_by_file_locally(client, file='./iris_train/files/iris_data_test.csv', trial_id=leaderboard[0]['id'],save_to_file=False)
     print(result[0])
 
 ```

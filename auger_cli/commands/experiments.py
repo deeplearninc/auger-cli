@@ -196,7 +196,7 @@ def deploy_model(client, trial_id):
 @pass_client
 def predict(client, pipeline_id, trial_id, file, export):
     if export:
-        predict_path = experiments.predict_by_file_locally(client, file, pipeline_id, trial_id, save_to_file=True)
+        predict_path = experiments.predict_by_file_locally(client, file, trial_id, save_to_file=True)
     else:
         predict_path = experiments.predict_by_file(client, file, pipeline_id, trial_id, save_to_file=True)
     client.print_line("Prediction result saved to file: %s"%predict_path)
