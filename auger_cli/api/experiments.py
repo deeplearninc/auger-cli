@@ -197,11 +197,11 @@ def stop(client):
     if not org.get('is_jupyter_enabled'):
         experiment_sessions.update(client, experiment_session_id=client.config.get_experiment_session_id(), status='interrupted')
     else:
-        experiment_id, experiment_name = client.config.get_experiment()
+        experiment = get_or_create()
         cluster_tasks.create_ex(
             client, client.config.get_project_id(),
             "auger_ml.tasks_queue.evaluate_api.stop_evaluate_task",
-            {'augerInfo': {'experiment_id': experiment_id,
+            {'augerInfo': {'experiment_id': experiment['id'],
                            'experiment_session_id': client.config.get_experiment_session_id()}}
         )
 
@@ -243,12 +243,10 @@ def read_leaderboard(client, experiment_session_id=None):
 
 
 def export_model(client, trial_id, deploy=False):
-    experiment_id, experiment_name = client.config.get_experiment()
-    models_path = client.config.get_models_path()
- 
     if trial_id is None:
         res, info = read_leaderboard(client)
         if len(res) == 0:
+            experiment_id, experiment_name = client.config.get_experiment()
             raise Exception(
                 'There is no trials for the experiment: %s.' % (experiment_name))
 
@@ -256,14 +254,17 @@ def export_model(client, trial_id, deploy=False):
 
         trial_id = res[0]['id']
 
+    models_path = client.config.get_models_path()
     if not deploy:
         exported_model_path = os.path.join(models_path, 'export_{}.zip'.format(trial_id))
         if os.path.exists(exported_model_path):
             return exported_model_path
         
     project_id = projects.start(client, create_if_not_exist=False)
+    experiment = get_or_create(client, project_id)
+
     task_args = {
-        'augerInfo': {'experiment_id': experiment_id, 'experiment_session_id': client.config.get_experiment_session_id()},
+        'augerInfo': {'experiment_id': experiment['id'], 'experiment_session_id': client.config.get_experiment_session_id()},
         "export_model_uid": trial_id
     }
 
@@ -320,12 +321,12 @@ def predict_by_file(client, file, pipeline_id=None, trial_id=None, save_to_file=
 def monitor_leaderboard(client, name):
     pass
 
-def predict_by_file_locally(client, file, trial_id=None, save_to_file=False):
+def predict_by_file_locally(client, file, trial_id=None, save_to_file=False,pull_docker=False):
     df = load_dataframe_from_file(file)
     docker_tag = client.config.get_cluster_settings()['kubernetes_stack']
 
     zip_path = export_model(client, trial_id, deploy=False)
-    target_path = os.path.splitext(zip_path)[0].replace('export_', 'model_', 1)
+    target_path = os.path.splitext(zip_path)[0]
     folder_existed = os.path.exists(target_path)
 
     if not folder_existed:
@@ -335,9 +336,11 @@ def predict_by_file_locally(client, file, trial_id=None, save_to_file=False):
     filename = os.path.basename(file)
     data_path = os.path.dirname(file)
     target_filename = os.path.splitext(filename)[0]
-    command = 'docker pull deeplearninc/auger-ml-predict:{docker_tag}'.format(docker_tag=docker_tag)
-    client.print_debug(command)
-    subprocess.check_call(command, shell=True)
+    if pull_docker:
+        command = 'docker pull deeplearninc/auger-ml-predict:{docker_tag}'.format(docker_tag=docker_tag)
+        client.print_debug(command)
+        subprocess.check_call(command, shell=True)
+
     command = (r"docker run "
                 "-v {pwd}/{model_path}:/var/src/auger-ml-worker/exported_model "
                 "-v {pwd}/{data_path}:/var/src/auger-ml-worker/model_data "

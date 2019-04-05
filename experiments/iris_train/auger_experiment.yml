@@ -7,7 +7,6 @@
 cluster:
   worker_nodes_count : 2
   instance_type: c5.large
-  kubernetes_stack: stable
   autoterminate_minutes: 120
 
 evaluation_options:

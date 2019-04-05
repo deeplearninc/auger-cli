@@ -326,11 +326,16 @@ class AugerConfig(object):
             worker_nodes_count = cluster['worker_count']
         else:
             worker_nodes_count = cluster.get('worker_nodes_count', 2)
-                
+
+        api_url = self.get_api_url()
+        default_stack = "stable"
+        if 'staging' in api_url:
+            default_stack = 'experimental'
+
         res = {
             "worker_nodes_count": worker_nodes_count,
             "instance_type": cluster.get('instance_type', 'c5.large'),
-            "kubernetes_stack": cluster.get('kubernetes_stack', 'stable'),
+            "kubernetes_stack": cluster.get('kubernetes_stack', default_stack),
             "autoterminate_minutes": cluster.get('autoterminate_minutes', 30)
         }
         if cluster.get('workers_per_node_count') is not None:
