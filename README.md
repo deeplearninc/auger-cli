@@ -8,19 +8,32 @@
 
 A command line tool for the [Auger AI platform](https://auger.ai).
 
-Please create account and organization to start working with CLI.
-
 # Installation
+
+## Create Auger account
+
+Please create account and organization to start working with CLI: https://auger.ai/augersignup
+
+## Python
+
+Latest Python: https://www.python.org/downloads/release/python-373/
+
+Install pip: https://pip.pypa.io/en/stable/installing/
+
+## Auger CLI python package
+
+```sh
+pip3 install auger-cli
+```
+
+## Auger CLI sources
 
 ```sh
 # Pull latest version
 git clone git@github.com:deeplearninc/auger-cli.git
 
 cd auger-cli
-pip3 install -e .
-
-# Now `auger` command should be accessible
-auger --help
+pip3 install .
 ```
 
 # Usage scenarios
@@ -59,6 +72,10 @@ Commands:
   login   Login to Auger.
   logout  Logout from Auger.
 ```
+
+## Example
+
+The complete example iris config file described below can be found in experiments/iris_train folder.
 
 ## Login
 
@@ -188,25 +205,34 @@ evaluation_options:
 
 # OPTIONAL parameters  
 
-#Specify organization name, if you have more then one organization
+# Specify organization name, if you have more then one organization.
+# By default Auger will use your first organization.
+# Organization must exist. See Installation section
 #organization: <organization name>
 
-#You may use one project/cluster for different experiments
+# Experiment name
+# By default Auger will use folder name of auger_experiment.yml
+# Will be generated automatically if not exists
+#experiment: <experiment name>
+
+# You may use one project/cluster for different experiments
+# By default Auger will use folder name of auger_experiment.yml
+# Will be generated automatically if not exists
 #project: <project name>
 
-# Cluster settings
-cluster:
-  # Number of nodes to run on cluster
-  #worker_nodes_count : 2
+# Cluster settings with default values
+# cluster:
+  # Number of nodes to run on cluster. Minimum of 2, the more workers deployed the more jobs that can be run in parallel.
+  # worker_nodes_count : 2
 
   # To list available types call: `auger instances`
-#  instance_type: c5.large
+  # instance_type: c5.large
 
   # Number of workers per computer node. Setting it lower then CPU count, increase amoutn of memory available for worker
   # workers_per_node_count: 2
 
   # Cluster will be terminated after period of inactivity
-#  autoterminate_minutes: 30
+  # autoterminate_minutes: 30
 
 ```
 
