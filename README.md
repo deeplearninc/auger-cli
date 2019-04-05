@@ -440,6 +440,8 @@ To start working with Auger Python API, follow installation instructions for Aug
 
 3. create tag with convention 'vX.X.X' (like v0.1.2)
 
+git tag v0.1.4
+
 4. git push --tags
 
 circleci will build it and upload the tagged build to pypi.org
