@@ -184,22 +184,24 @@ def logs(client, project, tail, filter, stacktrace, squash=True):
         #     print_stream(client, {'id': project_id})
         # else:
         result = client.call_hub_api_ex('get_project_logs', params={'id': project_id})
-        last_line, last_line_count = None, 0
-        for line in result.replace('\n\n', '\n').splitlines():
-            if squash:
-                if last_line == line:
-                    # if line repeats, skip output, just count
-                    last_line_count += 1
-                    continue
-                if last_line_count > 1:
-                    # if line was repeated, but different line came
-                    print_line("{} <repeats {} times>".format(line, last_line_count))
-                    last_line_count = 0
-                last_line = line
-            print(line)
-        if last_line_count > 0:
-            # if line was repeated, but different line came
-            print_line("<repeats {} times>".format(last_line_count))
+        # dump to file
+        with open('project.log', 'w+') as logfile:
+            last_line, last_line_count = None, 0
+            for line in result.replace('\n\n', '\n').splitlines():
+                if squash:
+                    if last_line == line:
+                        # if line repeats, skip output, just count
+                        last_line_count += 1
+                        continue
+                    if last_line_count > 1:
+                        # if line was repeated, but different line came
+                        logfile.write("{} <repeats {} times>\n".format(line, last_line_count))
+                        last_line_count = 0
+                    last_line = line
+                logfile.write(line + '\n')
+            if last_line_count > 0:
+                # if line was repeated, but different line came
+                logfile.write("<repeats {} times>\n".format(last_line_count))
 
 
 @click.command("open_project", short_help='Open project in a browser.')
