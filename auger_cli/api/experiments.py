@@ -306,19 +306,19 @@ def export_model(client, trial_id, deploy=False):
             pipeline_file = pipeline_files.create(client, params)
             
             client.print_line("Waiting for download of pipeline: %s" % trial_id)
-            wait_for_object_state(client,
+            pipeline_file = wait_for_object_state(client,
                 method='get_pipeline_file',
                 params={'id': pipeline_file['id']},
                 first_status='not_requested',
                 progress_statuses=[
-                    'pending','success'
+                    'not_requested', 'pending'
                 ],
                 poll_interval=2,
                 status_name='signed_s3_model_path_status'
             )
             client.print_line("Model S3 path: %s" %
                               pipeline_file)
-            return download_remote_file('models', pipeline_file['s3_signed_model_path'])
+            return download_remote_file('models', pipeline_file['signed_s3_model_path'])
         else:
             model_path = cluster_tasks.create_ex(client, project_id,
                                                 "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args)
@@ -347,7 +347,7 @@ def undeploy_model(client, pipeline_id):
                           params={'id': pipeline_id},
                           first_status='ready',
                           progress_statuses=[
-                              'undeploying'
+                              'ready', 'undeploying'
                           ],
                           poll_interval=2
                           )
