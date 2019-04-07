@@ -44,8 +44,9 @@ def read(client, project_id = None, experiment_name = None, experiment_id = None
 
         if len(experiments_list) > 0:
             for item in experiments_list:
-                if item['name'] == experiment_name:
+                if item['name'] == experiment_name.replace('_', '-'):
                     result = item
+                    break
 
     return result
 
