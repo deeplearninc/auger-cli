@@ -94,6 +94,9 @@ class AugerConfig(object):
 
         return self.config_session.get('project_id')
 
+    def get_project_logfile_name(self):
+        return self.config.get('project_logfile', 'auger.log')
+
     def get_project_name(self):
         if len(self.config.get('project', '')) > 0:
             return self.config.get('project')

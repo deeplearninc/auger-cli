@@ -185,7 +185,8 @@ def logs(client, project, tail, filter, stacktrace, squash=True):
         # else:
         result = client.call_hub_api_ex('get_project_logs', params={'id': project_id})
         # dump to file
-        with open('project.log', 'w+') as logfile:
+        logfile_name = client.config.get_project_logfile_name()
+        with open(logfile_name, 'w+') as logfile:
             last_line, last_line_count = None, 0
             for line in result.replace('\n\n', '\n').splitlines():
                 if squash:
