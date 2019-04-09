@@ -39,6 +39,7 @@ setup(
     author='Auger AI',
     description='Command line tool for the Auger AI platform.',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     packages=find_packages(exclude=['docs', 'tests']),
     include_package_data=True,
     zip_safe=False,
