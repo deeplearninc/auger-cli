@@ -41,9 +41,13 @@ def read(client, project_id = None, experiment_name = None, experiment_id = None
             'project_id': project_id,
             'limit': REQUEST_LIMIT
         })
-
+        
         if len(experiments_list) > 0:
             for item in experiments_list:
+                if item['name'] == experiment_name:
+                    result = item
+                    break
+
                 if item['name'] == experiment_name.replace('_', '-'):
                     result = item
                     break
@@ -380,7 +384,7 @@ def predict_by_file(client, file, pipeline_id=None, trial_id=None, save_to_file=
 def monitor_leaderboard(client, name):
     pass
 
-def predict_by_file_locally(client, file, trial_id=None, save_to_file=False,pull_docker=False):
+def predict_by_file_locally(client, file, trial_id=None, save_to_file=False, pull_docker=False, threshold=None):
     df = load_dataframe_from_file(file)
     docker_tag = client.config.get_cluster_settings()['kubernetes_stack']
 
@@ -400,18 +404,20 @@ def predict_by_file_locally(client, file, trial_id=None, save_to_file=False,pull
         client.print_debug(command)
         subprocess.check_call(command, shell=True)
 
+    args = " --path_to_predict=./model_data/{filename}".format(filename=filename)
+    if threshold:
+        args += " --threshold={threshold}".format(threshold=threshold)
     command = (r"docker run "
                 "-v {pwd}/{model_path}:/var/src/auger-ml-worker/exported_model "
                 "-v {pwd}/{data_path}:/var/src/auger-ml-worker/model_data "
                 "deeplearninc/auger-ml-predict:{docker_tag} python "
-                "./exported_model/client.py "
-                "--path_to_predict=./model_data/{filename}").format(
-                    filename=filename,
+                "./exported_model/client.py").format(
                     model_path=target_path,
                     data_path=data_path,
                     docker_tag=docker_tag,
                     pwd=os.getcwd()
               )
+    command += args            
     client.print_debug(command)
     subprocess.check_call(command, shell=True)
     if not folder_existed:

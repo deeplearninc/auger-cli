@@ -36,6 +36,10 @@ def read(client, org_name=None, org_id=None):
 
         if len(orgs_list) > 0:
             for item in orgs_list:
+                if item['name'] == org_name:
+                    result = item
+                    break
+                
                 if item['name'] == org_name.replace('_', '-'):
                     result = item
                     break

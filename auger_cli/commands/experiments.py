@@ -187,6 +187,12 @@ def deploy_model(client, trial_id):
     required=True
 )
 @click.option(
+    '--threshold',
+    '-h',
+    default=None,
+    help='Threshold to make prediction using predict_proba for binary classification.'
+)
+@click.option(
     '--export',
     '-e',
     type=click.BOOL,
@@ -201,9 +207,9 @@ def deploy_model(client, trial_id):
     default=False,
     help='Pull newer docker image')
 @pass_client
-def predict(client, pipeline_id, trial_id, file, export, pull_docker):
+def predict(client, pipeline_id, trial_id, file, threshold, export, pull_docker):
     if export:
-        predict_path = experiments.predict_by_file_locally(client, file, trial_id, save_to_file=True,pull_docker=pull_docker)
+        predict_path = experiments.predict_by_file_locally(client, file, trial_id, save_to_file=True,pull_docker=pull_docker,threshold=threshold)
     else:
         predict_path = experiments.predict_by_file(client, file, pipeline_id, trial_id, save_to_file=True)
     client.print_line("Prediction result saved to file: %s"%predict_path)

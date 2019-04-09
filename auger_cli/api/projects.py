@@ -49,6 +49,10 @@ def read(client, project_name=None, org_id=None, project_id=None):
 
         if len(projects_list) > 0:
             for item in projects_list:
+                if item['name'] == project_name:
+                    result = item
+                    break
+                
                 if item['name'] == project_name.replace('_', '-'):
                     result = item
                     break
