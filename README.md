@@ -148,6 +148,10 @@ evaluation_options:
   # List of features of datetime type
   datetime_features: []
 
+  # List of time series features, usually one
+  # If provided, when time series preprocessor and models will be used. See: https://docs.auger.ai/docs/next/machine-learning/timeseries
+  time_series_features: []
+
   # Define type of ML models. true for 'classification', false for 'regression'
   classification: true
 
@@ -269,6 +273,12 @@ Pipeline ID is optional, if missed model with trial id will be automatically dep
 Trial ID to export model for the last experiment session, if missed best trial used.
 CSV file path should point to local file with data for predcition
 
+To call predict proba using locally exported model:
+```sh
+auger experiments predict -e -t <trial id> -f <csv file path> --threshold 0.5
+```
+Prediction data will contain additional proba_<class name> columns per each target class. 
+Target calculation: if proba(class1) > threshold then class1 else class0
 
 To export model locally:
 ```sh
