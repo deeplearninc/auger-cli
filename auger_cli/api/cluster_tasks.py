@@ -45,5 +45,7 @@ def run(client, wait):
     project_id = projects.start(client, create_if_not_exist=True)
     cluster_task = client.config.get_cluster_task()
 
+    cluster_task['params']['project_id'] = project_id
+
     create_ex(client, project_id, cluster_task.get(
         'name'), cluster_task.get('params'), wait)
