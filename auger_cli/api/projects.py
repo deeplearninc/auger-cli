@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import time
 
 from auger_cli.utils import request_list, download_remote_file, wait_for_object_state
 from auger_cli.constants import REQUEST_LIMIT
@@ -131,8 +132,9 @@ def download_file(client, project_id, remote_path, local_path):
     return download_remote_file(local_path, s3_signed_model_path)
 
 
-def list_files(client, project_id, remote_path):
-    project_id = start(client, project_id=project_id)
+def list_files(client, project_id, remote_path=None, start_project=True):
+    if start_project:
+        project_id = start(client, project_id=project_id)
 
     task_args = {'augerInfo': {}}
     if remote_path:
@@ -155,6 +157,8 @@ def read_leaderboard(client):
             running_projects.append(item)
 
     leaderboard = []
+    dt_format = '%Y-%m-%dT%H:%M:%S.%fZ'
+
     for item in running_projects:
         exp_sessions = [res for res in experiment_sessions.list(client, project_id = item.get('id'), experiment_id=None, limit=100)]
         exp_sessions.sort(key=lambda t: t.get('created_at'), reverse=True)
@@ -165,11 +169,14 @@ def read_leaderboard(client):
             if exp_session.get('status') == 'started' and len(running_session) == 0:
                 running_session = exp_session
 
-            if exp_session.get('status') == 'completed':    
-                completed_sessions+=1
+            if exp_session.get('status') == 'completed':
+                if exp_session.get('created_at'):
+                    exp_session_days = int((datetime.utcnow()-datetime.strptime(exp_session.get('created_at'), dt_format)).total_seconds()/86400.0)
+
+                if exp_session_days < 4:    
+                    completed_sessions+=1
 
         session_time = 0        
-        dt_format = '%Y-%m-%dT%H:%M:%S.%fZ'
         if running_session.get('created_at'):
             session_time = int((datetime.utcnow()-datetime.strptime(running_session.get('created_at'), dt_format)).total_seconds()/60.0)
 
