@@ -21,7 +21,7 @@ def create(client, pipeline_id, records, features, wait=True):
         'records': records,
         'features': features
     }
-    prediction = client.call_hub_api('create_prediction', {'payload': params})
+    prediction = client.call_hub_api('create_prediction', params)
 
     if wait:
         wait_for_object_state(client,
