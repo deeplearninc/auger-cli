@@ -66,9 +66,11 @@ def wait_for_object_state(client, method, params, first_status,
         raise Exception('HUB API call {}({}) failed: {}'.format(result.get(
             'name', ""), result.get('args', ""), result.get("exception", "")))
     if status == 'error':
-        raise Exception('HUB API return error: {}'.format(result.get('errorMessage')))
+        if result.get('errorMessage'):
+            raise Exception('HUB API return error: {}'.format(result.get('errorMessage')))
 
-
+        raise Exception('HUB API return error: {}'.format(result))
+            
     return result
 
 
