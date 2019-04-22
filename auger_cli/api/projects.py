@@ -94,6 +94,7 @@ def get_or_create(client, create_if_not_exist=False, project_id=None):
 
 def start(client, create_if_not_exist=False, project_id=None):
     project = get_or_create(client, create_if_not_exist=create_if_not_exist, project_id=project_id)
+    new_cluster = False
 
     if project.get('cluster_id') is None or project['status'] == 'undeployed':
         cluster = clusters.create( client,
@@ -105,6 +106,8 @@ def start(client, create_if_not_exist=False, project_id=None):
         if not clusters.is_running(client, cluster):
             raise Exception('Failed to create cluster.')
 
+        new_cluster = True
+
     wait_for_object_state(client,
         method='get_project',
         params={'id': project['id']},
@@ -115,10 +118,13 @@ def start(client, create_if_not_exist=False, project_id=None):
         poll_interval=10
     )
 
-    return project['id']
+    return project['id'], new_cluster
 
 def download_file(client, project_id, remote_path, local_path):
-    project_id = start(client, project_id=project_id)
+    project_id, new_cluster = start(client, project_id=project_id)
+
+    if new_cluster:
+        all_files = list_files(client, project_id)
 
     s3_model_path = cluster_tasks.create_ex(client, project_id,
         "pipeline_functions.packager.tasks.upload_file", remote_path
@@ -134,7 +140,7 @@ def download_file(client, project_id, remote_path, local_path):
 
 def list_files(client, project_id, remote_path=None, start_project=True):
     if start_project:
-        project_id = start(client, project_id=project_id)
+        project_id, new_cluster = start(client, project_id=project_id)
 
     task_args = {'augerInfo': {}}
     if remote_path:

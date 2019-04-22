@@ -122,7 +122,7 @@ def read_settings(client):
     return client.config.get_settings_yml(evaluation_options)
 
 def read_search_space(client):
-    project_id = projects.start(client, create_if_not_exist=True)
+    project_id, new_cluster = projects.start(client, create_if_not_exist=True)
     experiment = get_or_create(client, project_id)
 
     configs = cluster_tasks.create_ex(
@@ -149,7 +149,7 @@ def read_search_space(client):
 def run(client):    
     client.config.delete_session_file()
 
-    project_id = projects.start(client, create_if_not_exist=True)
+    project_id, new_cluster = projects.start(client, create_if_not_exist=True)
     experiment = get_or_create(client, project_id)
 
     org = orgs.read(client)
@@ -198,7 +198,7 @@ def restart_cluster(client, run_experiment=True):
     if run_experiment:
         run(client)
     else:
-        project = projects.start(client, create_if_not_exist=True)
+        project_id, new_cluster = projects.start(client, create_if_not_exist=True)
 
 def stop(client):
     org = orgs.read(client)
@@ -268,7 +268,7 @@ def export_model(client, trial_id, deploy=False):
         if os.path.exists(exported_model_path):
             return exported_model_path
         
-    project_id = projects.start(client, create_if_not_exist=False)
+    project_id, new_cluster = projects.start(client, create_if_not_exist=False)
     experiment = get_or_create(client, project_id)
 
     task_args = {
