@@ -338,8 +338,11 @@ class AugerConfig(object):
             "kubernetes_stack": cluster.get('kubernetes_stack', default_stack),
             "autoterminate_minutes": cluster.get('autoterminate_minutes', 30)
         }
-        if cluster.get('workers_per_node_count') is not None:
+        if cluster.get('workers_per_node_count'):
             res["workers_per_node_count"] = cluster['workers_per_node_count']
+
+        if cluster.get('docker_image_tag'):
+            res["docker_image_tag"] = cluster['docker_image_tag']
 
         return res
             
