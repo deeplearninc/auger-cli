@@ -93,14 +93,21 @@ def delete(client, project, project_id):
     default=None,
     help='Name of the project to delete.'
 )
+@click.option(
+    '--stop-project',
+    '-s',
+    type=click.BOOL,
+    is_flag=True,
+    default=False,
+    help='Stop project after dowanlod file')
 @pass_client
-def download_file(client, remote_path, local_path, project):
+def download_file(client, remote_path, local_path, project, stop_project):
     with client.cli_error_handler():
         project_id = None
         if project:
             project_id = read_project(client, project).get('id')
 
-        file_path = projects.download_file(client, project_id, remote_path, local_path)
+        file_path = projects.download_file(client, project_id, remote_path, local_path, stop_project=stop_project)
         print_line('Downloaded file: {}'.format(file_path))
 
 

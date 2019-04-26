@@ -120,7 +120,7 @@ def start(client, create_if_not_exist=False, project_id=None):
 
     return project['id'], new_cluster
 
-def download_file(client, project_id, remote_path, local_path):
+def download_file(client, project_id, remote_path, local_path, stop_project=False):
     project_id, new_cluster = start(client, project_id=project_id)
 
     if new_cluster:
@@ -135,8 +135,13 @@ def download_file(client, project_id, remote_path, local_path):
     )
     client.print_line("Model S3 path: %s"%s3_signed_model_path)
 
-    return download_remote_file(local_path, s3_signed_model_path)
+    res = download_remote_file(local_path, s3_signed_model_path)
 
+    if stop_project:
+        project = read(client, project_id=project_id)
+        clusters.delete(client, project['cluster_id'], wait=False)
+
+    return res
 
 def list_files(client, project_id, remote_path=None, start_project=True):
     if start_project:

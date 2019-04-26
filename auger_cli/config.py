@@ -321,11 +321,6 @@ class AugerConfig(object):
 
     def get_cluster_settings(self):
         cluster = self.config.get("cluster", {})
-        #Deprecated worker_count
-        if 'worker_count' in cluster:
-            worker_nodes_count = cluster['worker_count']
-        else:
-            worker_nodes_count = cluster.get('worker_nodes_count', 2)
 
         api_url = self.get_api_url()
         default_stack = "stable"
@@ -333,16 +328,30 @@ class AugerConfig(object):
             default_stack = 'experimental'
 
         res = {
-            "worker_nodes_count": worker_nodes_count,
-            "instance_type": cluster.get('instance_type', 'c5.large'),
             "kubernetes_stack": cluster.get('kubernetes_stack', default_stack),
             "autoterminate_minutes": cluster.get('autoterminate_minutes', 30)
         }
-        if cluster.get('workers_per_node_count'):
-            res["workers_per_node_count"] = cluster['workers_per_node_count']
-
         if cluster.get('docker_image_tag'):
             res["docker_image_tag"] = cluster['docker_image_tag']
+
+        if cluster.get('worker_type_id'):
+            res.update({
+                "worker_type_id": cluster.get('worker_type_id', 1),
+                "workers_count": cluster.get('workers_count', 2),
+            })
+        else:    
+            #Deprecated worker_count
+            if 'worker_count' in cluster:
+                worker_nodes_count = cluster['worker_count']
+            else:
+                worker_nodes_count = cluster.get('worker_nodes_count', 2)
+
+            res.update({
+                "worker_nodes_count": worker_nodes_count,
+                "instance_type": cluster.get('instance_type', 'c5.large'),
+            })
+            if cluster.get('workers_per_node_count'):
+                res["workers_per_node_count"] = cluster['workers_per_node_count']
 
         return res
             
