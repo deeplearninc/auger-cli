@@ -70,31 +70,47 @@ def delete(client, experiment_id):
 
 def get_or_create(client, project_id):
     experiment_id, experiment_name = client.config.get_experiment()
+    experiment = read(client, 
+        project_id = project_id, experiment_name = experiment_name, experiment_id=experiment_id)
 
-    if experiment_id is not None:
-        return read(client, experiment_id=experiment_id)
+    if experiment.get('id'):
+        project_file = wait_for_object_state(client,
+            method='get_project_file',
+            params={'id': experiment['project_file_id'], 'project_id': project_id},
+            first_status='processing',
+            progress_statuses=[
+                'processing'
+            ]
+        )
+        if project_file.get('status') != 'processed':
+            client.call_hub_api('delete_project_file', {
+                    'id': project_file['id']
+                })
+            delete(client, experiment['id'])            
+            experiment = {}
 
-    experiment = read(client, project_id, experiment_name)
-    if experiment.get('id') is not None:
-        return experiment
+    if not experiment.get('id'):        
+        client.print_line(
+            'Experiment {} does not exist. Creating ...'.format(experiment_name))
 
-    if len(client.config.get_evaluation_options()) == 0:
-        return {}
+        if len(client.config.get_evaluation_options().get('data_path', ''))==0:
+            raise Exception("To create experiment {}, evaluation_options should contain data_path.".format(experiment_name))
 
-    if len(client.config.get_evaluation_options().get('data_path', ''))==0:
-        client.print_line("To create experiment {}, evaluation_options should contain data_path.".format(experiment_name))
-        return {}
+        experiment = create( client, 
+            experiment_name, project_id, client.config.get_evaluation_options()['data_path'])
 
-    client.print_line(
-        'Experiment {} does not exist. Creating ...'.format(experiment_name))
+    project_file = wait_for_object_state(client,
+        method='get_project_file',
+        params={'id': experiment['project_file_id'], 'project_id': project_id},
+        first_status='processing',
+        progress_statuses=[
+            'processing'
+        ]
+    )
+    if project_file.get('status') != 'processed':
+        raise Exception("Experiment data file cannot be loaded: %s"%project_file)
 
-    # search_space = create_cluster_task_ex(client, project_id,
-    #     "auger_ml.tasks_queue.tasks.get_experiment_configs_task",
-    #     {'augerInfo':{'experiment_id': None}}
-    # )
-    return create(
-        client, experiment_name, project_id, client.config.get_evaluation_options()['data_path'])
-
+    return experiment
 
 def read_ex(client, experiment_id=None):
     if experiment_id is not None:
@@ -152,39 +168,20 @@ def run(client):
     project_id, new_cluster = projects.start(client, create_if_not_exist=True)
     experiment = get_or_create(client, project_id)
 
-    org = orgs.read(client)
-    result = {}
-    if not org.get('is_jupyter_enabled'):
-        project_file = wait_for_object_state(client,
-            method='get_project_file',
-            params={'id': experiment['project_file_id'], 'project_id': project_id},
-            first_status='processing',
-            progress_statuses=[
-                'processing'
-            ]
-        )
+    params = {
+        'project_id': project_id,
+        'experiment_id': experiment['id'],
+        #'status': 'preprocess',
+        'model_settings' : {'evaluation_options': client.config.get_evaluation_options()},
+        'model_type': client.config.get_model_type()
+    }
+    session = experiment_sessions.create(client, params)
+    experiment_sessions.update(client, session['id'], status='preprocess')
 
-        params = {
-            'project_id': project_id,
-            'experiment_id': experiment['id'],
-            #'status': 'preprocess',
-            'model_settings' : {'evaluation_options': client.config.get_evaluation_options()},
-            'model_type': client.config.get_model_type()
-        }
-        session = experiment_sessions.create(client, params)
-        experiment_sessions.update(client, session['id'], status='preprocess')
-
-        result['experiment_session_id'] = session['id']
-    else:
-        task_args = client.config.get_evaluation_options()
-        task_args['augerInfo'] = {'experiment_id': experiment['id']}
-
-        result = cluster_tasks.create_ex(
-            client, project_id,
-            "auger_ml.tasks_queue.evaluate_api.run_cli_evaluate_task", task_args
-        )
-
-    result['project_id'] = project_id
+    result = { 
+        'experiment_session_id': session['id'],
+        'project_id': project_id
+    }
     client.config.update_session_file(result)
 
     return result
@@ -202,16 +199,7 @@ def restart_cluster(client, run_experiment=True):
 
 def stop(client):
     org = orgs.read(client)
-    if not org.get('is_jupyter_enabled'):
-        experiment_sessions.update(client, experiment_session_id=client.config.get_experiment_session_id(), status='interrupted')
-    else:
-        experiment = get_or_create()
-        cluster_tasks.create_ex(
-            client, client.config.get_project_id(),
-            "auger_ml.tasks_queue.evaluate_api.stop_evaluate_task",
-            {'augerInfo': {'experiment_id': experiment['id'],
-                           'experiment_session_id': client.config.get_experiment_session_id()}}
-        )
+    experiment_sessions.update(client, experiment_session_id=client.config.get_experiment_session_id(), status='interrupted')
 
 def read_leaderboard(client, experiment_session_id=None):
     from collections import OrderedDict
@@ -278,16 +266,11 @@ def export_model(client, trial_id, deploy=False):
     org = orgs.read(client)
 
     if deploy:
-        if not org.get('is_jupyter_enabled'):
-            params = {
-                'trial_id': trial_id
-            }
-            pipeline = pipelines.create(client, params)
-            trial_id = pipeline['id']
-        else:
-            cluster_tasks.create_ex(client, project_id,
-                                                "auger_ml.tasks_queue.tasks.promote_pipeline_task", task_args
-                                                )
+        params = {
+            'trial_id': trial_id
+        }
+        pipeline = pipelines.create(client, params)
+        trial_id = pipeline['id']
 
         client.print_line("Waiting for deploy of pipeline: %s"%trial_id)
         wait_for_object_state(client,
@@ -304,32 +287,25 @@ def export_model(client, trial_id, deploy=False):
         client.print_line("Pipeline {} status: {}; error: {}".format(pipeline.get('id'), pipeline.get('status'), pipeline.get('error_message')))
         return trial_id
     else:
-        if not org.get('is_jupyter_enabled'):
-            params = {
-                'trial_id': trial_id
-            }
-            pipeline_file = pipeline_files.create(client, params)
-            
-            client.print_line("Waiting for download of pipeline: %s" % trial_id)
-            pipeline_file = wait_for_object_state(client,
-                method='get_pipeline_file',
-                params={'id': pipeline_file['id']},
-                first_status='not_requested',
-                progress_statuses=[
-                    'not_requested', 'pending'
-                ],
-                poll_interval=2,
-                status_name='signed_s3_model_path_status'
-            )
-            client.print_line("Model S3 path: %s" %
-                              pipeline_file)
-            return download_remote_file('models', pipeline_file['signed_s3_model_path'])
-        else:
-            model_path = cluster_tasks.create_ex(client, project_id,
-                                                "auger_ml.tasks_queue.tasks.export_grpc_model_task", task_args)
-
-            client.print_line("Model exported to remote file: %s"%model_path)
-            return projects.download_file(client, project_id, model_path, "models")
+        params = {
+            'trial_id': trial_id
+        }
+        pipeline_file = pipeline_files.create(client, params)
+        
+        client.print_line("Waiting for download of pipeline: %s" % trial_id)
+        pipeline_file = wait_for_object_state(client,
+            method='get_pipeline_file',
+            params={'id': pipeline_file['id']},
+            first_status='not_requested',
+            progress_statuses=[
+                'not_requested', 'pending'
+            ],
+            poll_interval=2,
+            status_name='signed_s3_model_path_status'
+        )
+        client.print_line("Model S3 path: %s" %
+                          pipeline_file)
+        return download_remote_file('models', pipeline_file['signed_s3_model_path'])
 
     return None
 
