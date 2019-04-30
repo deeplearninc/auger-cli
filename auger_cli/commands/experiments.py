@@ -72,7 +72,7 @@ def settings(client):
     with client.cli_error_handler():
         print_line(experiments.read_settings(client))
 
-@click.command("search_space", short_help='Display Auger ML serach space definition.')
+@click.command("search_space", short_help='Display Auger ML search space definition.')
 @pass_client
 def search_space(client):
     with client.cli_error_handler():

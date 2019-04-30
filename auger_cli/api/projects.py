@@ -123,19 +123,29 @@ def start(client, create_if_not_exist=False, project_id=None):
 def download_file(client, project_id, remote_path, local_path, stop_project=False):
     project_id, new_cluster = start(client, project_id=project_id)
 
-    if new_cluster:
+    if new_cluster or remote_path=='*':
         all_files = list_files(client, project_id)
+        if remote_path=='*':
+            remote_path = ','.join(all_files)
 
-    s3_model_path = cluster_tasks.create_ex(client, project_id,
-        "pipeline_functions.packager.tasks.upload_file", remote_path
-    )
+    res = []        
+    for download_path in remote_path.split(','):
+        if '_last_time' in download_path:
+            continue
+            
+        if not download_path.startswith("/") and not download_path.startswith('files'):
+            download_path = os.path.join('files', download_path)
 
-    s3_signed_model_path = cluster_tasks.create_ex(client, project_id,
-        "pipeline_functions.packager.tasks.generate_presigned_url", s3_model_path
-    )
-    client.print_line("Model S3 path: %s"%s3_signed_model_path)
+        s3_model_path = cluster_tasks.create_ex(client, project_id,
+            "pipeline_functions.packager.tasks.upload_file", download_path
+        )
 
-    res = download_remote_file(local_path, s3_signed_model_path)
+        s3_signed_model_path = cluster_tasks.create_ex(client, project_id,
+            "pipeline_functions.packager.tasks.generate_presigned_url", s3_model_path
+        )
+        client.print_line("Model S3 path: %s"%s3_signed_model_path)
+
+        res.append(download_remote_file(local_path, s3_signed_model_path))
 
     if stop_project:
         project = read(client, project_id=project_id)
