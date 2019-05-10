@@ -105,7 +105,7 @@ def print_table(myDict, attributes=None):
         colList = list(myDict[0].keys() if myDict else [])
     myList = [colList]  # 1st row = header
     for item in myDict:
-        myList.append([str(item[col] or '') for col in colList])
+        myList.append([str(item.get(col) or '') for col in colList])
     # maximun size of the col for each element
     colSize = [max(map(len, col)) for col in zip(*myList)]
     # insert seperating line before every line, and extra one for ending.
@@ -115,6 +115,7 @@ def print_table(myDict, attributes=None):
     formatStr = ' | '.join(["{{:<{}}}".format(i) for i in colSize])
     formatSep = '-+-'.join(["{{:<{}}}".format(i) for i in colSize])
     for item in myList:
+        #print(item)
         if item[0][0] == '-':
             print(formatSep.format(*item))
         else:
