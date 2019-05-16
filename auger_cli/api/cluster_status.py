@@ -2,6 +2,7 @@ from collections import OrderedDict
 from datetime import datetime
 
 from auger_cli.api import projects
+from auger_cli.utils import list_dict_fillna
 
 display_attributes = ['created_at', 'cpu', 'memory', 'slave_data', 'pods_data']
 
@@ -17,10 +18,10 @@ def read(client, cluster_id=None):
 
 def read_ex(client, cluster_id=None):
     result_raw = read(client, cluster_id)
-    
+
     result = {'cpu': [], 'memory': []}
     dt_format = '%Y-%m-%dT%H:%M:%S.%fZ'
-
+    all_columns = {}
     for item in result_raw:
         worker_pods = []
         for pod in item.get('pods_data', []):
@@ -42,15 +43,20 @@ def read_ex(client, cluster_id=None):
             if 'optimizer' in pod['name']:
                 cpu_res['opt'] = "%.1f"%pod.get('cpu')
                 memory_res['opt'] = "%.1f"%pod.get('memory')
+                all_columns['opt'] = 1
             else:    
                 cpu_res[str(idx)] = "%.1f"%pod.get('cpu')
                 memory_res[str(idx)] = "%.1f"%pod.get('memory')
+                all_columns[str(idx)] = 1
 
         result['cpu'].append(cpu_res)    
         result['memory'].append(memory_res)    
 
     result['cpu'] = sorted(result['cpu'], key=lambda k: k['Time'])
     result['memory'] = sorted(result['memory'], key=lambda k: k['Time'])
+
+    list_dict_fillna(result['cpu'], all_columns.keys(), 0)
+    list_dict_fillna(result['memory'], all_columns.keys(), 0)
 
     #print(result['memory'])
     return result

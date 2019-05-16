@@ -267,3 +267,11 @@ def remove_nones_from_dict(d):
 
     return d
             
+def list_dict_fillna(list_dict, all_columns, def_value):
+    for item in list_dict:
+        for name in all_columns:
+            if name in item:
+                pass
+            else:    
+                item[name] = def_value    
+
