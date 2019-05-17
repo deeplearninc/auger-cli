@@ -4,7 +4,7 @@ from auger_cli.utils import request_list
 from auger_cli.constants import REQUEST_LIMIT
 
 
-display_attributes = ['id', 'name', 'main_bucket', 'status']
+display_attributes = ['id', 'name', 'main_bucket', 'status', 'cluster_mode']
 
 
 def list(client):

@@ -10,7 +10,7 @@ from setuptools import setup, find_packages
 from setuptools.command.install import install
 
 
-VERSION = '0.1.8'
+VERSION = '0.1.9'
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -61,7 +61,7 @@ setup(
     install_requires=[
         'click>=6.7',
         'click-spinner>=0.1',
-        'auger-hub-api-client==0.5.4',
+        'auger-hub-api-client==0.5.6',
         'pandas==0.23.4',
         'ruamel.yaml'
     ],

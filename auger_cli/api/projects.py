@@ -92,21 +92,40 @@ def get_or_create(client, create_if_not_exist=False, project_id=None):
 
     raise Exception("Project %s does not exist."%project_name)
 
+
 def start(client, create_if_not_exist=False, project_id=None):
     project = get_or_create(client, create_if_not_exist=create_if_not_exist, project_id=project_id)
     new_cluster = False
 
-    if project.get('cluster_id') is None or project['status'] == 'undeployed':
-        cluster = clusters.create( client,
-            organization_id=project['organization_id'],
-            project_id=project['id'],
+    org = orgs.read(client)
+
+    if org.get('cluster_mode') == 'single_tenant':
+        if project.get('cluster_id') is None or project['status'] == 'undeployed':
+            cluster = clusters.create( client,
+                organization_id=project['organization_id'],
+                project_id=project['id'],
+                cluster_config=client.config.get_cluster_settings()
+            )
+
+            if not clusters.is_running(client, cluster):
+                raise Exception('Failed to create cluster.')
+
+            new_cluster = True
+    else:
+        if project['status'] != 'running':
             cluster_config=client.config.get_cluster_settings()
-        )
 
-        if not clusters.is_running(client, cluster):
-            raise Exception('Failed to create cluster.')
-
-        new_cluster = True
+            res = client.call_hub_api('update_project', {
+                'id': project['id'],
+                'cluster_autoterminate_minutes': cluster_config.get('autoterminate_minutes')
+            })
+            client.call_hub_api('deploy_project', {
+                'id': project['id'],
+                'worker_type_id': cluster_config.get('worker_type_id'),
+                'workers_count' : cluster_config.get('workers_count'),
+                'kubernetes_stack': cluster_config.get('kubernetes_stack')
+            })    
+            new_cluster = True
 
     wait_for_object_state(client,
         method='get_project',
@@ -119,6 +138,25 @@ def start(client, create_if_not_exist=False, project_id=None):
     )
 
     return project['id'], new_cluster
+
+
+def undeploy(client, project, wait=True):
+    if project['status'] != 'undeployed':
+        client.call_hub_api('undeploy_project', {
+            'id': project['id']
+        })
+
+    if wait:
+        wait_for_object_state(client,
+            method='get_project',
+            params={'id': project['id']},
+            first_status=project['status'],
+            progress_statuses=[
+                'running', 'deployed', 'deploying'
+            ],
+            poll_interval=10
+        )
+
 
 def download_file(client, project_id, remote_path, local_path, stop_project=False):
     project_id, new_cluster = start(client, project_id=project_id)

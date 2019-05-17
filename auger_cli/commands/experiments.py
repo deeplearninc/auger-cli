@@ -63,7 +63,7 @@ def create(client, name, project_id):
 @pass_client
 def show(client, experiment_id):
     with client.cli_error_handler():
-        print_record(experiments.read_ex(client, experiment_id), experiments.display_attributes)
+        print_record(experiments.read_ex(client, experiment_id=experiment_id), experiments.display_attributes)
 
 
 @click.command(short_help='Display experiment settings.')

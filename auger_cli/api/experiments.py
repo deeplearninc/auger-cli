@@ -118,14 +118,21 @@ def read_ex(client, experiment_id=None):
         project = projects.read(client, project_id=experiment.get('project_id'))
     else:
         project = projects.get_or_create(client, create_if_not_exist=True)
-        experiment = get_or_create(client, project['id'])
+        #experiment = get_or_create(client, project['id'])
+        experiment_id, experiment_name = client.config.get_experiment()
+        experiment = read(client, 
+            project_id = project['id'], experiment_name = experiment_name)
+
 
     result = experiment
     if project.get('cluster_id'):
         result['cluster'] = clusters.read(client, project.get('cluster_id'), clusters.display_attributes)
 
     if client.config.get_experiment_session_id():
-        result['session'] = experiment_sessions.read(client, client.config.get_experiment_session_id(), ['id', 'status', 'datasource_name', 'model_type'])
+        try:
+            result['session'] = experiment_sessions.read(client, client.config.get_experiment_session_id(), ['id', 'status', 'datasource_name', 'model_type'])
+        except:
+            pass
 
     return result
 
@@ -186,9 +193,15 @@ def run(client):
 
     return result
 
+
 def stop_cluster(client):
     project = projects.get_or_create(client, create_if_not_exist=False)
-    clusters.delete(client, project.get('cluster_id'))
+
+    org = orgs.read(client)
+    if org.get('cluster_mode') == 'single_tenant':
+        clusters.delete(client, project.get('cluster_id'))
+    else:
+        projects.undeploy(client, project)        
 
 def restart_cluster(client, run_experiment=True):
     stop_cluster(client)
@@ -219,7 +232,7 @@ def read_leaderboard(client, experiment_session_id=None):
             trial.get('score_name'): trial.get('score_value'),
             'time(sec)': "{0:.2f}".format(trial.get('raw_data').get('evaluation_time')),
             'id': trial.get('id'),
-            'algorithm': trial.get('raw_data').get('algorithm_name'),
+            'algorithm': trial.get('raw_data').get('algorithm_name', '').split('.')[-1],
             'optimizer': optimizer_name
         })
 
