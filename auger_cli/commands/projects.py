@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import click
 import re
+from io import StringIO
+
 
 from auger_cli.cli_client import pass_client
 from auger_cli.formatter import (
@@ -12,6 +14,8 @@ from auger_cli.formatter import (
     print_table
 )
 from auger_cli.api import projects
+from auger_cli.logging.stream import WebSocketStream, ApiStream
+from auger_cli.logging import pager
 
 
 @click.group(
@@ -138,23 +142,25 @@ def list_files(client, remote_path, project):
         print_plain_list(projects.list_files(client, project_id, remote_path))
 
 
-@click.command(short_help='Display project logs.')
+@click.command(short_help='Display project logs')
 @click.option(
     '--project',
     '-p',
     type=click.STRING,
     required=False,
     default=None,
-    help='Name of the project to delete.'
+    help='Name of the project.'
 )
+# TODO
+# @click.option(
+#     '--tail',
+#     '-t',
+#     type=click.BOOL,
+#     is_flag=True,
+#     help='Stream logs to console.'
+# )
 @click.option(
-    '--tail',
-    '-t',
-    type=click.BOOL,
-    is_flag=True,
-    help='Stream logs to console.'
-)
-@click.option(
+    'filter_re',
     '--filter',
     '-f',
     type=click.STRING,
@@ -163,46 +169,74 @@ def list_files(client, remote_path, project):
     help='Regex-based filter'
 )
 @click.option(
+    'podname_filter',
+    '--pod-name',
+    type=click.STRING,
+    required=False,
+    default=None,
+    help='Filter pod_names by regular expression'
+)
+@click.option(
     '--stacktrace',
     '-s',
     type=click.BOOL,
     is_flag=True,
     help='Show only error traces')
+@click.option(
+    '--include-worker-logs',
+    '-w',
+    type=click.BOOL,
+    is_flag=True,
+    default=False,
+    help='Show service workers logs too (excluded by default)')
 @pass_client
-def logs(client, project, tail, filter, stacktrace, squash=True):
+def logs(client, project, filter_re='', podname_filter='', tail=False, stacktrace=False, include_worker_logs=False):
     with client.cli_error_handler():
-        ERROR_RE = re.compile(r'^\[.{23}: ERROR')
-        ERROR_RE = re.compile(": ERROR", re.M)
-
         if project is None:
             project_id = client.config.get_project_id()
         else:
             project_id = projects.read(client, project).get('id')
 
-        # # Following should work on the same abstraction level: either get result by stream or whole and pass to formatter
-        # if tail:
-        #     print_stream(client, {'id': project_id})
-        # else:
-        result = client.call_hub_api_ex('get_project_logs', params={'id': project_id})
-        # dump to file
+        flood_mode = False
+        if tail:
+            flood_mode = True
+            buffer = WebSocketStream()
+        else:
+            buffer = ApiStream(client=client)
+            pass
+        result = buffer.get_stream(project_id = project_id)
+
+        FILTER_RE = re.compile(filter_re, re.U|re.I) if filter_re else None
+        PODNAME_RE = re.compile(podname_filter, re.U|re.I) if podname_filter else None
+        TRACE_RE = re.compile(r'Traceback')  # intended for python stack traces only currently
         logfile_name = client.config.get_project_logfile_name()
-        with open(logfile_name, 'w+') as logfile:
-            last_line, last_line_count = None, 0
-            for line in result.replace('\n\n', '\n').splitlines():
-                if squash:
-                    if last_line == line:
-                        # if line repeats, skip output, just count
-                        last_line_count += 1
-                        continue
-                    if last_line_count > 1:
-                        # if line was repeated, but different line came
-                        logfile.write("{} <repeats {} times>\n".format(line, last_line_count))
-                        last_line_count = 0
-                    last_line = line
-                logfile.write(line + '\n')
-            if last_line_count > 0:
-                # if line was repeated, but different line came
-                logfile.write("<repeats {} times>\n".format(last_line_count))
+        count = 0
+        # if flood_mode:
+            # 1) fire up socket update process
+
+        # with open(logfile_name, 'w+') as logfile:
+        with StringIO() as logfile:
+            # 2) pass buffer to the pager and watch input
+            for item in result['data']:
+                # stacktrace filtering on the upper level:
+                if stacktrace and not TRACE_RE.search(item['data']):
+                    continue
+                # skip service pods if not desired
+                if not (include_worker_logs or item['pod_name'].startswith('auger')):
+                    continue
+                if podname_filter and not PODNAME_RE.search(item['pod_name']):
+                    continue
+                # skip by regexp if given
+                if FILTER_RE is not None and not(FILTER_RE.search(item['data'])):
+                    continue
+                logfile.write(item['data'])
+                count += 1
+
+            # output with pager
+            # print(logfile.getvalue())
+            pager.page(('='*80).join([logfile.getvalue() for i in range(10)]).splitlines())
+            # pager.page(('='*80+'\n').join([logfile.getvalue() for i in range(3)]).splitlines())
+            # pager.page(logfile.getvalue().splitlines())
 
 
 @click.command("open_project", short_help='Open project in a browser.')
