@@ -105,7 +105,7 @@ def download_file(client, remote_path, local_path, project, stop_project):
     with client.cli_error_handler():
         project_id = None
         if project:
-            project_id = read_project(client, project).get('id')
+            project_id = projects.read(client, project).get('id')
 
         file_path = projects.download_file(client, project_id, remote_path, local_path, stop_project=stop_project)
         print_line('Downloaded file: {}'.format(file_path))
@@ -126,14 +126,14 @@ def download_file(client, remote_path, local_path, project, stop_project):
     '-p',
     type=click.STRING,
     default=None,
-    help='Name of the project to delete.'
+    help='Name of the project to list files.'
 )
 @pass_client
 def list_files(client, remote_path, project):
     with client.cli_error_handler():
         project_id = None
         if project:
-            project_id = read_project(client, project).get('id')
+            project_id = projects.read(client, project).get('id')
 
         print_plain_list(projects.list_files(client, project_id, remote_path))
 
