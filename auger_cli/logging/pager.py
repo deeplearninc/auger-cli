@@ -302,28 +302,40 @@ def echo(msg):
     sys.stdout.write(msg)
     sys.stdout.flush()
 
-def prompt(pagenum, page_count):
+def prompt(line_num, content_length, height):
     """
     Show default prompt to continue and process keypress.
 
     It assumes terminal/console understands carriage return \r character.
     """
-    prompt = "Page -%s of %s-. Press any key to continue . . . " % (pagenum, page_count)
+    prompt = "Page -%s of %s-. Press any key to continue . . . " % (ceil((line_num + (height // 2)) / height), ceil(content_length / height))
     echo(prompt)
     c = getchars()
     if c in [ESC, [CTRL_C_], ['q'], ['Q']]:
         return False
     echo('\r' + ' '*(len(prompt)-1) + '\r')
-    if c in [PG_UP, UP]:
-        return pagenum-1 or 1
-    if c in [PG_DOWN, DOWN]:
-        return min(pagenum+1, page_count)
+    MAX_LINE = ceil(content_length-(height/2))
+    if c in [PG_UP]:
+        return max(1, line_num-height)
+    if c in [UP]:
+        return max(1, line_num-1)
+    if c in [PG_DOWN]:
+        return min(line_num+height, max(1, MAX_LINE))
+    if c in [DOWN]:
+        return min(line_num+1, max(1, MAX_LINE))
     if c in [HOME,]:
         return 1
     if c in [END,]:
-        return page_count
+        return MAX_LINE
 
-def page(content, pagecallback=prompt):
+def wrap_lines(line, width):
+    # divide long lines into sublines
+    # has to be done upon write due to page numbering
+    # wrap long line, splitting it into sublines
+    for i in range(0, len(line), width):
+        yield line[i:i+width]
+
+def page(content, pagecallback=prompt, line_num=1):
     """
     Output `content`, call `pagecallback` after every page with page
     number as a parameter. `pagecallback` may return False to terminate
@@ -334,60 +346,23 @@ def page(content, pagecallback=prompt):
     """
     width = getwidth()
     height = getheight()
-    pagenum = 1
-    content = list('{}: {}'.format(str(i), s) for i, s in enumerate(content))
-
+    content_length = len(content)
 
     while True:  # page cycle
-        try:
+        for line_index in range(height-1):
             try:
-                page = iter(content[(pagenum-1)*(height-1): pagenum*(height-1)])
-                # page = iter(content[(pagenum-1)*(height): pagenum*(height)])
-                line = page.next().rstrip("\r\n")
+                line = content[line_num-1 + line_index]
             except IndexError:
-                raise StopIteration
-            except AttributeError:
-                # Python3 support
-                line = page.__next__().rstrip("\r\n")
-        except StopIteration:
-            pagecallback(pagenum, ceil(len(content) / height))
-            return
-
-        linesleft = height-1 # leave the last line for the prompt callback
-        while linesleft:
-            # wrap long line, splitting it into sublines
-            sublines = [line[i:i+width] for i in range(0, len(line), width)]
-            if not sublines:
-                sublines = ['']
-            # pick sublines for print: all remaining if all of them fit or only fitting ones
-            lines2print = min(len(sublines), linesleft)
-            for i in range(lines2print):
-                if WINDOWS and len(line) == width:
-                    # avoid extra blank line by skipping linefeed print
-                    echo(sublines[i])
-                else:
-                    print(sublines[i])
-            linesleft -= lines2print
-            sublines = sublines[lines2print:]
-
-            if sublines: # prepare symbols left on the line for the next iteration
-                line = ''.join(sublines)
-                continue
+                line = ""
+            if WINDOWS and len(line) == width:
+                # avoid extra blank line by skipping linefeed print
+                echo(line)
             else:
-                try:
-                    try:
-                        line = page.next().rstrip("\r\n")
-                    except AttributeError:
-                        # Python3 support
-                        line = page.__next__().rstrip("\r\n")
-                except StopIteration:
-                    pagecallback(pagenum, ceil(len(content) / height))
-                    return
-        callback_result = pagecallback(pagenum, ceil(len(content) / height))
+                print(line)
+
+        callback_result = pagecallback(line_num, content_length, height)
         if callback_result == False:
             return
         elif callback_result is not None:
-            pagenum = callback_result
-        else:
-            pagenum += 1
-            
+            line_num = callback_result
+

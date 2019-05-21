@@ -210,10 +210,9 @@ def logs(client, project, filter_re='', podname_filter='', tail=False, stacktrac
         PODNAME_RE = re.compile(podname_filter, re.U|re.I) if podname_filter else None
         TRACE_RE = re.compile(r'Traceback')  # intended for python stack traces only currently
         logfile_name = client.config.get_project_logfile_name()
-        count = 0
+        page_width = pager.getwidth()
         # if flood_mode:
             # 1) fire up socket update process
-
         # with open(logfile_name, 'w+') as logfile:
         with StringIO() as logfile:
             # 2) pass buffer to the pager and watch input
@@ -229,14 +228,11 @@ def logs(client, project, filter_re='', podname_filter='', tail=False, stacktrac
                 # skip by regexp if given
                 if FILTER_RE is not None and not(FILTER_RE.search(item['data'])):
                     continue
-                logfile.write(item['data'])
-                count += 1
-
-            # output with pager
-            # print(logfile.getvalue())
-            pager.page(('='*80).join([logfile.getvalue() for i in range(10)]).splitlines())
-            # pager.page(('='*80+'\n').join([logfile.getvalue() for i in range(3)]).splitlines())
-            # pager.page(logfile.getvalue().splitlines())
+                sublines = pager.wrap_lines(item['data'].rstrip('\r\n'), page_width)
+                for subl in sublines:
+                    logfile.write(subl+'\n')
+    
+            pager.page(logfile.getvalue().splitlines())
 
 
 @click.command("open_project", short_help='Open project in a browser.')
