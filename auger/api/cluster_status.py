@@ -1,8 +1,8 @@
 from collections import OrderedDict
 from datetime import datetime
 
-from auger_cli.api import projects
-from auger_cli.utils import list_dict_fillna
+from auger.cli.api import projects
+from auger.cli.utils import list_dict_fillna
 
 display_attributes = ['created_at', 'cpu', 'memory', 'slave_data', 'pods_data']
 

@@ -2,12 +2,12 @@
 
 import click
 
-from auger_cli.formatter import (
+from auger.cli.formatter import (
     print_list,
     print_record
 )
-from auger_cli.cli_client import pass_client
-from auger_cli.api import cluster_tasks
+from auger.cli.cli_client import pass_client
+from auger.cli.api import cluster_tasks
 
 
 @click.group(

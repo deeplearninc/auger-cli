@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from auger_cli.utils import request_list
-from auger_cli.constants import REQUEST_LIMIT
+from auger.cli.utils import request_list
+from auger.cli.constants import REQUEST_LIMIT
 
 
 display_attributes = ['id', 'status', 'lambda_package_s3_path', 'datasource_manifest_name', 'error_message', 'project_id', 'organization_id'] #, 'trial']

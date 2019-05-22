@@ -2,8 +2,8 @@
 
 import click
 
-from auger_cli.cli_client import pass_client
-from auger_cli.formatter import (
+from auger.cli.cli_client import pass_client
+from auger.cli.formatter import (
     print_line,
     print_list,
     print_stream,
@@ -11,7 +11,7 @@ from auger_cli.formatter import (
     print_plain_list,
     print_table
 )
-from auger_cli.api import projects
+from auger.cli.api import projects
 
 
 @click.group(
@@ -179,7 +179,7 @@ def logs(client, project, tail):
 )
 @pass_client
 def open_project(client, project):
-    from auger_cli.utils import urlparse
+    from auger.cli.utils import urlparse
     with client.cli_error_handler():
         project_name = project
         if project is None:

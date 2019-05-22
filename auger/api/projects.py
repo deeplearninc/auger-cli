@@ -3,13 +3,13 @@
 import os
 import time
 
-from auger_cli.utils import request_list, download_remote_file, wait_for_object_state
-from auger_cli.constants import REQUEST_LIMIT
+from auger.cli.utils import request_list, download_remote_file, wait_for_object_state
+from auger.cli.constants import REQUEST_LIMIT
 
-from auger_cli.api import clusters
-from auger_cli.api import orgs
-from auger_cli.api import cluster_tasks
-from auger_cli.api import experiment_sessions
+from auger.cli.api import clusters
+from auger.cli.api import orgs
+from auger.cli.api import cluster_tasks
+from auger.cli.api import experiment_sessions
 
 display_attributes = [
     'id',
@@ -205,7 +205,7 @@ def list_files(client, project_id, remote_path=None, start_project=True):
 
 def read_leaderboard(client):
     from datetime import datetime
-    from auger_cli.formatter import print_list
+    from auger.cli.formatter import print_list
 
     #Get running projects
     org_id = orgs.read(client).get('id')

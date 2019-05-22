@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-from auger_cli.utils import request_list
+from auger.cli.utils import request_list
 
 
 display_attributes = ['id', 'score_name', 'score_value', 'task_type', 'algorithm_name', 'algorithm_params']

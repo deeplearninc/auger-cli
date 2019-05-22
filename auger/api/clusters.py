@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from auger_cli.utils import request_list, wait_for_object_state
+from auger.cli.utils import request_list, wait_for_object_state
 
 
 display_attributes = [

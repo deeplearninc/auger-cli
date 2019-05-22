@@ -2,9 +2,9 @@
 
 import click
 
-from auger_cli import constants
-from auger_cli.cli_client import pass_client
-from auger_cli.api import auth
+from auger.cli import constants
+from auger.cli.cli_client import pass_client
+from auger.cli.api import auth
 
 @click.group('auth', short_help='Authentication with Auger.')
 @click.pass_context

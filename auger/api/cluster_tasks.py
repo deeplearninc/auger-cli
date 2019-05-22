@@ -1,6 +1,6 @@
 import json
 
-from auger_cli.utils import request_list, wait_for_object_state
+from auger.cli.utils import request_list, wait_for_object_state
 
 
 display_attributes = ['id', 'cluster_id', 'project_id',
@@ -40,7 +40,7 @@ def create_ex(client, project_id, name, args_python, wait=True):
 
 
 def run(client, wait):
-    from auger_cli.api import projects
+    from auger.cli.api import projects
 
     project_id, new_cluster = projects.start(client, create_if_not_exist=True)
     cluster_task = client.config.get_cluster_task()

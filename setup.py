@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-    Setup file for auger_cli.
+    Setup file for augerai cli and api.
 """
 
 import codecs
@@ -78,7 +78,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'auger=auger_cli.cli:cli',
+            'auger=auger.cli.cli:cli',
         ]
     }
 )

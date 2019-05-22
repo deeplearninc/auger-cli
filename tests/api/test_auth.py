@@ -2,9 +2,9 @@ import unittest
 import os
 import mock
 
-from auger_cli.api import auth
-from auger_cli.client import AugerClient
-from auger_cli import constants
+from auger.cli.api import auth
+from auger.cli.client import AugerClient
+from auger.cli import constants
 from tests.utils import init_test_api_client
 
 class TestAuth(unittest.TestCase):

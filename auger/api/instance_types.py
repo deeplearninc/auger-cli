@@ -1,4 +1,4 @@
-from auger_cli.utils import request_list
+from auger.cli.utils import request_list
 
 display_attributes = ['id', 'description']
 

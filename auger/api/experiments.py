@@ -4,18 +4,18 @@ import shutil
 import subprocess
 from zipfile import ZipFile
 
-from auger_cli.utils import request_list, get_uid, load_dataframe_from_file, save_dict_to_csv, wait_for_object_state, download_remote_file
-from auger_cli.constants import REQUEST_LIMIT
+from auger.cli.utils import request_list, get_uid, load_dataframe_from_file, save_dict_to_csv, wait_for_object_state, download_remote_file
+from auger.cli.constants import REQUEST_LIMIT
 
-from auger_cli.api import cluster_tasks
-from auger_cli.api import projects
-from auger_cli.api import trials
-from auger_cli.api import experiment_sessions
-from auger_cli.api import clusters
-from auger_cli.api import pipelines
-from auger_cli.api import pipeline_files
-from auger_cli.api import predictions
-from auger_cli.api import orgs
+from auger.cli.api import cluster_tasks
+from auger.cli.api import projects
+from auger.cli.api import trials
+from auger.cli.api import experiment_sessions
+from auger.cli.api import clusters
+from auger.cli.api import pipelines
+from auger.cli.api import pipeline_files
+from auger.cli.api import predictions
+from auger.cli.api import orgs
 
 display_attributes = ['id', 'name',
                          'project_id', 'project_file_id', 'session', 'cluster' ]

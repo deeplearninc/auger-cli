@@ -1,6 +1,6 @@
 
-from auger_cli.config import AugerConfig
-from auger_cli.client import AugerClient
+from auger.cli.config import AugerConfig
+from auger.cli.client import AugerClient
 
 
 def init_test_api_client(obj):

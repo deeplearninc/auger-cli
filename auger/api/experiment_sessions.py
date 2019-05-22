@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-from auger_cli.utils import request_list
+from auger.cli.utils import request_list
 
 display_attributes = ['id', 'project_id', 'experiment_id', 'status', 'model_type']
 display_list_attributes = ['id', 'project_id', 'experiment_id', 'status', 'created_at', 'model_type']

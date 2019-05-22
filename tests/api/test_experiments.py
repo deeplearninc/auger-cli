@@ -2,8 +2,8 @@ import unittest
 import os
 import mock
 
-from auger_cli.api import experiments
-from auger_cli.client import AugerClient
+from auger.cli.api import experiments
+from auger.cli.client import AugerClient
 from tests.utils import init_test_api_client
 
 

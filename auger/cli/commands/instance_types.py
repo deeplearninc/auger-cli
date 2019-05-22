@@ -2,8 +2,8 @@
 
 import click
 
-from auger_cli.formatter import print_list
-from auger_cli.api import instance_types
+from auger.cli.formatter import print_list
+from auger.cli.api import instance_types
 
 
 @click.command(

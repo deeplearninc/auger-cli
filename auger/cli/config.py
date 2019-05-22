@@ -5,7 +5,7 @@ import json
 
 from .formatter import print_line
 from .utils import remove_file, camelize, merge_dicts, to_snake_name, remove_nones_from_dict
-from auger_cli import constants
+from auger.cli import constants
 from .constants import REQUEST_LIMIT, API_POLL_INTERVAL
 
 class AugerConfig(object):
