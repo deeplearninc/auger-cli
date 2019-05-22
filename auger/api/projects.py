@@ -6,10 +6,10 @@ import time
 from auger.cli.utils import request_list, download_remote_file, wait_for_object_state
 from auger.cli.constants import REQUEST_LIMIT
 
-from auger.cli.api import clusters
-from auger.cli.api import orgs
-from auger.cli.api import cluster_tasks
-from auger.cli.api import experiment_sessions
+from auger.api import clusters
+from auger.api import orgs
+from auger.api import cluster_tasks
+from auger.api import experiment_sessions
 
 display_attributes = [
     'id',

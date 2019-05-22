@@ -11,7 +11,7 @@ from auger.cli.formatter import (
     print_header
 )
 
-from auger.cli.api import experiments
+from auger.api import experiments
 
 
 @click.group(

@@ -7,7 +7,7 @@ from auger.cli.formatter import (
     print_record
 )
 from auger.cli.cli_client import pass_client
-from auger.cli.api import cluster_tasks
+from auger.api import cluster_tasks
 
 
 @click.group(

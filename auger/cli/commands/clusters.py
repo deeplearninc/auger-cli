@@ -7,7 +7,7 @@ from auger.cli.formatter import (
     print_list,
     print_record
 )
-from auger.cli.api import clusters
+from auger.api import clusters
 
 
 @click.group(

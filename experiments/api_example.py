@@ -3,8 +3,8 @@ import time
 from auger.cli.config import AugerConfig
 from auger.cli.client import AugerClient
 
-from auger.cli.api import auth
-from auger.cli.api import experiments
+from auger.api import auth
+from auger.api import experiments
 
 
 def run_iris_train():

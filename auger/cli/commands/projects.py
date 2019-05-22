@@ -11,7 +11,7 @@ from auger.cli.formatter import (
     print_plain_list,
     print_table
 )
-from auger.cli.api import projects
+from auger.api import projects
 
 
 @click.group(

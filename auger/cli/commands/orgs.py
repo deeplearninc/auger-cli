@@ -4,7 +4,7 @@ import click
 
 from auger.cli.cli_client import pass_client
 from auger.cli.formatter import print_list, print_record
-from auger.cli.api import orgs
+from auger.api import orgs
 
 
 @click.group(

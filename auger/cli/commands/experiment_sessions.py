@@ -9,7 +9,7 @@ from auger.cli.formatter import (
     print_table
 )
 
-from auger.cli.api import experiment_sessions
+from auger.api import experiment_sessions
 
 
 @click.group(

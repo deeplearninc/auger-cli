@@ -7,15 +7,15 @@ from zipfile import ZipFile
 from auger.cli.utils import request_list, get_uid, load_dataframe_from_file, save_dict_to_csv, wait_for_object_state, download_remote_file
 from auger.cli.constants import REQUEST_LIMIT
 
-from auger.cli.api import cluster_tasks
-from auger.cli.api import projects
-from auger.cli.api import trials
-from auger.cli.api import experiment_sessions
-from auger.cli.api import clusters
-from auger.cli.api import pipelines
-from auger.cli.api import pipeline_files
-from auger.cli.api import predictions
-from auger.cli.api import orgs
+from auger.api import cluster_tasks
+from auger.api import projects
+from auger.api import trials
+from auger.api import experiment_sessions
+from auger.api import clusters
+from auger.api import pipelines
+from auger.api import pipeline_files
+from auger.api import predictions
+from auger.api import orgs
 
 display_attributes = ['id', 'name',
                          'project_id', 'project_file_id', 'session', 'cluster' ]

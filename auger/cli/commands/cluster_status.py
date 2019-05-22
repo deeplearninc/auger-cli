@@ -2,7 +2,7 @@ import click
 
 from auger.cli.cli_client import pass_client
 from auger.cli.formatter import print_list, print_record, print_table
-from auger.cli.api import cluster_status
+from auger.api import cluster_status
 
 
 @click.group(

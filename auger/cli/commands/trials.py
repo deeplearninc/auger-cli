@@ -7,7 +7,7 @@ from auger.cli.formatter import (
     print_list,
     print_record
 )
-from auger.cli.api import trials
+from auger.api import trials
 
 
 @click.group(

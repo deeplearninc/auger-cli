@@ -40,7 +40,7 @@ def create_ex(client, project_id, name, args_python, wait=True):
 
 
 def run(client, wait):
-    from auger.cli.api import projects
+    from auger.api import projects
 
     project_id, new_cluster = projects.start(client, create_if_not_exist=True)
     cluster_task = client.config.get_cluster_task()

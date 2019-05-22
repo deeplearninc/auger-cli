@@ -2,7 +2,7 @@ import unittest
 import os
 import mock
 
-from auger.cli.api import auth
+from auger.api import auth
 from auger.cli.client import AugerClient
 from auger.cli import constants
 from tests.utils import init_test_api_client
