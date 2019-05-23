@@ -32,7 +32,7 @@ class VerifyVersionCommand(install):
             sys.exit(info)
 
 setup(
-    name='auger-cli',
+    name='auger',
     version=VERSION,
     url='https://github.com/deeplearninc/auger-cli',
     license='MIT',
@@ -40,7 +40,7 @@ setup(
     description='Command line tool for the Auger AI platform.',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    packages=find_packages(exclude=['docs', 'tests']),
+    packages=['auger.cli', 'auger.api'],
     include_package_data=True,
     zip_safe=False,
     platforms='any',
@@ -61,7 +61,7 @@ setup(
     install_requires=[
         'click>=6.7',
         'click-spinner>=0.1',
-        'auger-hub-api-client==0.5.6',
+        'auger-hub-api-client>=0.5.6',
         'pandas==0.23.4',
         'ruamel.yaml'
     ],
