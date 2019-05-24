@@ -32,7 +32,7 @@ class VerifyVersionCommand(install):
             sys.exit(info)
 
 setup(
-    name='auger',
+    name='auger_cli',
     version=VERSION,
     url='https://github.com/deeplearninc/auger-cli',
     license='MIT',
