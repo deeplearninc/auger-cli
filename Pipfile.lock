@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "42dd67b2512e6fe214a395ff449bdf64bd8179cb1b59984851ef41f1fe3c098a"
+            "sha256": "8741b128c782be9e37844c94872ad6886a09a5fe4f80f31e1cc74303cb08ba26"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -20,10 +20,10 @@
         },
         "auger-hub-api-client": {
             "hashes": [
-                "sha256:1cba5d9d51a6894fd687d799599542cda5e595386b66bd661d26ef8ebac2f9f8"
+                "sha256:8b3e89d7f8a26be1a0070f46c5b892d28fb3095761ab6c665043d43cc6bd946a"
             ],
             "index": "pypi",
-            "version": "==0.5.6"
+            "version": "==0.5.7"
         },
         "certifi": {
             "hashes": [
@@ -165,10 +165,10 @@
         },
         "urllib3": {
             "hashes": [
-                "sha256:a53063d8b9210a7bdec15e7b272776b9d42b2fd6816401a0d43006ad2f9902db",
-                "sha256:d363e3607d8de0c220d31950a8f38b18d5ba7c0830facd71a1c6b1036b7ce06c"
+                "sha256:b246607a25ac80bedac05c6f282e3cdaf3afb65420fd024ac94435cabe6e18d1",
+                "sha256:dbe59173209418ae49d485b87d1681aefa36252ee85884c31346debd19463232"
             ],
-            "version": "==1.25.2"
+            "version": "==1.25.3"
         }
     },
     "develop": {}

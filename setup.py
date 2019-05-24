@@ -61,7 +61,7 @@ setup(
     install_requires=[
         'click>=6.7',
         'click-spinner>=0.1',
-        'auger-hub-api-client==0.5.6',
+        'auger-hub-api-client>=0.5.6',
         'pandas==0.23.4',
         'ruamel.yaml'
     ],
