@@ -2,6 +2,7 @@
 import click
 import re
 from io import StringIO
+import shutil
 
 
 from auger_cli.cli_client import pass_client
@@ -208,7 +209,7 @@ def logs(client, project, filter_re='', podname_filter='', tail=False, stacktrac
         else:
             buffer = ApiStream(client=client)
             pass
-        result = buffer.get_stream(project_id = project_id)
+        stream = buffer.get_stream(project_id = project_id)
 
         FILTER_RE = re.compile(filter_re, re.U|re.I) if filter_re else None
         PODNAME_RE = re.compile(podname_filter, re.U|re.I) if podname_filter else None
@@ -218,25 +219,28 @@ def logs(client, project, filter_re='', podname_filter='', tail=False, stacktrac
         # if flood_mode:
             # 1) fire up socket update process
         # with open(logfile_name, 'w+') as logfile:
-        with StringIO() as logfile:
+        with StringIO() as screen_log, open(logfile_name, 'w+') as logfile:
             # 2) pass buffer to the pager and watch input
-            for item in result['data']:
-                # stacktrace filtering on the upper level:
-                if stacktrace and not TRACE_RE.search(item['data']):
-                    continue
-                # skip service pods if not desired
-                if not (include_worker_logs or item['pod_name'].startswith('auger')):
-                    continue
-                if podname_filter and not PODNAME_RE.search(item['pod_name']):
-                    continue
-                # skip by regexp if given
-                if FILTER_RE is not None and not(FILTER_RE.search(item['data'])):
-                    continue
-                sublines = pager.wrap_lines(item['data'].rstrip('\r\n'), page_width)
-                for subl in sublines:
-                    logfile.write(subl+'\n')
-    
-            pager.page(logfile.getvalue().splitlines())
+            for page in stream:
+                for item in page['data']:
+                    # # stacktrace filtering on the upper level:
+                    if stacktrace and not TRACE_RE.search(item['data']):
+                        continue
+                    # # skip service pods if not desired
+                    if not (include_worker_logs or item['pod_name'].startswith('auger')):
+                        continue
+                    if podname_filter and not PODNAME_RE.search(item['pod_name']):
+                        continue
+                    # skip by regexp if given
+                    if FILTER_RE is not None and not(FILTER_RE.search(item['data'])):
+                        continue
+                    sublines = pager.wrap_lines(item['data'].rstrip('\r\n'), page_width)
+                    for subline in sublines:
+                        screen_log.write(subline+'\n')
+                        print_line(subline)
+                    logfile.write(item['data'])
+        
+            # pager.page(logfile.getvalue().splitlines())
 
 
 @click.command("open_project", short_help='Open project in a browser.')
