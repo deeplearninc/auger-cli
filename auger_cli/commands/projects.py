@@ -214,13 +214,9 @@ def logs(client, project, filter_re='', podname_filter='', tail=False, stacktrac
         FILTER_RE = re.compile(filter_re, re.U|re.I) if filter_re else None
         PODNAME_RE = re.compile(podname_filter, re.U|re.I) if podname_filter else None
         TRACE_RE = re.compile(r'Traceback')  # intended for python stack traces only currently
-        logfile_name = client.config.get_project_logfile_name()
-        page_width = pager.getwidth()
-        # if flood_mode:
-            # 1) fire up socket update process
-        # with open(logfile_name, 'w+') as logfile:
-        with StringIO() as screen_log, open(logfile_name, 'w+') as logfile:
-            # 2) pass buffer to the pager and watch input
+        # logfile_name = client.config.get_project_logfile_name()
+        # page_width = pager.getwidth()
+        with StringIO() as screen_log:#, open(logfile_name, 'w+') as logfile:
             for page in stream:
                 for item in page['data']:
                     # # stacktrace filtering on the upper level:
@@ -234,13 +230,12 @@ def logs(client, project, filter_re='', podname_filter='', tail=False, stacktrac
                     # skip by regexp if given
                     if FILTER_RE is not None and not(FILTER_RE.search(item['data'])):
                         continue
-                    sublines = pager.wrap_lines(item['data'].rstrip('\r\n'), page_width)
-                    for subline in sublines:
-                        screen_log.write(subline+'\n')
-                        print_line(subline)
-                    logfile.write(item['data'])
-        
-            # pager.page(logfile.getvalue().splitlines())
+                    print_line(item['data'], nl=False)
+                    # sublines = pager.wrap_lines(item['data'].rstrip('\r\n'), page_width)
+                    # for subline in sublines:
+                        # screen_log.write(subline+'\n')
+                        # print_line(subline)
+                    # logfile.write(item['data'])
 
 
 @click.command("open_project", short_help='Open project in a browser.')
