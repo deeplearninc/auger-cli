@@ -8,7 +8,7 @@ class BaseStream():
         raise NotImplemented
 
 class ApiStream(BaseStream):
-    def __init__(self, client, limit=10000):
+    def __init__(self, client, limit=1000):
         self.__client = client
         self.__limit = limit
 
@@ -20,7 +20,7 @@ class ApiStream(BaseStream):
             yield page
             pagination = page['meta']['pagination']
             offset += self.__limit
-            if pagination['total'] <= offset:
+            if pagination['total'] < offset:
                 break
 
 
