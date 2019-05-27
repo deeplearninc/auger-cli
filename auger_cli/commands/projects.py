@@ -81,7 +81,11 @@ def delete(client, project, project_id):
 @click.command( "download_file",
     short_help='Download file from project. Path should be relative project path. For example: files/iris_data_sample.csv'
 )
-@click.argument('remote_path', required=True)
+#help='File name or names(comma separated) or \'*\' for all files inside files folder.'    
+@click.argument(
+    'remote_path', 
+    required=True
+)
 @click.option(
     '--local-path',
     '-l',
@@ -104,7 +108,7 @@ def delete(client, project, project_id):
     type=click.BOOL,
     is_flag=True,
     default=False,
-    help='Stop project after dowanlod file')
+    help='Stop project after download file')
 @pass_client
 def download_file(client, remote_path, local_path, project, stop_project):
     with client.cli_error_handler():
@@ -194,9 +198,9 @@ def list_files(client, remote_path, project):
 def logs(client, project, filter_re='', podname_filter='', tail=False, stacktrace=False, include_worker_logs=False):
     with client.cli_error_handler():
         if project is None:
-            project_id = client.config.get_project_id()
+            project_id = projects.get_or_create(client, id_only=True)
         else:
-            project_id = projects.read(client, project).get('id')
+            project_id = projects.read(client, project_name=project).get('id')
 
         flood_mode = False
         if tail:
