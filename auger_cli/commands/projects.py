@@ -198,7 +198,7 @@ def list_files(client, remote_path, project):
 def logs(client, project, filter_re='', podname_filter='', tail=False, stacktrace=False, include_worker_logs=False):
     with client.cli_error_handler():
         if project is None:
-            project_id = projects.get_or_create(client).get('id')
+            project_id = projects.get_or_create(client, id_only=True)
         else:
             project_id = projects.read(client, project_name=project).get('id')
 
