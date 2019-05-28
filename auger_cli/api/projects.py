@@ -71,10 +71,13 @@ def delete(client, project_id):
     client.call_hub_api('delete_project', {'id': project_id})
 
 
-def get_or_create(client, create_if_not_exist=False, project_id=None):
+def get_or_create(client, create_if_not_exist=False, project_id=None, id_only=False):
     if project_id is None:
         project_id = client.config.get_project_id()
+
     if project_id is not None:
+        if id_only:
+            return project_id
         return read(client, project_id=project_id)
 
     project_name = client.config.get_project_name()
@@ -84,10 +87,18 @@ def get_or_create(client, create_if_not_exist=False, project_id=None):
 
     project = read(client, project_name=project_name, org_id=org_id)
     if project.get('id') is not None:
+        client.config.update_session_file({'project_id': project.get('id')})
+        if id_only:
+            return project.get('id')
+
         return project
 
     if create_if_not_exist:
         project = create(client, project_name, org_id)
+        client.config.update_session_file({'project_id': project.get('id')})
+        if id_only:
+            return project.get('id')
+        
         return project
 
     raise Exception("Project %s does not exist."%project_name)

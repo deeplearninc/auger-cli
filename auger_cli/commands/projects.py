@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
-
 import click
+import re
+from io import StringIO
+import shutil
+
 
 from auger_cli.cli_client import pass_client
 from auger_cli.formatter import (
@@ -12,6 +15,8 @@ from auger_cli.formatter import (
     print_table
 )
 from auger_cli.api import projects
+from auger_cli.logging.stream import WebSocketStream, ApiStream
+from auger_cli.logging import pager
 
 
 @click.group(
@@ -76,7 +81,11 @@ def delete(client, project, project_id):
 @click.command( "download_file",
     short_help='Download file from project. Path should be relative project path. For example: files/iris_data_sample.csv'
 )
-@click.argument('remote_path', required=True)
+#help='File name or names(comma separated) or \'*\' for all files inside files folder.'    
+@click.argument(
+    'remote_path', 
+    required=True
+)
 @click.option(
     '--local-path',
     '-l',
@@ -99,7 +108,7 @@ def delete(client, project, project_id):
     type=click.BOOL,
     is_flag=True,
     default=False,
-    help='Stop project after dowanlod file')
+    help='Stop project after download file')
 @pass_client
 def download_file(client, remote_path, local_path, project, stop_project):
     with client.cli_error_handler():
@@ -138,35 +147,95 @@ def list_files(client, remote_path, project):
         print_plain_list(projects.list_files(client, project_id, remote_path))
 
 
-@click.command(short_help='Display project logs.')
+@click.command(short_help='Display project logs')
 @click.option(
     '--project',
     '-p',
     type=click.STRING,
     required=False,
     default=None,
-    help='Name of the project to delete.'
+    help='Name of the project.'
+)
+# TODO
+# @click.option(
+#     '--tail',
+#     '-t',
+#     type=click.BOOL,
+#     is_flag=True,
+#     help='Stream logs to console.'
+# )
+@click.option(
+    'filter_re',
+    '--filter',
+    '-f',
+    type=click.STRING,
+    required=False,
+    default=None,
+    help='Regex-based filter'
 )
 @click.option(
-    '--tail',
-    '-t',
+    'podname_filter',
+    '--pod-name',
+    type=click.STRING,
+    required=False,
+    default=None,
+    help='Filter pod_names by regular expression'
+)
+@click.option(
+    '--stacktrace',
+    '-s',
     type=click.BOOL,
     is_flag=True,
-    help='Stream logs to console.'
-)
+    help='Show only error traces')
+@click.option(
+    '--include-worker-logs',
+    '-w',
+    type=click.BOOL,
+    is_flag=True,
+    default=False,
+    help='Show service workers logs too (excluded by default)')
 @pass_client
-def logs(client, project, tail):
+def logs(client, project, filter_re='', podname_filter='', tail=False, stacktrace=False, include_worker_logs=False):
     with client.cli_error_handler():
         if project is None:
-            project_id = client.config.get_project_id()
+            project_id = projects.get_or_create(client, id_only=True)
         else:
-            project_id = projects.read(client, project).get('id')
+            project_id = projects.read(client, project_name=project).get('id')
 
+        flood_mode = False
         if tail:
-            print_stream(client, {'id': project_id})
+            flood_mode = True
+            buffer = WebSocketStream()
         else:
-            result = client.call_hub_api_ex('get_project_logs', params={'id': project_id})
-            print_line(result)
+            buffer = ApiStream(client=client)
+            pass
+        stream = buffer.get_stream(project_id = project_id)
+
+        FILTER_RE = re.compile(filter_re, re.U|re.I) if filter_re else None
+        PODNAME_RE = re.compile(podname_filter, re.U|re.I) if podname_filter else None
+        TRACE_RE = re.compile(r'Traceback')  # intended for python stack traces only currently
+        # logfile_name = client.config.get_project_logfile_name()
+        # page_width = pager.getwidth()
+        with StringIO() as screen_log:#, open(logfile_name, 'w+') as logfile:
+            for page in stream:
+                for item in page['data']:
+                    # # stacktrace filtering on the upper level:
+                    if stacktrace and not TRACE_RE.search(item['data']):
+                        continue
+                    # # skip service pods if not desired
+                    if not (include_worker_logs or item['pod_name'].startswith('auger')):
+                        continue
+                    if podname_filter and not PODNAME_RE.search(item['pod_name']):
+                        continue
+                    # skip by regexp if given
+                    if FILTER_RE is not None and not(FILTER_RE.search(item['data'])):
+                        continue
+                    print_line(item['data'], nl=False)
+                    # sublines = pager.wrap_lines(item['data'].rstrip('\r\n'), page_width)
+                    # for subline in sublines:
+                        # screen_log.write(subline+'\n')
+                        # print_line(subline)
+                    # logfile.write(item['data'])
 
 
 @click.command("open_project", short_help='Open project in a browser.')
