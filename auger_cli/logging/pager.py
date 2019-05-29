@@ -151,8 +151,10 @@ else:
     DOWN =  ['\x1b', '[', 'B']
     PG_UP = ['\x1b', '[', '5', '~']
     PG_DOWN=['\x1b', '[', '6', '~']
-    HOME =  ['\x1b', '[', '1', '~']
-    END =   ['\x1b', '[', '4', '~']
+    # HOME =  ['\x1b', '[', '1', '~']
+    HOME =  ['\x1b', '[', 'H']
+    # END =   ['\x1b', '[', '4', '~']
+    END =   ['\x1b', '[', 'F']
 ENTER = [ENTER_]
 ESC  = [ESC_]
 
@@ -308,7 +310,9 @@ def prompt(line_num, content_length, height):
 
     It assumes terminal/console understands carriage return \r character.
     """
-    prompt = "Page -%s of %s-. Press any key to continue . . . " % (ceil((line_num + (height // 2)) / height), ceil(content_length / height))
+    current_page = ceil((line_num + (height // 2)) / height)
+    pages_count = ceil(content_length / height)
+    prompt = "Page -%s of %s-. Press PgUP, PgDOWN, Up, Down for navigation, Esq or q to Exit . . . " % (current_page, pages_count)
     echo(prompt)
     c = getchars()
     if c in [ESC, [CTRL_C_], ['q'], ['Q']]:
@@ -320,13 +324,13 @@ def prompt(line_num, content_length, height):
     if c in [UP]:
         return max(1, line_num-1)
     if c in [PG_DOWN]:
-        return min(line_num+height, max(1, MAX_LINE))
+        return min(line_num+height, max(1, MAX_LINE-1))
     if c in [DOWN]:
         return min(line_num+1, max(1, MAX_LINE))
     if c in [HOME,]:
         return 1
     if c in [END,]:
-        return MAX_LINE
+        return MAX_LINE-1
 
 def wrap_lines(line, width):
     # divide long lines into sublines
@@ -335,7 +339,7 @@ def wrap_lines(line, width):
     for i in range(0, len(line), width):
         yield line[i:i+width]
 
-def page(content, pagecallback=prompt, line_num=1):
+def page(content, pagecallback=prompt, line_num=None):
     """
     Output `content`, call `pagecallback` after every page with page
     number as a parameter. `pagecallback` may return False to terminate
@@ -348,6 +352,8 @@ def page(content, pagecallback=prompt, line_num=1):
     height = getheight()
     content_length = len(content)
 
+    if line_num is None or line_num == -1:
+        line_num = ceil(content_length-height)+2
     while True:  # page cycle
         for line_index in range(height-1):
             try:
