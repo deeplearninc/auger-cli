@@ -312,7 +312,7 @@ def prompt(line_num, content_length, height):
     """
     current_page = ceil((line_num + (height // 2)) / height)
     pages_count = ceil(content_length / height)
-    prompt = "Page -%s of %s-. Press PgUP, PgDOWN, Up, Down for navigation, Esq or q to Exit . . . " % (current_page, pages_count)
+    prompt = "Page -%s of %s-. Press PgUP, PgDOWN, Up, Down for navigation, q or Ctrl-C to Exit . . . " % (current_page, pages_count)
     echo(prompt)
     c = getchars()
     if c in [ESC, [CTRL_C_], ['q'], ['Q']]:
