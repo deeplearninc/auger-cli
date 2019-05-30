@@ -4,7 +4,7 @@ import shutil
 import subprocess
 from zipfile import ZipFile
 
-from auger_cli.utils import request_list, get_uid, load_dataframe_from_file, save_dict_to_csv, wait_for_object_state, download_remote_file
+from auger_cli.utils import request_list, get_uid, load_dataframe_from_file, save_dfjson_to_csv, wait_for_object_state, download_remote_file
 from auger_cli.constants import REQUEST_LIMIT
 
 from auger_cli.api import cluster_tasks
@@ -365,6 +365,41 @@ def predict_by_file(client, file, pipeline_id=None, trial_id=None, save_to_file=
     if save_to_file:
         predict_path = os.path.splitext(file)[0] + "_predicted.csv"
         save_dict_to_csv(result, predict_path)
+
+        return predict_path
+
+    return result
+
+def predict_remotly(client, file, trial_id, threshold, save_to_file=False):
+    df = load_dataframe_from_file(file)
+    trial = trials.read(client, trial_id, experiment_session_id=None)
+
+    project_id, new_cluster = projects.start(client, create_if_not_exist=False)
+    experiment = get_or_create(client, project_id)
+
+    path_to_model = cluster_tasks.create_ex(client, project_id,
+        "auger_ml.tasks_queue.tasks.export_model_task",
+        {
+            'trial_data': trial.get('raw_data'),
+            'augerInfo': {'experiment_id': experiment['id']}
+        }
+    )
+    result = cluster_tasks.create_ex(client, project_id,
+        "auger_ml.tasks_queue.tasks.predict_by_model_task",
+        {
+            'model_path': path_to_model, 
+            'path_to_predict': None, 
+            'records': df.values.tolist(),
+            'features': df.columns.get_values().tolist(), 
+            'predict_value_num': None, 
+            'threshold': threshold,
+            'augerInfo': {'experiment_id': experiment['id']}
+        }
+    )
+
+    if save_to_file:
+        predict_path = os.path.splitext(file)[0] + "_predicted.csv"
+        save_dfjson_to_csv(result, predict_path)
 
         return predict_path
 

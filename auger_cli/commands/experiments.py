@@ -214,6 +214,32 @@ def predict(client, pipeline_id, trial_id, file, threshold, export, pull_docker)
         predict_path = experiments.predict_by_file(client, file, pipeline_id, trial_id, save_to_file=True)
     client.print_line("Prediction result saved to file: %s"%predict_path)
 
+@click.command("predict_remotly")
+@click.option(
+    '--trial-id',
+    '-t',
+    default=None,
+    help='Trial ID to predict model for the last experiment session, if missed best trial used.'
+)
+@click.option(
+    '--file',
+    '-f',
+    type=click.STRING,
+    help='CSV file with data to call predict.',
+    required=True
+)
+@click.option(
+    '--threshold',
+    '-h',
+    default=None,
+    help='Threshold to make prediction using predict_proba for binary classification.'
+)
+@pass_client
+def predict_remotly(client, trial_id, file, threshold):
+    with client.cli_error_handler():    
+        predict_path = experiments.predict_remotly(client, file, trial_id, threshold, save_to_file=True)
+        client.print_line("Prediction result saved to file: %s"%predict_path)
+
 experiments_group.add_command(create)
 experiments_group.add_command(show)
 experiments_group.add_command(delete)
@@ -223,6 +249,7 @@ experiments_group.add_command(leaderboard)
 experiments_group.add_command(export_model)
 experiments_group.add_command(deploy_model)
 experiments_group.add_command(predict)
+experiments_group.add_command(predict_remotly)
 experiments_group.add_command(settings)
 experiments_group.add_command(search_space)
 experiments_group.add_command(stop_cluster)
