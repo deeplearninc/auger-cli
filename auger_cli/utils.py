@@ -198,6 +198,15 @@ def shell_call(args, input_string='', silent=False):
         )
 
 
+def save_dfjson_to_csv(df_json, predict_path):
+    import json
+    import pandas as pd
+
+    df_descr = json.loads(df_json)
+    df_predict = pd.DataFrame.from_records(df_descr['data'], columns = df_descr['columns'])
+    df_predict.to_csv(predict_path, index=False, encoding='utf-8')
+
+
 def save_dict_to_csv(data, predict_path):
     import pandas as pd
 
