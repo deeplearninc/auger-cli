@@ -213,10 +213,26 @@ def logs(client, project, filter_re='', podname_filter='', tail=False, stacktrac
         FILTER_RE = re.compile(filter_re, re.U|re.I) if filter_re else None
         PODNAME_RE = re.compile(podname_filter, re.U|re.I) if podname_filter else None
         TRACE_RE = re.compile(r'Traceback')  # intended for python stack traces only currently
+        WARNING_RE = re.compile(r'\d: \w*Warning:', re.U)
+        WARNING_STOP_RE = re.compile(r'^(\[\d)|(\d{2}\.)', re.U)
         # logfile_name = client.config.get_project_logfile_name()
+        warning_continue_flag = False
         with StringIO() as screen_log:#, open(logfile_name, 'w+') as logfile:
             for page in stream:
                 for item in page['data']:
+                    # filter out all warnings
+                    if WARNING_RE.search(item['data']):
+                        warning_timestamp = item['timestamp']
+                        warning_continue_flag = True
+                        lines_skipped = 0
+                    elif warning_continue_flag:
+                        if lines_skipped > 4 or WARNING_STOP_RE.search(item['data']):
+                            warning_continue_flag = False
+                            lines_skipeed = 0
+                    if warning_continue_flag:
+                        lines_skipped += 1
+                        continue
+
                     # # stacktrace filtering on the upper level:
                     if stacktrace and not TRACE_RE.search(item['data']):
                         continue
