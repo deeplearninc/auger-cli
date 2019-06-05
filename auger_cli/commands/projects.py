@@ -16,7 +16,6 @@ from auger_cli.formatter import (
 )
 from auger_cli.api import projects
 from auger_cli.logging.stream import WebSocketStream, ApiStream
-from auger_cli.logging import pager
 
 
 @click.group(
@@ -215,7 +214,6 @@ def logs(client, project, filter_re='', podname_filter='', tail=False, stacktrac
         PODNAME_RE = re.compile(podname_filter, re.U|re.I) if podname_filter else None
         TRACE_RE = re.compile(r'Traceback')  # intended for python stack traces only currently
         # logfile_name = client.config.get_project_logfile_name()
-        page_width = pager.getwidth()
         with StringIO() as screen_log:#, open(logfile_name, 'w+') as logfile:
             for page in stream:
                 for item in page['data']:
@@ -230,14 +228,9 @@ def logs(client, project, filter_re='', podname_filter='', tail=False, stacktrac
                     # skip by regexp if given
                     if FILTER_RE is not None and not(FILTER_RE.search(item['data'])):
                         continue
-                    # print_line(item['data'], nl=False)
-                    sublines = pager.wrap_lines(item['data'].rstrip('\r\n'), page_width)
-                    for subline in sublines:
-                        screen_log.write(subline+'\n')
-                        # print_line(subline)
-                    # logfile.write(item['data'])
-            content = screen_log.getvalue().splitlines()
-        pager.page(content)
+                    screen_log.write(item['data'])
+            content = screen_log.getvalue()
+        click.echo_via_pager(content)
 
 
 @click.command("open_project", short_help='Open project in a browser.')
