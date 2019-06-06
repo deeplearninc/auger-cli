@@ -71,6 +71,15 @@ def delete(client, project_id):
     client.call_hub_api('delete_project', {'id': project_id})
 
 
+def stop_cluster(client):
+    project = get_or_create(client, create_if_not_exist=False)
+
+    org = orgs.read(client)
+    if org.get('cluster_mode') == 'single_tenant':
+        clusters.delete(client, project.get('cluster_id'))
+    else:
+        undeploy(client, project)        
+
 def get_or_create(client, create_if_not_exist=False, project_id=None, id_only=False):
     if project_id is None:
         project_id = client.config.get_project_id()
@@ -148,7 +157,7 @@ def start(client, create_if_not_exist=False, project_id=None):
         poll_interval=10
     )
 
-    return project['id'], new_cluster
+    return project['id'], new_cluster, org.get('cluster_mode') == 'single_tenant'
 
 
 def undeploy(client, project, wait=True):
@@ -170,7 +179,7 @@ def undeploy(client, project, wait=True):
 
 
 def download_file(client, project_id, remote_path, local_path, stop_project=False):
-    project_id, new_cluster = start(client, project_id=project_id)
+    project_id, new_cluster, is_single_tenant = start(client, project_id=project_id)
 
     if new_cluster or remote_path=='*':
         all_files = list_files(client, project_id)
@@ -182,29 +191,39 @@ def download_file(client, project_id, remote_path, local_path, stop_project=Fals
         if '_last_time' in download_path:
             continue
             
-        if not download_path.startswith("/") and not download_path.startswith('files'):
-            download_path = os.path.join('files', download_path)
+        if is_single_tenant:
+            if not download_path.startswith("/") and not download_path.startswith('files'):
+                download_path = os.path.join('files', download_path)
 
-        s3_model_path = cluster_tasks.create_ex(client, project_id,
-            "pipeline_functions.packager.tasks.upload_file", download_path
-        )
+            s3_model_path = cluster_tasks.create_ex(client, project_id,
+                "pipeline_functions.packager.tasks.upload_file", download_path
+            )
 
-        s3_signed_model_path = cluster_tasks.create_ex(client, project_id,
-            "pipeline_functions.packager.tasks.generate_presigned_url", s3_model_path
-        )
-        client.print_line("Model S3 path: %s"%s3_signed_model_path)
+            s3_signed_model_path = cluster_tasks.create_ex(client, project_id,
+                "pipeline_functions.packager.tasks.generate_presigned_url", s3_model_path
+            )
+        else:
+            if download_path.startswith('files/'):
+                download_path = os.path.basename(download_path)
 
+            s3_signed_model_path = client.call_hub_api('get_project_file_url', {
+                'project_id': project_id,
+                'file_path': download_path
+            }).get('url')
+
+        client.print_line("S3 file path: %s"%s3_signed_model_path)
         res.append(download_remote_file(local_path, s3_signed_model_path))
 
     if stop_project:
-        project = read(client, project_id=project_id)
-        clusters.delete(client, project['cluster_id'], wait=False)
+        stop_cluster(client)
+        # project = read(client, project_id=project_id)
+        # clusters.delete(client, project['cluster_id'], wait=False)
 
     return res
 
 def list_files(client, project_id, remote_path=None, start_project=True):
     if start_project:
-        project_id, new_cluster = start(client, project_id=project_id)
+        project_id, new_cluster, is_single_tenant = start(client, project_id=project_id)
 
     task_args = {'augerInfo': {}}
     if remote_path:
