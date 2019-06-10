@@ -59,6 +59,7 @@ def wait_for_object_state(client, method, params, first_status,
                 time.sleep(client.config.get_api_poll_interval(poll_interval))
 
                 result = client.call_hub_api(method, params=params)
+                #print(result)
                 status = result.get(status_name, 'failure')
 
     client.print_line('{}... '.format(camelize(status)))

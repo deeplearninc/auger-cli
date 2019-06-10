@@ -309,7 +309,7 @@ def export_model(client, trial_id, deploy=False):
                 'not_requested', 'pending'
             ],
             poll_interval=2,
-            status_name='signed_s3_model_path_status'
+            status_name='s3_model_path_status'
         )
         client.print_line("Model S3 path: %s" %
                           pipeline_file)
@@ -419,7 +419,7 @@ def predict_by_file_locally(client, file, trial_id=None, save_to_file=False, pul
     data_path = os.path.dirname(file)
     target_filename = os.path.splitext(filename)[0]
     if pull_docker:
-        command = 'docker pull deeplearninc/auger-ml-predict:{docker_tag}'.format(docker_tag=docker_tag)
+        command = 'docker pull deeplearninc/auger-ml-worker:{docker_tag}'.format(docker_tag=docker_tag)
         client.print_debug(command)
         subprocess.check_call(command, shell=True)
 
@@ -429,7 +429,7 @@ def predict_by_file_locally(client, file, trial_id=None, save_to_file=False, pul
     command = (r"docker run "
                 "-v {pwd}/{model_path}:/var/src/auger-ml-worker/exported_model "
                 "-v {pwd}/{data_path}:/var/src/auger-ml-worker/model_data "
-                "deeplearninc/auger-ml-predict:{docker_tag} python "
+                "deeplearninc/auger-ml-worker:{docker_tag} python "
                 "./exported_model/client.py").format(
                     model_path=target_path,
                     data_path=data_path,
