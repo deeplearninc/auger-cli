@@ -5,8 +5,8 @@
 #experiment: iris
 
 cluster:
-  worker_nodes_count : 2
-  instance_type: c5.large
+  workers_count : 2
+  worker_type_id: 1
   autoterminate_minutes: 120
 
 evaluation_options:
