@@ -227,10 +227,10 @@ evaluation_options:
 # Cluster settings with default values
 # cluster:
   # Number of nodes to run on cluster. Minimum of 2, the more workers deployed the more jobs that can be run in parallel.
-  # worker_nodes_count : 2
+  # workers_count : 2
 
   # To list available types call: `auger instances`
-  # instance_type: c5.large
+  # worker_type_id: 1
 
   # Number of workers per computer node. Setting it lower then CPU count, increase amoutn of memory available for worker
   # workers_per_node_count: 2
