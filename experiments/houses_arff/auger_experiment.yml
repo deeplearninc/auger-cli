@@ -1,9 +1,9 @@
 ---
 
 cluster:
-  worker_nodes_count : 2
-  instance_type: c5.large
-  autoterminate_minutes: 30
+  worker_type_id : 1
+  workers_count: 2
+  autoterminate_minutes: 60
 
 evaluation_options:
   #data_path: files/iris_data_sample.csv
