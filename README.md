@@ -430,7 +430,7 @@ To start working with Auger Python API, follow installation instructions for Aug
 ### Predict using locally exported model:
 
 ```python
-    result = experiments.predict_by_file_locally(client, file='./iris_train/files/iris_data_test.csv', trial_id=leaderboard[0]['id'],save_to_file=False)
+    result = experiments.predict_by_file_locally(client, file='./iris_train/files/iris_data_test.csv', trial_id=leaderboard[0]['id'], save_to_file=False, pull_docker=True)
     print(result[0])
 
 ```
