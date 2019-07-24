@@ -219,8 +219,8 @@ def read_leaderboard(client, experiment_session_id=None):
 
     leaderboard = []
     for trial in trials_list:
-        optimizer_name = trial.get('raw_data').get('optimizer_name', '')
-        if len(optimizer_name) > 0:
+        optimizer_name = trial.get('raw_data').get('optimizer_name')
+        if optimizer_name:
             optimizer_name = optimizer_name.split('.')[-1]
 
         leaderboard.append({
