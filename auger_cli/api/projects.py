@@ -193,7 +193,7 @@ def download_file(client, project_id, remote_path, local_path, stop_project=Fals
             
         if is_single_tenant:
             if not download_path.startswith("/") and not download_path.startswith('files'):
-                download_path = os.path.join('files', download_path)
+                download_path = "files/%s"%download_path
 
             s3_model_path = cluster_tasks.create_ex(client, project_id,
                 "pipeline_functions.packager.tasks.upload_file", download_path
@@ -203,7 +203,7 @@ def download_file(client, project_id, remote_path, local_path, stop_project=Fals
                 "pipeline_functions.packager.tasks.generate_presigned_url", s3_model_path
             )
         else:
-            if download_path.startswith('files/'):
+            if download_path.startswith('files'):
                 download_path = os.path.basename(download_path)
 
             s3_signed_model_path = client.call_hub_api('get_project_file_url', {
