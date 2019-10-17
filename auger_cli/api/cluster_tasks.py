@@ -48,9 +48,9 @@ def run(client, wait):
 
     cluster_task['params']['project_id'] = project_id
 
-    if new_cluster and not is_single_tenant:
-        client.print_line("Wait 30 sec to complete cluster start.")
-        time.sleep(30)
+    # if new_cluster: # and not is_single_tenant:
+    #     client.print_line("Wait 30 sec to complete cluster start.")
+    #     time.sleep(30)
 
     create_ex(client, project_id, cluster_task.get(
         'name'), cluster_task.get('params'), wait)

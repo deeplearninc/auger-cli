@@ -208,15 +208,16 @@ def save_dfjson_to_csv(df_json, predict_path):
     df_predict.to_csv(predict_path, index=False, encoding='utf-8')
 
 
-def save_dict_to_csv(data, predict_path):
+def save_records_to_csv(data, predict_path):
     import pandas as pd
 
-    df_predict = pd.DataFrame.from_dict(data)
+    df_predict = pd.DataFrame.from_records(data['data'], columns=data['columns'])
     df_predict.to_csv(predict_path, index=False, encoding='utf-8')
 
 
-def load_dataframe_from_file(path, features=None, nrows=None):
+def load_records_from_file(path, features=None, nrows=None):
     import pandas as pd
+    import math
 
     extension = path
     data_compression = 'infer'
@@ -225,8 +226,9 @@ def load_dataframe_from_file(path, features=None, nrows=None):
     header = 0 if csv_with_header else None
     prefix = None if csv_with_header else 'c'
 
+    res_df = None
     try:
-        return pd.read_csv(
+        res_df = pd.read_csv(
             path,
             encoding='utf-8',
             escapechar="\\",
@@ -240,7 +242,7 @@ def load_dataframe_from_file(path, features=None, nrows=None):
             compression=data_compression
         )
     except Exception as e:
-        return pd.read_csv(
+        res_df = pd.read_csv(
             path,
             encoding='utf-8',
             escapechar="\\",
@@ -255,6 +257,11 @@ def load_dataframe_from_file(path, features=None, nrows=None):
         )
 
 
+    res_df.replace({pd.np.nan: None}, inplace=True)
+    records = res_df.values.tolist()
+    features = res_df.columns.get_values().tolist()
+    return records, features
+        
 def merge_dicts(d, other):
     import collections
 

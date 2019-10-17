@@ -115,8 +115,7 @@ def print_table(myDict, attributes=None):
     formatStr = ' | '.join(["{{:<{}}}".format(i) for i in colSize])
     formatSep = '-+-'.join(["{{:<{}}}".format(i) for i in colSize])
     for item in myList:
-        #print(item)
-        if item[0][0] == '-':
+        if item[0] and item[0][0] == '-':
             print(formatSep.format(*item))
         else:
             print(formatStr.format(*item))

@@ -4,7 +4,7 @@ import shutil
 import subprocess
 from zipfile import ZipFile
 
-from auger_cli.utils import request_list, get_uid, load_dataframe_from_file, save_dfjson_to_csv, wait_for_object_state, download_remote_file
+from auger_cli.utils import request_list, get_uid, load_records_from_file, save_dfjson_to_csv, wait_for_object_state, download_remote_file, save_records_to_csv
 from auger_cli.constants import REQUEST_LIMIT
 
 from auger_cli.api import cluster_tasks
@@ -354,19 +354,19 @@ def predict_by_records(client, records, features, pipeline_id=None, trial_id=Non
     return predictions.read(client, prediction_id).get('result')
 
 def predict_by_file(client, file, pipeline_id=None, trial_id=None, save_to_file=False):
-    df = load_dataframe_from_file(file)
-    result = predict_by_records(client, df.values.tolist(), df.columns.get_values().tolist(), pipeline_id, trial_id)
+    records, features = load_records_from_file(file)
+    result = predict_by_records(client, records, features, pipeline_id, trial_id)
 
     if save_to_file:
         predict_path = os.path.splitext(file)[0] + "_predicted.csv"
-        save_dict_to_csv(result, predict_path)
+        save_records_to_csv(result, predict_path)
 
         return predict_path
 
     return result
 
 def predict_remotly(client, file, trial_id, threshold, save_to_file=False):
-    df = load_dataframe_from_file(file)
+    records, features = load_records_from_file(file)
     trial = trials.read(client, trial_id, experiment_session_id=None)
 
     project_id, new_cluster, is_single_tenant = projects.start(client, create_if_not_exist=False)
@@ -384,8 +384,8 @@ def predict_remotly(client, file, trial_id, threshold, save_to_file=False):
         {
             'model_path': path_to_model, 
             'path_to_predict': None, 
-            'records': df.values.tolist(),
-            'features': df.columns.get_values().tolist(), 
+            'records': records,
+            'features': features, 
             'predict_value_num': None, 
             'threshold': threshold,
             'augerInfo': {'experiment_id': experiment['id']}
@@ -404,7 +404,6 @@ def monitor_leaderboard(client, name):
     pass
 
 def predict_by_file_locally(client, file, trial_id=None, save_to_file=False, pull_docker=False, threshold=None):
-    df = load_dataframe_from_file(file)
     docker_tag = client.config.get_cluster_settings()['kubernetes_stack']
 
     zip_path = export_model(client, trial_id, deploy=False)
