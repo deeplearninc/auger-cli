@@ -69,4 +69,5 @@ class AugerClient(object):
         self.client = HubApiClient(
             hub_app_url=self.config.get_api_url(),
             token=self.config.get_api_token()
+            #,debug=self.config.is_dev_mode()
         )

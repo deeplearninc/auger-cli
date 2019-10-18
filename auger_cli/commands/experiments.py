@@ -208,11 +208,12 @@ def deploy_model(client, trial_id):
     help='Pull newer docker image')
 @pass_client
 def predict(client, pipeline_id, trial_id, file, threshold, export, pull_docker):
-    if export:
-        predict_path = experiments.predict_by_file_locally(client, file, trial_id, save_to_file=True,pull_docker=pull_docker,threshold=threshold)
-    else:
-        predict_path = experiments.predict_by_file(client, file, pipeline_id, trial_id, save_to_file=True)
-    client.print_line("Prediction result saved to file: %s"%predict_path)
+    with client.cli_error_handler():        
+        if export:
+            predict_path = experiments.predict_by_file_locally(client, file, trial_id, save_to_file=True,pull_docker=pull_docker,threshold=threshold)
+        else:
+            predict_path = experiments.predict_by_file(client, file, pipeline_id, trial_id, save_to_file=True)
+        client.print_line("Prediction result saved to file: %s"%predict_path)
 
 @click.command("predict_remotly")
 @click.option(
