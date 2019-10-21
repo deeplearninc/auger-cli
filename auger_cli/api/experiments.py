@@ -403,7 +403,8 @@ def predict_remotly(client, file, trial_id, threshold, save_to_file=False):
 def monitor_leaderboard(client, name):
     pass
 
-def predict_by_file_locally(client, file, trial_id=None, save_to_file=False, pull_docker=False, threshold=None):
+def predict_by_file_locally(client, file, trial_id=None, save_to_file=False, 
+    pull_docker=False, threshold=None, locally=False):
     docker_tag = client.config.get_cluster_settings()['kubernetes_stack']
 
     zip_path = export_model(client, trial_id, deploy=False)
@@ -417,24 +418,31 @@ def predict_by_file_locally(client, file, trial_id=None, save_to_file=False, pul
     filename = os.path.basename(file)
     data_path = os.path.dirname(file)
     target_filename = os.path.splitext(filename)[0]
-    if pull_docker:
-        command = 'docker pull deeplearninc/auger-ml-worker:{docker_tag}'.format(docker_tag=docker_tag)
-        client.print_debug(command)
-        subprocess.check_call(command, shell=True)
-
-    args = " --path_to_predict=./model_data/{filename}".format(filename=filename)
+    args = ""
     if threshold:
         args += " --threshold={threshold}".format(threshold=threshold)
-    command = (r"docker run "
-                "-v {pwd}/{model_path}:/var/src/auger-ml-worker/exported_model "
-                "-v {pwd}/{data_path}:/var/src/auger-ml-worker/model_data "
-                "deeplearninc/auger-ml-worker:{docker_tag} python "
-                "./exported_model/client.py").format(
-                    model_path=target_path,
-                    data_path=data_path,
-                    docker_tag=docker_tag,
-                    pwd=os.getcwd()
-              )
+
+    if locally:
+        command = "python %s/client.py --model_path=%s/model --path_to_predict=%s"%(target_path,target_path,file)
+    else:    
+        if pull_docker:
+            command = 'docker pull deeplearninc/auger-ml-worker:{docker_tag}'.format(docker_tag=docker_tag)
+            client.print_debug(command)
+            subprocess.check_call(command, shell=True)
+
+        args += " --path_to_predict=./model_data/{filename}".format(filename=filename)
+
+        command = (r"docker run "
+                    "-v {pwd}/{model_path}:/var/src/auger-ml-worker/exported_model "
+                    "-v {pwd}/{data_path}:/var/src/auger-ml-worker/model_data "
+                    "deeplearninc/auger-ml-worker:{docker_tag} python "
+                    "./exported_model/client.py").format(
+                        model_path=target_path,
+                        data_path=data_path,
+                        docker_tag=docker_tag,
+                        pwd=os.getcwd()
+                  )
+
     command += args            
     client.print_debug(command)
     subprocess.check_call(command, shell=True)

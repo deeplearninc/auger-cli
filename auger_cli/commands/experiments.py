@@ -206,11 +206,19 @@ def deploy_model(client, trial_id):
     is_flag=True,
     default=False,
     help='Pull newer docker image')
+@click.option(
+    '--locally',
+    '-l',
+    type=click.BOOL,
+    is_flag=True,
+    default=False,
+    help='Run predict in local python env')
 @pass_client
-def predict(client, pipeline_id, trial_id, file, threshold, export, pull_docker):
+def predict(client, pipeline_id, trial_id, file, threshold, export, pull_docker, locally):
     with client.cli_error_handler():        
         if export:
-            predict_path = experiments.predict_by_file_locally(client, file, trial_id, save_to_file=True,pull_docker=pull_docker,threshold=threshold)
+            predict_path = experiments.predict_by_file_locally(client, file, trial_id, 
+                save_to_file=True,pull_docker=pull_docker,threshold=threshold, locally=locally)
         else:
             predict_path = experiments.predict_by_file(client, file, pipeline_id, trial_id, save_to_file=True)
         client.print_line("Prediction result saved to file: %s"%predict_path)
